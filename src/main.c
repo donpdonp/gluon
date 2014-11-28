@@ -17,7 +17,8 @@ main() {
 
   redis = redisConnect("127.0.0.1", 6379);
   redis_pub = redisConnect("127.0.0.1", 6379);
-  reply = redisCommand(redis, "SUBSCRIBE %s", "foo");
+  puts("Subscribe neur0n");
+  reply = redisCommand(redis, "SUBSCRIBE %s", "neur0n");
   while(redisGetReply(redis, (void**)&reply) == REDIS_OK) {
     // consume message
     char* code = reply->element[2]->str;
@@ -30,7 +31,7 @@ main() {
     } else {
       puts("bad code");
     }
-    reply_pub = redisCommand(redis_pub, "publish %s %s", "out", json);
+    reply_pub = redisCommand(redis_pub, "publish %s %s", "neur0n", json);
     freeReplyObject(reply_pub);
   }
   freeReplyObject(reply);
@@ -73,7 +74,9 @@ do_mruby_json(char* code){
     fputs("EXCEPTION\n", stderr);
     return NULL;
   }
-  return stringify_json(state, result);
+  const char* json = json = stringify_json(state, result);
+  mrb_close(state);
+  return json;
 }
 
 const char*
