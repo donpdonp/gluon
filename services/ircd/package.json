@@ -1,7 +1,8 @@
 { "name" : "neur0n-service-ircd",
   "version" : "0.0.1",
   "dependencies" : { 
-                     "irc-socket": "*"
+                     "irc-socket": "*",
+                     "redis": "*"
                    },
   "repository" :{
     "type" : "git",
