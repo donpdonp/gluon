@@ -4,8 +4,9 @@
 #include "mruby.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
+#include "mruby-json/src/parson.h"
 
-const char* do_mruby_json(char*);
+const char* do_mruby_json(const char*);
 const char* stringify_json(mrb_state* mrb, mrb_value val);
 
 int
@@ -14,6 +15,7 @@ main() {
   redisContext *redis_pub;
   redisReply *reply;
   redisReply *reply_pub;
+  JSON_Value *msg;
 
   redis = redisConnect("127.0.0.1", 6379);
   redis_pub = redisConnect("127.0.0.1", 6379);
@@ -21,24 +23,28 @@ main() {
   reply = redisCommand(redis, "SUBSCRIBE %s", "neur0n");
   while(redisGetReply(redis, (void**)&reply) == REDIS_OK) {
     // consume message
-    char* code = reply->element[2]->str;
-    puts(code);
-    const char* json;
-    json = do_mruby_json(code);
+    const char* json_in = reply->element[2]->str;
+    puts(json_in);
+    msg = json_parse_string(json_in);
+    printf("json value type %d\n", json_value_get_type(msg));
+    JSON_Object* obj = json_value_get_object(msg);
+    printf("json parse type %s\n", json_object_get_string(obj, "type"));
+    const char* json_result;
+    json_result = do_mruby_json(json_in);
 
-    if(json){
-      puts(json);
+    if(json_result){
+      puts(json_result);
     } else {
       puts("bad code");
     }
-    reply_pub = redisCommand(redis_pub, "publish %s %s", "neur0n", json);
+    reply_pub = redisCommand(redis_pub, "publish %s %s", "neur0no", json_result);
     freeReplyObject(reply_pub);
   }
   freeReplyObject(reply);
 }
 
 const char*
-do_mruby_json(char* code){
+do_mruby_json(const char* code){
   mrb_state* state;
   state = mrb_open();
 
@@ -74,7 +80,7 @@ do_mruby_json(char* code){
     fputs("EXCEPTION\n", stderr);
     return NULL;
   }
-  const char* json = json = stringify_json(state, result);
+  const char* json = stringify_json(state, result);
   mrb_close(state);
   return json;
 }
