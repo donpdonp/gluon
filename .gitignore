@@ -1,4 +1,5 @@
 /gems/
 /bin/
 /.bundle/
+/mruby
 node_modules/
