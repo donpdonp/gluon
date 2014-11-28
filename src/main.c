@@ -18,14 +18,12 @@ main() {
   redis = redisConnect("127.0.0.1", 6379);
   redis_pub = redisConnect("127.0.0.1", 6379);
   reply = redisCommand(redis, "SUBSCRIBE %s", "foo");
-  freeReplyObject(reply);
   while(redisGetReply(redis, (void**)&reply) == REDIS_OK) {
     // consume message
     char* code = reply->element[2]->str;
     puts(code);
     const char* json;
     json = do_mruby_json(code);
-    freeReplyObject(reply);
 
     if(json){
       puts(json);
@@ -35,7 +33,7 @@ main() {
     reply_pub = redisCommand(redis_pub, "publish %s %s", "out", json);
     freeReplyObject(reply_pub);
   }
-
+  freeReplyObject(reply);
 }
 
 const char*
