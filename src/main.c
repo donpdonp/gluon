@@ -7,7 +7,7 @@
 #include "mruby-json/src/parson.h"
 
 const char* do_mruby_json(const char*);
-const char* stringify_json(mrb_state* mrb, mrb_value val);
+const char* mruby_stringify_json(mrb_state* mrb, mrb_value val);
 
 int
 main() {
@@ -15,7 +15,7 @@ main() {
   redisContext *redis_pub;
   redisReply *reply;
   redisReply *reply_pub;
-  JSON_Value *msg;
+  JSON_Value *jvalue;
 
   redis = redisConnect("127.0.0.1", 6379);
   redis_pub = redisConnect("127.0.0.1", 6379);
@@ -25,20 +25,22 @@ main() {
     // consume message
     const char* json_in = reply->element[2]->str;
     puts(json_in);
-    msg = json_parse_string(json_in);
-    printf("json value type %d\n", json_value_get_type(msg));
-    JSON_Object* obj = json_value_get_object(msg);
-    printf("json parse type %s\n", json_object_get_string(obj, "type"));
-    const char* json_result;
-    json_result = do_mruby_json(json_in);
+    jvalue = json_parse_string(json_in);
+    if(json_value_get_type(jvalue) == JSONObject){
+      JSON_Object* obj = json_value_get_object(jvalue);
+      const char* code = json_object_get_string(obj, "code");
 
-    if(json_result){
-      puts(json_result);
-    } else {
-      puts("bad code");
+      const char* json_result;
+      json_result = do_mruby_json(code);
+
+      if(json_result){
+        puts(json_result);
+      } else {
+        puts("bad code");
+      }
+      reply_pub = redisCommand(redis_pub, "publish %s %s", "neur0no", json_result);
+      freeReplyObject(reply_pub);
     }
-    reply_pub = redisCommand(redis_pub, "publish %s %s", "neur0no", json_result);
-    freeReplyObject(reply_pub);
   }
   freeReplyObject(reply);
 }
@@ -80,13 +82,13 @@ do_mruby_json(const char* code){
     fputs("EXCEPTION\n", stderr);
     return NULL;
   }
-  const char* json = stringify_json(state, result);
+  const char* json = mruby_stringify_json(state, result);
   mrb_close(state);
   return json;
 }
 
 const char*
-stringify_json(mrb_state* mrb, mrb_value val) {
+mruby_stringify_json(mrb_state* mrb, mrb_value val) {
   struct RClass* clazz = mrb_module_get(mrb, "JSON");
   mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, val);
   return mrb_string_value_cstr(mrb, &str);
