@@ -1,0 +1,10 @@
+{ "name" : "neur0n-service-ircd",
+  "version" : "0.0.1",
+  "dependencies" : { 
+                     "irc-socket": "*"
+                   },
+  "repository" :{
+    "type" : "git",
+    "url" : "http://github.com/donpdonp/neur0n.git"
+  }
+}
