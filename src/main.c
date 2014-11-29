@@ -6,26 +6,40 @@
 #include "mruby/string.h"
 #include "mruby-json/src/parson.h"
 
+#define CONFIG(key) json_object_dotget_string(config, key)
+
 const char* do_mruby_json(const char*);
 const char* mruby_stringify_json(mrb_state* mrb, mrb_value val);
+void mainloop(JSON_Object* config);
 
 int
 main() {
+  JSON_Value *config_json;
+  config_json = json_parse_file("config.json");
+  if(json_value_get_type(config_json) == JSONObject){
+    JSON_Object* config = json_value_get_object(config_json);
+    mainloop(config);
+  } else {
+    puts("error reading/parsing config.json");
+  }
+}
+
+void
+mainloop(JSON_Object* config) {
   redisContext *redis;
   redisContext *redis_pub;
   redisReply *reply;
   redisReply *reply_pub;
-  JSON_Value *jvalue;
 
-  redis = redisConnect("127.0.0.1", 6379);
-  redis_pub = redisConnect("127.0.0.1", 6379);
-  puts("Subscribe neur0n");
-  reply = redisCommand(redis, "SUBSCRIBE %s", "neur0n");
+  printf("redis connect %s subscribe %s\n", CONFIG("redis.host"), CONFIG("redis.channel"));
+  redis = redisConnect(CONFIG("redis.host"), 6379);
+  redis_pub = redisConnect(CONFIG("redis.host"), 6379);
+  reply = redisCommand(redis, "SUBSCRIBE %s", CONFIG("redis.channel"));
   while(redisGetReply(redis, (void**)&reply) == REDIS_OK) {
     // consume message
     const char* json_in = reply->element[2]->str;
     printf("<- %s\n", json_in);
-    jvalue = json_parse_string(json_in);
+    JSON_Value* jvalue = json_parse_string(json_in);
     if(json_value_get_type(jvalue) == JSONObject){
       JSON_Object* obj = json_value_get_object(jvalue);
       const char* code = json_object_get_string(obj, "code");

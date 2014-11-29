@@ -1,0 +1,4 @@
+{ "redis":{ "host":"localhost",
+            "channel":"neur0n"
+          }
+}
