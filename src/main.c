@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include <hiredis/hiredis.h>
 
@@ -14,6 +15,7 @@ struct ruby_vm_t {
 };
 typedef struct ruby_vm_t ruby_vm;
 ruby_vm* machines;
+int machines_count = 0;
 ruby_vm admin_vm;
 
 const char* eval_mruby_json(ruby_vm, const char*);
@@ -126,6 +128,10 @@ mruby_stringify_json(mrb_state* mrb, mrb_value val) {
 }
 
 void
-machines_add(ruby_vm machines, const char* name){
-
+machines_add(ruby_vm* machines, const char* name){
+  machines_count = machines_count + 1;
+  machines = realloc(machines, sizeof(ruby_vm)*machines_count);
+  ruby_vm new_vm = (ruby_vm)machines[machines_count-1];
+  new_vm.state = mrb_open();
+  new_vm.owner = name;
 }
