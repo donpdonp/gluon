@@ -48,7 +48,7 @@ mainloop(JSON_Object* config) {
   printf("redis connect %s subscribe %s\n", CONFIG("redis.host"), CONFIG("redis.channel"));
   redis = redisConnect(CONFIG("redis.host"), 6379);
   redis_pub = redisConnect(CONFIG("redis.host"), 6379);
-  reply = redisCommand(redis, "SUBSCRIBE %s", CONFIG("redis.channel"));
+  reply = (redisReply*)redisCommand(redis, "SUBSCRIBE %s", CONFIG("redis.channel"));
   while(redisGetReply(redis, (void**)&reply) == REDIS_OK) {
     // consume message
     const char* json_in = reply->element[2]->str;
@@ -69,7 +69,7 @@ mainloop(JSON_Object* config) {
         } else {
           puts("bad code");
         }
-        reply_pub = redisCommand(redis_pub, "publish %s %s", "neur0n", answer);
+        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", answer);
         freeReplyObject(reply_pub);
       }
     }
@@ -87,7 +87,7 @@ eval_mruby_json(ruby_vm vm, const char* code){
   parser_state = mrb_parse_string(vm.state, code, context);
   if (parser_state == NULL) {
     fputs("parse error\n", stderr);
-    return;
+    return "{\"error\":\"parser error\"}";
   }
 
   if (0 < parser_state->nerr) {
