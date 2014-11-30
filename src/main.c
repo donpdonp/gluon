@@ -22,6 +22,7 @@ const char* eval_mruby_json(ruby_vm, const char*);
 const char* mruby_stringify_json(mrb_state* mrb, mrb_value val);
 void mainloop(JSON_Object* config);
 void setup();
+static mrb_value my_c_method(mrb_state *mrb, mrb_value self);
 
 int
 main() {
@@ -38,6 +39,8 @@ main() {
 void
 setup() {
   admin_vm.state = mrb_open();
+  struct RClass *class_cextension = mrb_define_module(admin_vm.state, "Neuron");
+  mrb_define_class_method(admin_vm.state, class_cextension, "go", my_c_method, MRB_ARGS_REQ(1));
 }
 
 void
@@ -112,6 +115,7 @@ eval_mruby_json(ruby_vm vm, const char* code){
 
   mrb_value result;
   result = mrb_run(vm.state, proc, root_object);
+  printf("run result type #%d\n", result.tt);
   if(result.tt == MRB_TT_EXCEPTION){
     fputs("EXCEPTION\n", stderr);
     return "{\"error\":\"ruby exception\"}";
@@ -134,4 +138,13 @@ machines_add(ruby_vm* machines, const char* name){
   ruby_vm new_vm = (ruby_vm)machines[machines_count-1];
   new_vm.state = mrb_open();
   new_vm.owner = name;
+}
+
+static mrb_value
+my_c_method(mrb_state *mrb, mrb_value self) {
+  mrb_value x;
+  mrb_get_args(mrb, "S", &x);
+
+  printf("A C Extension: %s\n", mrb_string_value_cstr(mrb, &x));
+  return x;
 }
