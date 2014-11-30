@@ -14,7 +14,7 @@ struct ruby_vm_t {
   const char* owner;
 };
 typedef struct ruby_vm_t ruby_vm;
-ruby_vm* machines;
+ruby_vm* machines = NULL;
 int machines_count = 0;
 ruby_vm admin_vm;
 
@@ -39,6 +39,7 @@ main() {
 void
 setup() {
   admin_vm.state = mrb_open();
+  admin_vm.owner = "admin";
   struct RClass *class_cextension = mrb_define_module(admin_vm.state, "Neuron");
   mrb_define_class_method(admin_vm.state, class_cextension, "go", my_c_method, MRB_ARGS_REQ(1));
 }
@@ -65,16 +66,18 @@ mainloop(JSON_Object* config) {
 
       if(code){
         const char* json_result;
-        json_result = eval_mruby_json(admin_vm, code);
-
-        const char* answer;
-        if(json_result){
-          printf("-> %s\n", json_result);
-          answer = json_result;
-        } else {
-          puts("bad code");
+        int i;
+        for(i=0; i < machines_count; i++) {
+          printf("machine %d <- %s\n", i, code);
+          ruby_vm this_vm = machines[i];
+          json_result = eval_mruby_json(this_vm, code);
+          printf("machine %d -> %s\n", i, json_result);
         }
-        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", answer);
+
+        json_result = eval_mruby_json(admin_vm, code);
+        printf("admin -> %s\n", json_result);
+
+        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json_result);
         freeReplyObject(reply_pub);
       }
     }
@@ -85,6 +88,8 @@ mainloop(JSON_Object* config) {
 
 const char*
 eval_mruby_json(ruby_vm vm, const char* code){
+  printf("eval_mruby_json vm:%s\n", vm.owner);
+
   mrbc_context* context;
   context = mrbc_context_new(vm.state);
 
@@ -132,12 +137,17 @@ mruby_stringify_json(mrb_state* mrb, mrb_value val) {
 }
 
 void
-machines_add(ruby_vm* machines, const char* name){
+machines_add(const char* name){
   machines_count = machines_count + 1;
-  machines = realloc(machines, sizeof(ruby_vm)*machines_count);
-  ruby_vm new_vm = (ruby_vm)machines[machines_count-1];
-  new_vm.state = mrb_open();
-  new_vm.owner = name;
+  printf("realloc %p size %ld * %d\n", machines, sizeof(ruby_vm), machines_count);
+  machines = (ruby_vm*)realloc(machines, sizeof(ruby_vm)*machines_count);
+  printf("post realloc %p \n", machines);
+  if(machines){
+    printf("new machine #%d allocated for %s\n", machines_count, name);
+    ruby_vm new_vm = (ruby_vm)machines[machines_count-1];
+    new_vm.state = mrb_open();
+    new_vm.owner = name;
+  }
 }
 
 static mrb_value
@@ -145,6 +155,7 @@ my_c_method(mrb_state *mrb, mrb_value self) {
   mrb_value x;
   mrb_get_args(mrb, "S", &x);
 
-  printf("A C Extension: %s\n", mrb_string_value_cstr(mrb, &x));
+  printf("adding machine: %s\n", mrb_string_value_cstr(mrb, &x));
+  machines_add(mrb_string_value_cstr(mrb, &x));
   return x;
 }
