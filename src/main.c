@@ -68,8 +68,8 @@ mainloop(JSON_Object* config) {
         const char* json_result;
         int i;
         for(i=0; i < machines_count; i++) {
-          printf("machine %d <- %s\n", i, code);
           ruby_vm this_vm = machines[i];
+          printf("machine %d/%s %p <- %s\n", i, this_vm.owner, &this_vm, code);
           json_result = eval_mruby_json(this_vm, code);
           printf("machine %d -> %s\n", i, json_result);
         }
@@ -123,6 +123,9 @@ eval_mruby_json(ruby_vm vm, const char* code){
   printf("run result type #%d\n", result.tt);
   if(result.tt == MRB_TT_EXCEPTION){
     fputs("EXCEPTION\n", stderr);
+    mrb_value exv = mrb_obj_value(vm.state->exc);
+    exv = mrb_funcall(vm.state, exv, "inspect", 0);
+    puts(mrb_string_value_cstr(vm.state, &exv));
     return "{\"error\":\"ruby exception\"}";
   }
   const char* json = mruby_stringify_json(vm.state, result);
@@ -138,15 +141,19 @@ mruby_stringify_json(mrb_state* mrb, mrb_value val) {
 
 void
 machines_add(const char* name){
+  int idx = machines_count;
   machines_count = machines_count + 1;
-  printf("realloc %p size %ld * %d\n", machines, sizeof(ruby_vm), machines_count);
-  machines = (ruby_vm*)realloc(machines, sizeof(ruby_vm)*machines_count);
+  int new_size = sizeof(ruby_vm)*machines_count;
+  printf("realloc %p size %ld * %d = %d\n", machines, sizeof(ruby_vm), machines_count, new_size);
+  machines = (ruby_vm*)realloc(machines, new_size);
   printf("post realloc %p \n", machines);
   if(machines){
     printf("new machine #%d allocated for %s\n", machines_count, name);
-    ruby_vm new_vm = (ruby_vm)machines[machines_count-1];
-    new_vm.state = mrb_open();
-    new_vm.owner = name;
+    printf("machines %p. machines[%d] %p.\n", machines, idx, &machines[idx]);
+    ruby_vm* new_vm = &machines[idx];
+    new_vm->state = mrb_open();
+    new_vm->owner = name;
+    printf("new machine #%d allocated for %s @ %p\n", machines_count, name, &new_vm);
   }
 }
 
@@ -155,7 +162,7 @@ my_c_method(mrb_state *mrb, mrb_value self) {
   mrb_value x;
   mrb_get_args(mrb, "S", &x);
 
-  printf("adding machine: %s\n", mrb_string_value_cstr(mrb, &x));
+  printf("Neuron::go adding machine: %s\n", mrb_string_value_cstr(mrb, &x));
   machines_add(mrb_string_value_cstr(mrb, &x));
   return x;
 }
