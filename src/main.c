@@ -88,7 +88,7 @@ mainloop(JSON_Object* config) {
 
 const char*
 eval_mruby_json(ruby_vm vm, const char* code){
-  printf("eval_mruby_json vm:%s\n", vm.owner);
+  printf("eval_mruby_json vm:%s code: %s\n", vm.owner, code);
 
   mrbc_context* context;
   context = mrbc_context_new(vm.state);
@@ -122,9 +122,9 @@ eval_mruby_json(ruby_vm vm, const char* code){
   result = mrb_run(vm.state, proc, root_object);
   printf("run result type #%d\n", result.tt);
   if(result.tt == MRB_TT_EXCEPTION){
-    fputs("EXCEPTION\n", stderr);
     mrb_value exv = mrb_obj_value(vm.state->exc);
     exv = mrb_funcall(vm.state, exv, "inspect", 0);
+    vm.state->exc = 0;
     puts(mrb_string_value_cstr(vm.state, &exv));
     return "{\"error\":\"ruby exception\"}";
   }
