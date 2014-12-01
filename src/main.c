@@ -2,27 +2,13 @@
 #include <string.h>
 #include <hiredis/hiredis.h>
 
-#include "mruby.h"
-#include "mruby/compile.h"
-#include "mruby/string.h"
-#include "mruby-json/src/parson.h"
-
+#include "main.h"
 #define CONFIG(key) json_object_dotget_string(config, key)
 
-struct ruby_vm_t {
-  mrb_state* state;
-  const char* owner;
-};
-typedef struct ruby_vm_t ruby_vm;
 ruby_vm* machines = NULL;
 int machines_count = 0;
 ruby_vm admin_vm;
 
-const char* eval_mruby_json(ruby_vm, const char*);
-const char* mruby_stringify_json(mrb_state* mrb, mrb_value val);
-void mainloop(JSON_Object* config);
-void setup();
-static mrb_value my_c_method(mrb_state *mrb, mrb_value self);
 
 int
 main() {
@@ -86,58 +72,6 @@ mainloop(JSON_Object* config) {
   freeReplyObject(reply);
 }
 
-const char*
-eval_mruby_json(ruby_vm vm, const char* code){
-  printf("eval_mruby_json vm:%s code: %s\n", vm.owner, code);
-
-  mrbc_context* context;
-  context = mrbc_context_new(vm.state);
-
-  struct mrb_parser_state* parser_state;
-  parser_state = mrb_parse_string(vm.state, code, context);
-  if (parser_state == NULL) {
-    fputs("parse error\n", stderr);
-    return "{\"error\":\"parser error\"}";
-  }
-
-  if (0 < parser_state->nerr) {
-    static char err[2048];
-    sprintf(err, "{\"error\":\"line %d: %s\"}", parser_state->error_buffer[0].lineno+1,
-                                                parser_state->error_buffer[0].message);
-    return err;
-  }
-
-  struct RProc* proc;
-  proc = mrb_generate_code(vm.state, parser_state);
-  if (proc == NULL) {
-    fputs("codegen error\n", stderr);
-    return "{\"error\":\"codegen\"}";
-  }
-  mrb_parser_free(parser_state);
-
-  mrb_value root_object;
-  root_object = mrb_top_self(vm.state);
-
-  mrb_value result;
-  result = mrb_run(vm.state, proc, root_object);
-  printf("run result type #%d\n", result.tt);
-  if(result.tt == MRB_TT_EXCEPTION){
-    mrb_value exv = mrb_obj_value(vm.state->exc);
-    exv = mrb_funcall(vm.state, exv, "inspect", 0);
-    vm.state->exc = 0;
-    puts(mrb_string_value_cstr(vm.state, &exv));
-    return "{\"error\":\"ruby exception\"}";
-  }
-  const char* json = mruby_stringify_json(vm.state, result);
-  return json;
-}
-
-const char*
-mruby_stringify_json(mrb_state* mrb, mrb_value val) {
-  struct RClass* clazz = mrb_module_get(mrb, "JSON");
-  mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, val);
-  return mrb_string_value_cstr(mrb, &str);
-}
 
 void
 machines_add(const char* name){

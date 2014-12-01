@@ -9,6 +9,6 @@ mruby/.git:
 mruby/build:
 	make -C mruby
 
-neur0n: src/*.o
-	gcc -o neur0n src/*.o mruby/build/host/mrbgems/mruby-json/src/parson.o $(LDFLAGS)
+neur0n: src/main.o src/eval_mruby.o
+	gcc -o neur0n $^ mruby/build/host/mrbgems/mruby-json/src/parson.o $(LDFLAGS)
 
