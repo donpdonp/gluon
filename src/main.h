@@ -3,6 +3,10 @@
 #include "mruby/string.h"
 #include "mruby-json/src/parson.h"
 
+#if __STDC_VERSION__ < 199901L
+#pragma message "C compiler is older than C99"
+#endif
+
 #ifndef MAIN_H
 #define MAIN_H
 
