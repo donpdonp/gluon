@@ -9,7 +9,6 @@ ruby_vm* machines = NULL;
 int machines_count = 0;
 ruby_vm* admin_vm;
 
-
 int
 main() {
   JSON_Value *config_json = json_parse_file("config.json");
@@ -26,23 +25,23 @@ void
 admin_setup() {
   admin_vm = machines_add("admin");
   struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
-  mrb_define_class_method(admin_vm->state, class_cextension, "add_machine", my_c_method, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "add_machine", my_add_machine, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
   mruby_parse_file(*admin_vm, "admin.rb");
 }
 
 void
 mainloop(JSON_Object* config) {
-  redisContext *redis;
+  redisContext *redis_sub;
   redisContext *redis_pub;
   redisReply *reply;
   redisReply *reply_pub;
 
   printf("redis: connect to %s. subscribe to %s.\n", CONFIG("redis.host"), CONFIG("redis.channel"));
-  redis = redisConnect(CONFIG("redis.host"), 6379);
+  redis_sub = redisConnect(CONFIG("redis.host"), 6379);
   redis_pub = redisConnect(CONFIG("redis.host"), 6379);
-  reply = (redisReply*)redisCommand(redis, "SUBSCRIBE %s", CONFIG("redis.channel"));
-  while(redisGetReply(redis, (void**)&reply) == REDIS_OK) {
+  reply = (redisReply*)redisCommand(redis_sub, "SUBSCRIBE %s", CONFIG("redis.channel"));
+  while(redisGetReply(redis_sub, (void**)&reply) == REDIS_OK) {
     // consume message
     const char* json_in = reply->element[2]->str;
     mrb_value json_obj = mruby_json_parse(*admin_vm, json_in);
@@ -81,7 +80,7 @@ machines_add(const char* name){
 }
 
 static mrb_value
-my_c_method(mrb_state *mrb, mrb_value self) {
+my_add_machine(mrb_state *mrb, mrb_value self) {
   mrb_value x;
   mrb_get_args(mrb, "S", &x);
 
@@ -99,4 +98,30 @@ my_dispatch(mrb_state *mrb, mrb_value self) {
   mrb_get_args(mrb, "o", &msg);
 
   return msg;
+};
+
+static mrb_value
+my_db_get(mrb_state *mrb, mrb_value self) {
+  mrb_value key;
+  mrb_get_args(mrb, "S", &key);
+
+  return key;
+};
+
+static mrb_value
+my_db_del(mrb_state *mrb, mrb_value self) {
+  mrb_value key;
+  mrb_get_args(mrb, "S", &key);
+
+  return key;
+};
+
+static mrb_value
+my_db_set(mrb_state *mrb, mrb_value self) {
+  mrb_value key;
+  mrb_get_args(mrb, "S", &key);
+  mrb_value value;
+  mrb_get_args(mrb, "S", &value);
+
+  return value;
 };

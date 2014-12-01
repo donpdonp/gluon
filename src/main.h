@@ -19,8 +19,14 @@ typedef struct ruby_vm_t ruby_vm;
 
 void admin_setup();
 void mainloop(JSON_Object* config);
-static mrb_value my_c_method(mrb_state *mrb, mrb_value self);
+/* admin callbacks */
+static mrb_value my_add_machine(mrb_state *mrb, mrb_value self);
 static mrb_value my_dispatch(mrb_state *mrb, mrb_value self);
+/* callbacks */
+static mrb_value my_db_get(mrb_state *mrb, mrb_value self);
+static mrb_value my_db_set(mrb_state *mrb, mrb_value self);
+static mrb_value my_db_del(mrb_state *mrb, mrb_value self);
+
 
 /* VM list */
 ruby_vm* machines_add(const char* name);
