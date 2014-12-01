@@ -46,6 +46,21 @@ eval_mruby_json(ruby_vm vm, const char* code){
   return json;
 }
 
+void
+mruby_parse_file(ruby_vm vm, const char* filename){
+  FILE* admin_rb = fopen(filename, "r");
+  mrbc_context* context = mrbc_context_new(vm.state);
+  struct mrb_parser_state* parser_state;
+  parser_state = mrb_parse_file(vm.state, admin_rb, context);
+  fclose(admin_rb);
+
+  struct RProc* proc;
+  proc = mrb_generate_code(vm.state, parser_state);
+  mrb_parser_free(parser_state);
+
+  mrb_run(vm.state, proc, mrb_top_self(vm.state));
+}
+
 const char*
 mruby_stringify_json(mrb_state* mrb, mrb_value val) {
   struct RClass* clazz = mrb_module_get(mrb, "JSON");

@@ -13,9 +13,13 @@ struct ruby_vm_t {
 
 typedef struct ruby_vm_t ruby_vm;
 
+void admin_setup();
+void mainloop(JSON_Object* config);
+static mrb_value my_c_method(mrb_state *mrb, mrb_value self);
+
+/* mruby calls */
 const char* eval_mruby_json(ruby_vm vm, const char* code);
 const char* mruby_stringify_json(mrb_state* mrb, mrb_value val);
-void mainloop(JSON_Object* config);
-void setup();
-static mrb_value my_c_method(mrb_state *mrb, mrb_value self);
+void mruby_parse_file(ruby_vm vm, const char* filename);
+
 #endif

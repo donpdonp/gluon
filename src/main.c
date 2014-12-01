@@ -15,7 +15,7 @@ main() {
   JSON_Value *config_json = json_parse_file("config.json");
   if(json_value_get_type(config_json) == JSONObject){
     JSON_Object* config = json_value_get_object(config_json);
-    setup();
+    admin_setup();
     mainloop(config);
   } else {
     puts("error reading/parsing config.json");
@@ -23,11 +23,12 @@ main() {
 }
 
 void
-setup() {
+admin_setup() {
   admin_vm.state = mrb_open();
   admin_vm.owner = "admin";
   struct RClass *class_cextension = mrb_define_module(admin_vm.state, "Neuron");
-  mrb_define_class_method(admin_vm.state, class_cextension, "go", my_c_method, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm.state, class_cextension, "add_machine", my_c_method, MRB_ARGS_REQ(1));
+  mruby_parse_file(admin_vm, "admin.rb");
 }
 
 void
@@ -96,7 +97,7 @@ my_c_method(mrb_state *mrb, mrb_value self) {
   mrb_value x;
   mrb_get_args(mrb, "S", &x);
 
-  printf("Neuron::go adding machine: %s\n", mrb_string_value_cstr(mrb, &x));
+  printf("Neuron::add_machine %s\n", mrb_string_value_cstr(mrb, &x));
   machines_add(mrb_string_value_cstr(mrb, &x));
   return x;
 }
