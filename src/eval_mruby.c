@@ -1,4 +1,5 @@
 #include "main.h"
+#include "string.h"
 
 const char*
 eval_mruby_json(ruby_vm vm, const char* code){
@@ -59,6 +60,14 @@ mruby_parse_file(ruby_vm vm, const char* filename){
   mrb_parser_free(parser_state);
 
   mrb_run(vm.state, proc, mrb_top_self(vm.state));
+}
+
+mrb_value
+mruby_json_parse(ruby_vm vm, const char* json){
+  struct RClass* clazz = mrb_module_get(vm.state, "JSON");
+  mrb_value val = mrb_str_new_cstr(vm.state, json);
+  mrb_value rjson = mrb_funcall(vm.state, mrb_obj_value(clazz), "parse", 1, val);
+  return rjson;
 }
 
 const char*

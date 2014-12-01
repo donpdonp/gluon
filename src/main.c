@@ -28,6 +28,7 @@ admin_setup() {
   admin_vm.owner = "admin";
   struct RClass *class_cextension = mrb_define_module(admin_vm.state, "Neuron");
   mrb_define_class_method(admin_vm.state, class_cextension, "add_machine", my_c_method, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm.state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
   mruby_parse_file(admin_vm, "admin.rb");
 }
 
@@ -53,19 +54,18 @@ mainloop(JSON_Object* config) {
 
       if(code){
         const char* json_result;
+        json_result = eval_mruby_json(admin_vm, code);
+        printf("admin -> %s\n", json_result);
         int i;
         for(i=0; i < machines_count; i++) {
           ruby_vm this_vm = machines[i];
           printf("machine %d/%s %p <- %s\n", i, this_vm.owner, &this_vm, code);
           json_result = eval_mruby_json(this_vm, code);
           printf("machine %d -> %s\n", i, json_result);
+
+          reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json_result);
+          freeReplyObject(reply_pub);
         }
-
-        json_result = eval_mruby_json(admin_vm, code);
-        printf("admin -> %s\n", json_result);
-
-        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json_result);
-        freeReplyObject(reply_pub);
       }
     }
     json_value_free(jvalue);
@@ -74,7 +74,7 @@ mainloop(JSON_Object* config) {
 }
 
 
-void
+ruby_vm
 machines_add(const char* name){
   int idx = machines_count;
   machines_count = machines_count + 1;
@@ -89,6 +89,7 @@ machines_add(const char* name){
     new_vm->state = mrb_open();
     new_vm->owner = name;
     printf("new machine #%d allocated for %s @ %p\n", machines_count, name, &new_vm);
+    return machines[idx];
   }
 }
 
@@ -101,3 +102,14 @@ my_c_method(mrb_state *mrb, mrb_value self) {
   machines_add(mrb_string_value_cstr(mrb, &x));
   return x;
 }
+
+static mrb_value
+my_dispatch(mrb_state *mrb, mrb_value self) {
+//  mrb_value vm_id;
+//  mrb_get_args(mrb, "S", &vm_id);
+
+  mrb_value msg;
+  mrb_get_args(mrb, "o", &msg);
+
+  return msg;
+};
