@@ -26,5 +26,6 @@ const char* mruby_eval(ruby_vm vm, const char* code);
 const char* mruby_stringify_json(mrb_state* mrb, mrb_value val);
 void mruby_parse_file(ruby_vm vm, const char* filename);
 mrb_value mruby_json_parse(ruby_vm vm, const char* json);
+mrb_value mruby_dispatch(ruby_vm vm, mrb_value msg);
 
 #endif

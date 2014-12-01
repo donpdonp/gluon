@@ -76,3 +76,10 @@ mruby_stringify_json(mrb_state* mrb, mrb_value val) {
   mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, val);
   return mrb_string_value_cstr(mrb, &str);
 }
+
+mrb_value
+mruby_dispatch(ruby_vm vm, mrb_value msg){
+  struct RClass* clazz = mrb_module_get(vm.state, "Neur0n");
+  mrb_value ret = mrb_funcall(vm.state, mrb_obj_value(clazz), "dispatch", 1, msg);
+  return ret;
+}
