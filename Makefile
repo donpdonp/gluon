@@ -1,5 +1,6 @@
 all: mruby/.git mruby/build neur0n
 
+CFLAGS=-std=c99
 CPPFLAGS=-I mruby/include -I mruby/build/mrbgems
 LDFLAGS=-L mruby/build/host/lib -lmruby -lm -lhiredis
 

@@ -49,8 +49,7 @@ mainloop(JSON_Object* config) {
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
 
     if(json_obj.tt == MRB_TT_HASH){
-      int i;
-      for(i=0; i < machines_count; i++) {
+      for(int i=0; i < machines_count; i++) {
         ruby_vm this_vm = machines[i];
         printf("machine %d/%s dispatch \n", i, this_vm.owner);
         mrb_value result;
