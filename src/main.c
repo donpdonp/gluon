@@ -38,7 +38,7 @@ mainloop(JSON_Object* config) {
   redisReply *reply;
   redisReply *reply_pub;
 
-  printf("redis connect %s subscribe %s\n", CONFIG("redis.host"), CONFIG("redis.channel"));
+  printf("redis: connect to %s. subscribe to %s.\n", CONFIG("redis.host"), CONFIG("redis.channel"));
   redis = redisConnect(CONFIG("redis.host"), 6379);
   redis_pub = redisConnect(CONFIG("redis.host"), 6379);
   reply = (redisReply*)redisCommand(redis, "SUBSCRIBE %s", CONFIG("redis.channel"));
@@ -71,16 +71,12 @@ machines_add(const char* name){
   int idx = machines_count;
   machines_count = machines_count + 1;
   int new_size = sizeof(ruby_vm)*machines_count;
-  printf("realloc %p size %ld * %d = %d\n", machines, sizeof(ruby_vm), machines_count, new_size);
   machines = (ruby_vm*)realloc(machines, new_size);
-  printf("post realloc %p \n", machines);
   if(machines){
-    printf("new machine #%d allocated for %s\n", machines_count, name);
-    printf("machines %p. machines[%d] %p.\n", machines, idx, &machines[idx]);
     ruby_vm* new_vm = &machines[idx];
     new_vm->state = mrb_open();
     new_vm->owner = name;
-    printf("new machine #%d allocated for %s @ %p\n", machines_count, name, &new_vm);
+    printf("new machine #%d allocated for %s\n", machines_count, name);
     return &machines[idx];
   }
 }
