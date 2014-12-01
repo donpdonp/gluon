@@ -7,7 +7,7 @@
 
 ruby_vm* machines = NULL;
 int machines_count = 0;
-ruby_vm admin_vm;
+ruby_vm* admin_vm;
 
 
 int
@@ -24,12 +24,11 @@ main() {
 
 void
 admin_setup() {
-  admin_vm.state = mrb_open();
-  admin_vm.owner = "admin";
-  struct RClass *class_cextension = mrb_define_module(admin_vm.state, "Neuron");
-  mrb_define_class_method(admin_vm.state, class_cextension, "add_machine", my_c_method, MRB_ARGS_REQ(1));
-  mrb_define_class_method(admin_vm.state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
-  mruby_parse_file(admin_vm, "admin.rb");
+  admin_vm = machines_add("admin");
+  struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neuron");
+  mrb_define_class_method(admin_vm->state, class_cextension, "add_machine", my_c_method, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
+  mruby_parse_file(*admin_vm, "admin.rb");
 }
 
 void
@@ -54,13 +53,13 @@ mainloop(JSON_Object* config) {
 
       if(code){
         const char* json_result;
-        json_result = eval_mruby_json(admin_vm, code);
+        json_result = mruby_eval(*admin_vm, code);
         printf("admin -> %s\n", json_result);
         int i;
         for(i=0; i < machines_count; i++) {
           ruby_vm this_vm = machines[i];
           printf("machine %d/%s %p <- %s\n", i, this_vm.owner, &this_vm, code);
-          json_result = eval_mruby_json(this_vm, code);
+          json_result = mruby_eval(this_vm, code);
           printf("machine %d -> %s\n", i, json_result);
 
           reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json_result);
@@ -74,7 +73,7 @@ mainloop(JSON_Object* config) {
 }
 
 
-ruby_vm
+ruby_vm*
 machines_add(const char* name){
   int idx = machines_count;
   machines_count = machines_count + 1;
@@ -89,7 +88,7 @@ machines_add(const char* name){
     new_vm->state = mrb_open();
     new_vm->owner = name;
     printf("new machine #%d allocated for %s @ %p\n", machines_count, name, &new_vm);
-    return machines[idx];
+    return &machines[idx];
   }
 }
 

@@ -2,7 +2,7 @@
 #include "string.h"
 
 const char*
-eval_mruby_json(ruby_vm vm, const char* code){
+mruby_eval(ruby_vm vm, const char* code){
   printf("eval_mruby_json vm:%s code: %s\n", vm.owner, code);
 
   mrbc_context* context;
