@@ -53,7 +53,7 @@ mainloop(JSON_Object* config) {
         printf("machine %d/%s dispatch \n", i, this_vm.owner);
         mrb_value result;
         result = mruby_dispatch(this_vm, json_obj);
-        printf("machine %d -> %d\n", i, result.tt);
+        printf("machine %d -> type %d\n", i, result.tt);
 
         reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %d", "neur0n", result.tt);
         freeReplyObject(reply_pub);
