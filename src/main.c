@@ -25,7 +25,8 @@ void
 admin_setup() {
   admin_vm = machines_add("admin");
   struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
-  mrb_define_class_method(admin_vm->state, class_cextension, "add_machine", my_add_machine, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "machine_add", my_machine_add, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
   mruby_parse_file(*admin_vm, "admin.rb");
 }
@@ -80,12 +81,28 @@ machines_add(const char* name){
 }
 
 static mrb_value
-my_add_machine(mrb_state *mrb, mrb_value self) {
+my_machine_add(mrb_state *mrb, mrb_value self) {
   mrb_value x;
   mrb_get_args(mrb, "S", &x);
 
-  printf("Neuron::add_machine %s\n", mrb_string_value_cstr(mrb, &x));
+  printf("Neuron::machine_add %s\n", mrb_string_value_cstr(mrb, &x));
   machines_add(mrb_string_value_cstr(mrb, &x));
+  return x;
+}
+
+static mrb_value
+my_machine_eval(mrb_state *mrb, mrb_value self) {
+  mrb_value x;
+  mrb_get_args(mrb, "S", &x);
+
+  const char* machine_name = mrb_string_value_cstr(mrb, &x);
+  printf("Neuron::machine_eval %s\n", machine_name);
+  for(int i=0; i < machines_count; i++){
+    if(strcmp(machines[i].owner, machine_name) == 0){
+      ruby_vm name_vm = machines[i];
+      mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live';end;end");
+    }
+  }
   return x;
 }
 

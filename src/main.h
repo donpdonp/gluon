@@ -20,7 +20,8 @@ typedef struct ruby_vm_t ruby_vm;
 void admin_setup();
 void mainloop(JSON_Object* config);
 /* admin callbacks */
-static mrb_value my_add_machine(mrb_state *mrb, mrb_value self);
+static mrb_value my_machine_add(mrb_state *mrb, mrb_value self);
+static mrb_value my_machine_eval(mrb_state *mrb, mrb_value self);
 static mrb_value my_dispatch(mrb_state *mrb, mrb_value self);
 /* callbacks */
 static mrb_value my_db_get(mrb_state *mrb, mrb_value self);
