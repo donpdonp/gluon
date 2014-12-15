@@ -53,8 +53,8 @@ mainloop(JSON_Object* config) {
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
 
     if(json_obj.tt == MRB_TT_HASH){
-      for(int i=0; i < machines_count; i++) {
-        printf(" * top of loop. i = %d, machines_count %d\n", i, machines_count);
+      int local_count = machines_count;
+      for(int i=0; i < local_count; i++) {
         ruby_vm this_vm = machines[i];
         printf("    machine %d/%s -> Neur0n::dispatch\n", i, this_vm.owner);
         mrb_value result = mruby_dispatch(this_vm, json_obj);
@@ -62,13 +62,11 @@ mainloop(JSON_Object* config) {
 
         if(result.tt == MRB_TT_HASH){
           const char* json = mruby_stringify_json(admin_vm, result);
-          printf("    publish json %s\n", json);
+          printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
           //reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "{}");
           //freeReplyObject(reply_pub);
         } else {
-          printf("    no result or bad result\n");
         }
-        printf(" * bottom of loop. machines_count %d\n", machines_count);
       }
     }
   }
