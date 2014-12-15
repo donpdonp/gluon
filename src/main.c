@@ -59,8 +59,14 @@ mainloop(JSON_Object* config) {
         mrb_value result = mruby_dispatch(this_vm, json_obj);
         printf("    machine %d/%s -> return type %d\n", i, this_vm.owner, result.tt);
 
-        //reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "{}");
-        //freeReplyObject(reply_pub);
+        if(result.tt == MRB_TT_HASH){
+          const char* json = mruby_stringify_json(admin_vm, result);
+          printf("    publish json %s\n", json);
+          //reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "{}");
+          //freeReplyObject(reply_pub);
+        } else {
+          printf("    no result\n");
+        }
         printf(" * bottom of loop. machines_count %d\n", machines_count);
       }
     }
@@ -105,7 +111,7 @@ my_machine_eval(mrb_state *mrb, mrb_value self) {
     if(strcmp(machines[i].owner, machine_name) == 0){
       ruby_vm name_vm = machines[i];
       printf("my_machine_eval %s found. sending test i live\n", machine_name);
-      mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live';end;end");
+      mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live'; {:n=>1}; end;end");
     }
   }
   return x;

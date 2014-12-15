@@ -43,7 +43,7 @@ mruby_eval(ruby_vm vm, const char* code){
     puts(mrb_string_value_cstr(vm.state, &exv));
     return "{\"error\":\"ruby exception\"}";
   }
-  const char* json = mruby_stringify_json(vm.state, result);
+  const char* json = mruby_stringify_json(vm, result);
   return json;
 }
 
@@ -71,10 +71,10 @@ mruby_json_parse(ruby_vm vm, const char* json){
 }
 
 const char*
-mruby_stringify_json(mrb_state* mrb, mrb_value val) {
-  struct RClass* clazz = mrb_module_get(mrb, "JSON");
-  mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, val);
-  return mrb_string_value_cstr(mrb, &str);
+mruby_stringify_json(ruby_vm vm, mrb_value val) {
+  struct RClass* clazz = mrb_module_get(vm.state, "JSON");
+  mrb_value str = mrb_funcall(vm.state, mrb_obj_value(clazz), "stringify", 1, val);
+  return mrb_string_value_cstr(vm.state, &str);
 }
 
 mrb_value
