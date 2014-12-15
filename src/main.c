@@ -28,6 +28,7 @@ admin_setup() {
   struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_add", my_machine_add, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "http_get", my_http_get, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
   mruby_parse_file(*admin_vm, "admin.rb");
 }
@@ -65,7 +66,7 @@ mainloop(JSON_Object* config) {
           //reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "{}");
           //freeReplyObject(reply_pub);
         } else {
-          printf("    no result\n");
+          printf("    no result or bad result\n");
         }
         printf(" * bottom of loop. machines_count %d\n", machines_count);
       }
@@ -153,3 +154,13 @@ my_db_set(mrb_state *mrb, mrb_value self) {
 
   return value;
 };
+
+static mrb_value
+my_http_get(mrb_state *mrb, mrb_value self) {
+  mrb_value url;
+  mrb_get_args(mrb, "S", &url);
+
+  printf("my_http_get %s\n", mrb_string_value_cstr(mrb, &url));
+  return url;
+};
+

@@ -1,6 +1,7 @@
 #include "mruby.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
+#include "mruby/variable.h"
 #include "mruby-json/src/parson.h"
 
 #if __STDC_VERSION__ < 199901L
@@ -27,6 +28,7 @@ static mrb_value my_dispatch(mrb_state *mrb, mrb_value self);
 static mrb_value my_db_get(mrb_state *mrb, mrb_value self);
 static mrb_value my_db_set(mrb_state *mrb, mrb_value self);
 static mrb_value my_db_del(mrb_state *mrb, mrb_value self);
+static mrb_value my_http_get(mrb_state *mrb, mrb_value self);
 
 
 /* VM list */
