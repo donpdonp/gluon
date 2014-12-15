@@ -41,4 +41,7 @@ void mruby_parse_file(ruby_vm vm, const char* filename);
 mrb_value mruby_json_parse(ruby_vm vm, const char* json);
 mrb_value mruby_dispatch(ruby_vm vm, mrb_value msg);
 
+/* libcurl */
+size_t curl_on_page(char *ptr, size_t size, size_t nmemb, void *userdata);
+
 #endif

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <hiredis/hiredis.h>
+#include <curl/curl.h>
 
 #include "main.h"
 #define CONFIG(key) json_object_dotget_string(config, key)
@@ -155,10 +156,36 @@ my_db_set(mrb_state *mrb, mrb_value self) {
 
 static mrb_value
 my_http_get(mrb_state *mrb, mrb_value self) {
+  CURL* curl;
   mrb_value url;
   mrb_get_args(mrb, "S", &url);
 
-  printf("my_http_get %s\n", mrb_string_value_cstr(mrb, &url));
-  return url;
-};
+  const char* url_c  = mrb_string_value_cstr(mrb, &url);
+  printf("my_http_get %s\n", url_c);
 
+  curl = curl_easy_init();
+  if(curl){
+    CURLcode res;
+
+    curl_easy_setopt(curl, CURLOPT_URL, url_c);
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_on_page);
+    res = curl_easy_perform(curl);
+    if(res == CURLE_OK) {
+      printf("curl ok\n");
+
+    } else {
+      printf("curl not ok\n");
+    }
+    curl_easy_cleanup(curl);
+  }
+  return url;
+}
+
+size_t
+curl_on_page(char *ptr, size_t size, size_t nmemb, void *userdata){
+  printf("curl on_page %d\n", (int)(size*nmemb));
+  printf("%s\n", ptr);
+  return size*nmemb;
+}
