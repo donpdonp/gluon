@@ -30,7 +30,7 @@ static mrb_value my_db_del(mrb_state *mrb, mrb_value self);
 
 
 /* VM list */
-ruby_vm* machines_add(const char* name);
+int machines_add(const char* name);
 
 /* mruby calls */
 const char* mruby_eval(ruby_vm vm, const char* code);

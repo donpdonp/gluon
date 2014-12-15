@@ -7,7 +7,7 @@
 
 ruby_vm* machines = NULL;
 int machines_count = 0;
-ruby_vm* admin_vm;
+int admin_vm_idx;
 
 int
 main() {
@@ -23,7 +23,8 @@ main() {
 
 void
 admin_setup() {
-  admin_vm = machines_add("admin");
+  admin_vm_idx = machines_add("admin");
+  ruby_vm* admin_vm = &machines[admin_vm_idx];
   struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_add", my_machine_add, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(1));
@@ -46,21 +47,21 @@ mainloop(JSON_Object* config) {
     // consume message
     const char* json_in = reply->element[2]->str;
     printf("<-(raw) %s \n", json_in);
-    mrb_value json_obj = mruby_json_parse(*admin_vm, json_in);
+    ruby_vm admin_vm = machines[admin_vm_idx];
+    mrb_value json_obj = mruby_json_parse(admin_vm, json_in);
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
 
     if(json_obj.tt == MRB_TT_HASH){
       for(int i=0; i < machines_count; i++) {
-        printf("top of loop. i = %d, machines_count %d\n", i, machines_count);
+        printf(" * top of loop. i = %d, machines_count %d\n", i, machines_count);
         ruby_vm this_vm = machines[i];
-        printf("machine %d/%s -> Neur0n::dispatch\n", i, this_vm.owner);
+        printf("    machine %d/%s -> Neur0n::dispatch\n", i, this_vm.owner);
         mrb_value result = mruby_dispatch(this_vm, json_obj);
-        printf("machine %d/%s -> return type %d\n", i, this_vm.owner, result.tt);
+        printf("    machine %d/%s -> return type %d\n", i, this_vm.owner, result.tt);
 
-        printf("redis result go\n");
-        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "1");
-        freeReplyObject(reply_pub);
-        printf("bottom of loop. machines_count %d\n", machines_count);
+        //reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "{}");
+        //freeReplyObject(reply_pub);
+        printf(" * bottom of loop. machines_count %d\n", machines_count);
       }
     }
   }
@@ -68,7 +69,7 @@ mainloop(JSON_Object* config) {
 }
 
 
-ruby_vm*
+int
 machines_add(const char* name){
   int idx = machines_count;
   machines_count = machines_count + 1;
@@ -79,7 +80,7 @@ machines_add(const char* name){
     new_vm->state = mrb_open();
     new_vm->owner = name;
     printf("new machine #%d allocated for %s\n", machines_count-1, name);
-    return new_vm;
+    return idx;
   }
 }
 
