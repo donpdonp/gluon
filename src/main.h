@@ -43,5 +43,9 @@ mrb_value mruby_dispatch(ruby_vm vm, mrb_value msg);
 
 /* libcurl */
 size_t curl_on_page(char *ptr, size_t size, size_t nmemb, void *userdata);
+struct CurlStr {
+  char *memory;
+  size_t size;
+};
 
 #endif

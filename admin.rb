@@ -9,6 +9,7 @@ module Neur0n
       if msg["url"]
         puts "loading #{msg['url']}"
         code = Neur0n::http_get(msg['url'])
+        puts "Admin got url body of #{code}"
       end
     end
   end
