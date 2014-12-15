@@ -28,7 +28,7 @@ admin_setup() {
   ruby_vm* admin_vm = &machines[admin_vm_idx];
   struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_add", my_machine_add, MRB_ARGS_REQ(1));
-  mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(2));
   mrb_define_class_method(admin_vm->state, class_cextension, "http_get", my_http_get, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
   mruby_parse_file(*admin_vm, "admin.rb");
@@ -96,22 +96,24 @@ my_machine_add(mrb_state *mrb, mrb_value self) {
   mrb_get_args(mrb, "S", &x);
 
   printf("Neuron::machine_add %s\n", mrb_string_value_cstr(mrb, &x));
-  machines_add(mrb_string_value_cstr(mrb, &x));
-  return x;
+  int midx = machines_add(mrb_string_value_cstr(mrb, &x));
+  return mrb_fixnum_value(midx);
 }
 
 static mrb_value
 my_machine_eval(mrb_state *mrb, mrb_value self) {
   mrb_value x;
-  mrb_get_args(mrb, "S", &x);
+  mrb_value rcode;
+  mrb_get_args(mrb, "SS", &x, &rcode);
 
   const char* machine_name = mrb_string_value_cstr(mrb, &x);
+  const char* code = mrb_string_value_cstr(mrb, &rcode);
   printf("my_machine_eval %s\n", machine_name);
   for(int i=0; i < machines_count; i++){
     if(strcmp(machines[i].owner, machine_name) == 0){
       ruby_vm name_vm = machines[i];
-      printf("my_machine_eval %s found. sending test i live\n", machine_name);
-      mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live'; {:n=>1}; end;end");
+      //mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live'; {:n=>1}; end;end");
+      mruby_eval(name_vm, code);
     }
   }
   return x;
@@ -177,8 +179,7 @@ my_http_get(mrb_state *mrb, mrb_value self) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
     res = curl_easy_perform(curl);
     if(res == CURLE_OK) {
-      printf("curl ok\n");
-      printf("%lu\n", (long)body.size);
+      printf("curl ok len %lu\n", (long)body.size);
       mrb_value rbody = mrb_str_new(mrb, body.memory, body.size);
       // ruby str copies value
       free(body.memory);
