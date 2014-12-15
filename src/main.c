@@ -45,19 +45,22 @@ mainloop(JSON_Object* config) {
   while(redisGetReply(redis_sub, (void**)&reply) == REDIS_OK) {
     // consume message
     const char* json_in = reply->element[2]->str;
+    printf("<-(raw) %s \n", json_in);
     mrb_value json_obj = mruby_json_parse(*admin_vm, json_in);
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
 
     if(json_obj.tt == MRB_TT_HASH){
       for(int i=0; i < machines_count; i++) {
+        printf("top of loop. i = %d, machines_count %d\n", i, machines_count);
         ruby_vm this_vm = machines[i];
-        printf("machine %d/%s dispatch \n", i, this_vm.owner);
-        mrb_value result;
-        result = mruby_dispatch(this_vm, json_obj);
-        printf("machine %d -> type %d\n", i, result.tt);
+        printf("machine %d/%s -> Neur0n::dispatch\n", i, this_vm.owner);
+        mrb_value result = mruby_dispatch(this_vm, json_obj);
+        printf("machine %d/%s -> return type %d\n", i, this_vm.owner, result.tt);
 
-        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %d", "neur0n", result.tt);
+        printf("redis result go\n");
+        reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", "1");
         freeReplyObject(reply_pub);
+        printf("bottom of loop. machines_count %d\n", machines_count);
       }
     }
   }
@@ -75,8 +78,8 @@ machines_add(const char* name){
     ruby_vm* new_vm = &machines[idx];
     new_vm->state = mrb_open();
     new_vm->owner = name;
-    printf("new machine #%d allocated for %s\n", machines_count, name);
-    return &machines[idx];
+    printf("new machine #%d allocated for %s\n", machines_count-1, name);
+    return new_vm;
   }
 }
 
@@ -96,10 +99,11 @@ my_machine_eval(mrb_state *mrb, mrb_value self) {
   mrb_get_args(mrb, "S", &x);
 
   const char* machine_name = mrb_string_value_cstr(mrb, &x);
-  printf("Neuron::machine_eval %s\n", machine_name);
+  printf("my_machine_eval %s\n", machine_name);
   for(int i=0; i < machines_count; i++){
     if(strcmp(machines[i].owner, machine_name) == 0){
       ruby_vm name_vm = machines[i];
+      printf("my_machine_eval %s found. sending test i live\n", machine_name);
       mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live';end;end");
     }
   }

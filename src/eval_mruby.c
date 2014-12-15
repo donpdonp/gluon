@@ -3,7 +3,7 @@
 
 const char*
 mruby_eval(ruby_vm vm, const char* code){
-  printf("eval_mruby_json vm:%s code: %s\n", vm.owner, code);
+  printf("mruby_eval vm:%s code: %s\n", vm.owner, code);
 
   mrbc_context* context;
   context = mrbc_context_new(vm.state);
@@ -35,7 +35,7 @@ mruby_eval(ruby_vm vm, const char* code){
 
   mrb_value result;
   result = mrb_run(vm.state, proc, root_object);
-  printf("run result type #%d\n", result.tt);
+  printf("eval result type #%d\n", result.tt);
   if(result.tt == MRB_TT_EXCEPTION){
     mrb_value exv = mrb_obj_value(vm.state->exc);
     exv = mrb_funcall(vm.state, exv, "inspect", 0);
