@@ -179,7 +179,10 @@ my_http_get(mrb_state *mrb, mrb_value self) {
     if(res == CURLE_OK) {
       printf("curl ok\n");
       printf("%lu\n", (long)body.size);
-      return mrb_str_new(mrb, body.memory, body.size);
+      mrb_value rbody = mrb_str_new(mrb, body.memory, body.size);
+      // ruby str copies value
+      free(body.memory);
+      return rbody;
     } else {
       printf("curl not ok\n");
     }
