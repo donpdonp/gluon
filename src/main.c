@@ -48,7 +48,6 @@ mainloop(JSON_Object* config) {
   while(redisGetReply(redis_sub, (void**)&reply) == REDIS_OK) {
     // consume message
     const char* json_in = reply->element[2]->str;
-    printf("<-(raw) %s \n", json_in);
     ruby_vm admin_vm = machines[admin_vm_idx];
     mrb_value json_obj = mruby_json_parse(admin_vm, json_in);
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
@@ -61,12 +60,20 @@ mainloop(JSON_Object* config) {
         mrb_value result = mruby_dispatch(this_vm, json_obj);
         printf("    machine %d/%s -> return type %d\n", i, this_vm.owner, result.tt);
 
-        if(result.tt == MRB_TT_HASH){
-          const char* json = mruby_stringify_json(admin_vm, result);
-          printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
-          reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
-          freeReplyObject(reply_pub);
+        if (this_vm.state->exc) {
+          mrb_value errstr;
+          errstr = mrb_funcall(this_vm.state, mrb_obj_value(this_vm.state->exc), "inspect", 0);
+          printf("    machine %d/%s -> EXCEPTION\n", i, this_vm.owner);
+          fwrite(RSTRING_PTR(errstr), RSTRING_LEN(errstr), 1, stdout);
+          putc('\n', stdout);
+          this_vm.state->exc = 0;
         } else {
+          if(result.tt == MRB_TT_HASH){
+            const char* json = mruby_stringify_json(admin_vm, result);
+            printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
+            reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
+            freeReplyObject(reply_pub);
+          }
         }
       }
     }
