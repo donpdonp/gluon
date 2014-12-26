@@ -7,9 +7,9 @@ var IrcSocket = require('irc-socket');
 var sessions = {}
 
 function add_irc_session(server, nick, name) {
-  var session = sessions[server+':'+nick] = { server: {caps: {}} }
+  var session = { server: {caps: {}} }
 
-  var irc = IrcSocket({
+  var irc = session.irc = IrcSocket({
       server: server,
       port: 6667,
       nickname: nick,
@@ -21,18 +21,28 @@ function add_irc_session(server, nick, name) {
   })
 
   irc.on('data', function (message) {
-    var ircmsg = /^:[^ ]+ (\d+) [^ ]+ (.*)/.exec(message)
+    console.log(message)
+    var ircmsg = /^:[^ ]+ ([^ ]+) ([^ ]+) (.*)/.exec(message)
     if(ircmsg) {
       if(ircmsg[1] == "005") {
-        var capstr = ircmsg[2].match(/(.*)\s+:[^:]+$/)
+        var capstr = ircmsg[3].match(/(.*)\s+:[^:]+$/)
         var capabilities = split005(session.server.caps, capstr[1])
       }
       if(ircmsg[1] == "251") {
         console.log('irc network detect', session.server.caps.network)
+        sessions[session.server.caps.network] = session
         var reply = {type:'irc.connected', network: session.server.caps.network}
         redisPub.publish('neur0n', JSON.stringify(reply))
       }
+      if(ircmsg[1] == "JOIN") {
+        var reply = {type:'irc.joined', network: session.server.caps.network, channel: ircmsg[2]}
+        redisPub.publish('neur0n', JSON.stringify(reply))
+      }
     }
+  })
+
+  irc.on('close', function (message) {
+    console.log(server, 'closed')
   })
 
   irc.connect();
@@ -69,4 +79,13 @@ function irc_dispatch(payload) {
   if(cmd == 'connect') {
     add_irc_session(payload.server, payload.nick, payload.nick)
   }
+  if(cmd == 'join') {
+    irc_join(payload.network, payload.channel)
+  }
+}
+
+function irc_join(network, channel) {
+  var cmd = "JOIN "+channel
+  console.log(cmd)
+  sessions[network].irc.raw(cmd)
 }
