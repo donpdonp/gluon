@@ -1,6 +1,6 @@
 module Neur0n
   def self.dispatch(msg)
-    puts "I AM DIspatch #{msg.inspect}"
+    puts "admin.rb dispatch #{msg.inspect}"
     if msg['name']
       idx = Neur0n::machine_add(msg['name'])
       puts "Adding machine #{msg['name']} ##{idx}"
