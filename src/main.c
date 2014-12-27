@@ -119,7 +119,6 @@ my_machine_eval(mrb_state *mrb, mrb_value self) {
   for(int i=0; i < machines_count; i++){
     if(strcmp(machines[i].owner, machine_name) == 0){
       ruby_vm name_vm = machines[i];
-      //mruby_eval(name_vm, "module Neur0n; def self.dispatch(msg); puts 'i live'; {:n=>1}; end;end");
       mruby_eval(name_vm, code);
     }
   }

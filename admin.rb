@@ -7,9 +7,7 @@ module Neur0n
       if msg["url"]
         puts "loading #{msg['url']}"
         code = Neur0n::http_get(msg['url'])
-        puts "Admin machine_eval(#{msg['name'].class}, #{code})"
         Neur0n::machine_eval(msg['name'], code)
-        puts "Admin machine_eval done"
       end
     end
   end
