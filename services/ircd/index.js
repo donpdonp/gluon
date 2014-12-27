@@ -82,10 +82,19 @@ function irc_dispatch(payload) {
   if(cmd == 'join') {
     irc_join(payload.network, payload.channel)
   }
+  if(cmd == 'privmsg') {
+    irc_privmsg(payload.network, payload.channel, payload.message)
+  }
 }
 
 function irc_join(network, channel) {
   var cmd = "JOIN "+channel
+  console.log(cmd)
+  sessions[network].irc.raw(cmd)
+}
+
+function irc_privmsg(network, channel, message) {
+  var cmd = "PRIVMSG "+channel+" "+message
   console.log(cmd)
   sessions[network].irc.raw(cmd)
 }
