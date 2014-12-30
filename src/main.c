@@ -97,32 +97,49 @@ machines_add(const char* name){
   }
 }
 
+int
+machines_find(const char* name){
+  for(int i=0; i < machines_count; i++) {
+    if(strcmp(name, machines[i].owner) == 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 static mrb_value
 my_machine_add(mrb_state *mrb, mrb_value self) {
-  mrb_value x;
-  mrb_get_args(mrb, "S", &x);
+  mrb_value name;
+  mrb_get_args(mrb, "S", &name);
 
-  printf("Neuron::machine_add %s\n", mrb_string_value_cstr(mrb, &x));
-  int midx = machines_add(mrb_string_value_cstr(mrb, &x));
-  return mrb_fixnum_value(midx);
+  const char* mname = mrb_string_value_cstr(mrb, &name);
+  printf("my_machine_add %s\n", mname);
+  int midx = machines_find(mname);
+  if(midx == -1) {
+    midx = machines_add(mname);
+    return mrb_fixnum_value(midx);
+  } else {
+    printf("my_machine_add %s already exists\n", mname);
+  }
 }
 
 static mrb_value
 my_machine_eval(mrb_state *mrb, mrb_value self) {
-  mrb_value x;
+  mrb_value name;
   mrb_value rcode;
-  mrb_get_args(mrb, "SS", &x, &rcode);
+  mrb_get_args(mrb, "SS", &name, &rcode);
 
-  const char* machine_name = mrb_string_value_cstr(mrb, &x);
+  const char* machine_name = mrb_string_value_cstr(mrb, &name);
   const char* code = mrb_string_value_cstr(mrb, &rcode);
   printf("my_machine_eval %s\n", machine_name);
-  for(int i=0; i < machines_count; i++){
-    if(strcmp(machines[i].owner, machine_name) == 0){
-      ruby_vm name_vm = machines[i];
-      mruby_eval(name_vm, code);
-    }
+  int midx = machines_find(machine_name);
+  if(midx){
+    ruby_vm name_vm = machines[midx];
+    mruby_eval(name_vm, code);
+  } else {
+      printf("my_machine_eval %s does not exist\n", machine_name);
   }
-  return x;
+  return name;
 }
 
 static mrb_value
@@ -185,7 +202,6 @@ my_http_get(mrb_state *mrb, mrb_value self) {
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
     res = curl_easy_perform(curl);
     if(res == CURLE_OK) {
-      printf("curl ok len %lu\n", (long)body.size);
       mrb_value rbody = mrb_str_new(mrb, body.memory, body.size);
       // ruby str copies value
       free(body.memory);
