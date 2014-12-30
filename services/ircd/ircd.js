@@ -70,7 +70,7 @@ function irc_dispatch(payload) {
   }
   if(cmd == 'privmsg') {
     if(!payload.nick) {
-      irc_privmsg(payload.network, payload.channel, payload.message)
+      irc_privmsg(payload.network, payload.channel, ':'+payload.message)
     }
   }
 }
