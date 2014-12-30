@@ -22,33 +22,9 @@ function add_irc_session(server, nick, name) {
 
   irc.on('data', function (message) {
     console.log(message)
-    var ircmsg = /^:([^ ]+) ([^ ]+) ([^ ]+) :?(.*)/.exec(message)
+    var ircmsg = /^:([^ ]+) ([^ ]+) ([^ ]+)( :?(.*))?/.exec(message)
     if(ircmsg) {
-      if(ircmsg[2] == "005") {
-        var capstr = ircmsg[4].match(/(.*)\s+:[^:]+$/)
-        var capabilities = split005(session.server.caps, capstr[1])
-      }
-      if(ircmsg[2] == "251") {
-        console.log('irc network detect', session.server.caps.network)
-        sessions[session.server.caps.network] = session
-        var reply = {type:'irc.connected', network: session.server.caps.network}
-        console.log(reply)
-        redisPub.publish('neur0n', JSON.stringify(reply))
-      }
-      if(ircmsg[2] == "JOIN") {
-        var reply = {type:'irc.joined', network: session.server.caps.network, channel: ircmsg[3]}
-        console.log(reply)
-        redisPub.publish('neur0n', JSON.stringify(reply))
-      }
-      if(ircmsg[2] == "PRIVMSG") {
-        var reply = {type:'irc.privmsg',
-                     network: session.server.caps.network,
-                     nick: ircmsg[1].split('!')[0],
-                     channel: ircmsg[3],
-                     message: ircmsg[4] }
-        console.log(reply)
-        redisPub.publish('neur0n', JSON.stringify(reply))
-      }
+      handle_irc_msg(session, ircmsg)
     }
   })
 
@@ -65,7 +41,7 @@ redisSub.on("subscribe", function (channel, count) {
 
 redisSub.on("message", function (channel, message) {
   var payload = JSON.parse(message)
-  console.log("redis<", channel, payload);
+  console.log("<redis:"+channel+"-", payload);
   if(payload.type && payload.type.match(/^irc\./)) { irc_dispatch(payload) }
 })
 
@@ -110,4 +86,32 @@ function irc_privmsg(network, channel, message) {
   var cmd = "PRIVMSG "+channel+" "+message
   console.log(cmd)
   sessions[network].irc.raw(cmd)
+}
+
+function handle_irc_msg(session, ircmsg){
+    if(ircmsg[2] == "005") {
+      var capstr = ircmsg[4].match(/(.*)\s+:[^:]+$/)
+      var capabilities = split005(session.server.caps, capstr[1])
+    }
+    if(ircmsg[2] == "251") {
+      console.log('irc network detect', session.server.caps.network)
+      sessions[session.server.caps.network] = session
+      var reply = {type:'irc.connected', network: session.server.caps.network}
+      console.log(reply)
+      redisPub.publish('neur0n', JSON.stringify(reply))
+    }
+    if(ircmsg[2] == "JOIN") {
+      var reply = {type:'irc.joined', network: session.server.caps.network, channel: ircmsg[3]}
+      console.log(reply)
+      redisPub.publish('neur0n', JSON.stringify(reply))
+    }
+    if(ircmsg[2] == "PRIVMSG") {
+      var reply = {type:'irc.privmsg',
+                   network: session.server.caps.network,
+                   nick: ircmsg[1].split('!')[0],
+                   channel: ircmsg[3],
+                   message: ircmsg[4] }
+      console.log(reply)
+      redisPub.publish('neur0n', JSON.stringify(reply))
+    }
 }
