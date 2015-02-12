@@ -6,6 +6,7 @@ LDFLAGS=-L mruby/build/host/lib -lmruby -lm -lhiredis -lcurl -lpcre
 
 mruby/.git:
 	git clone https://github.com/mruby/mruby.git
+	cp build_config.rb mruby/
 
 mruby/build:
 	make -C mruby
