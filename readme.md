@@ -24,3 +24,9 @@ Push these structures as JSON strings into the 'neur0n' redis channel (defined i
 {"type":"irc.join","network":"freenode","channel":"#pdxbots"}'
 {"type":"irc.privmsg","network":"freenode","channel":"#pdxbots", "message":"I am here."}
 ```
+
+# Supported language/runtimes
+
+* ruby/mruby
+* javascript/v8 (planned)
+
