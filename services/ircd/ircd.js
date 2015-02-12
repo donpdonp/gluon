@@ -28,8 +28,12 @@ function add_irc_session(server, nick, name) {
     }
   })
 
-  irc.on('close', function (message) {
+  irc.on('closed', function (message) {
     console.log(server, 'closed')
+  })
+
+  irc.on('error', function(err){
+    console.log(err)
   })
 
   irc.connect();
