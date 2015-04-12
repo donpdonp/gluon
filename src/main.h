@@ -22,6 +22,7 @@ void admin_setup();
 void mainloop(JSON_Object* config);
 /* admin callbacks */
 static mrb_value my_machine_add(mrb_state *mrb, mrb_value self);
+static mrb_value my_machine_list(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_eval(mrb_state *mrb, mrb_value self);
 static mrb_value my_dispatch(mrb_state *mrb, mrb_value self);
 /* callbacks */
