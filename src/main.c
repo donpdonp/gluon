@@ -28,7 +28,8 @@ admin_setup() {
   ruby_vm* admin_vm = &machines[admin_vm_idx];
   struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_add", my_machine_add, MRB_ARGS_REQ(1));
-  mrb_define_class_method(admin_vm->state, class_cextension, "machine_list", my_machine_add, MRB_ARGS_REQ(0));
+  mrb_define_class_method(admin_vm->state, class_cextension, "machine_get", my_machine_get, MRB_ARGS_REQ(1));
+  mrb_define_class_method(admin_vm->state, class_cextension, "machine_list", my_machine_list, MRB_ARGS_NONE());
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(2));
   mrb_define_class_method(admin_vm->state, class_cextension, "http_get", my_http_get, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
@@ -125,7 +126,19 @@ my_machine_add(mrb_state *mrb, mrb_value self) {
 }
 
 static mrb_value
+my_machine_get(mrb_state *mrb, mrb_value self) {
+  mrb_value hash;
+  hash = mrb_hash_new(mrb);
+  return hash;
+}
+
+static mrb_value
 my_machine_list(mrb_state *mrb, mrb_value self) {
+  mrb_value list;
+  list = mrb_ary_new(mrb);
+  for(int i=0; i < machines_count; i++) {
+  }
+  return list;
 }
 
 static mrb_value

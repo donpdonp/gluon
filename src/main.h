@@ -1,6 +1,8 @@
 #include "mruby.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
+#include "mruby/hash.h"
+#include "mruby/array.h"
 #include "mruby/variable.h"
 #include "mruby-json/src/parson.h"
 
@@ -22,6 +24,7 @@ void admin_setup();
 void mainloop(JSON_Object* config);
 /* admin callbacks */
 static mrb_value my_machine_add(mrb_state *mrb, mrb_value self);
+static mrb_value my_machine_get(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_list(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_eval(mrb_state *mrb, mrb_value self);
 static mrb_value my_dispatch(mrb_state *mrb, mrb_value self);

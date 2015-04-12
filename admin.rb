@@ -1,3 +1,5 @@
+puts Neur0n::machine_list.inspect
+
 module Neur0n
   def self.dispatch(msg)
     puts "admin.rb dispatch #{msg.inspect}"
