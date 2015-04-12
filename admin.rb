@@ -1,5 +1,3 @@
-puts Neur0n::machine_list.inspect
-
 module Neur0n
   def self.dispatch(msg)
     puts "admin.rb dispatch #{msg.inspect}"
@@ -13,6 +11,9 @@ module Neur0n
           Neur0n::machine_eval(msg['name'], code)
         end
       end
+    end
+    if msg['type'] == 'vm.list'
+      {machines: Neur0n::machine_list}
     end
   end
 end
