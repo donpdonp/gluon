@@ -1,4 +1,4 @@
-all: mruby/.git mruby/build neur0n
+all: build/ mruby/.git mruby/build/host/lib/libmruby.a gluon
 
 CFLAGS=-std=c99 -g
 CPPFLAGS=-I mruby/include -I mruby/build/mrbgems
@@ -8,9 +8,15 @@ mruby/.git:
 	git clone https://github.com/mruby/mruby.git
 	cp build_config.rb mruby/
 
-mruby/build:
+mruby/build/host/lib/libmruby.a:
 	make -C mruby
 
-neur0n: src/main.o src/eval_mruby.o
-	gcc -o neur0n $^ mruby/build/host/mrbgems/mruby-json/src/parson.o $(LDFLAGS)
+build/:
+	mkdir build
+
+build/%.o: src/%.c
+	$(CC) -c $(CPPFLAGS) -o $@ $< $(CFLAGS) 
+
+gluon: build/main.o build/eval_mruby.o
+	gcc -o gluon $^ mruby/build/host/mrbgems/mruby-json/src/parson.o $(LDFLAGS)
 

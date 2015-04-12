@@ -1,16 +1,16 @@
-# neur0n
+# gluon
 
-Neur0n is a container for running multiple language runtimes in a single process. Message passing json over pub/sub allows for command and control. This is a place to manage the execution of untrusted scripts.
+Gluon is a container for running multiple language runtimes in a single process. Message passing json over pub/sub allows for command and control. This is a place to manage the execution of untrusted scripts.
 
 # Setup
 
 ```
-$ git clone https://github.com/donpdonp/neur0n.git
-$ cd neur0n
+$ git clone https://github.com/donpdonp/gluon.git
+$ cd gluon
 $ make
-(builds mruby prereq)
+(builds prerequisite mruby)
 $ cp config.json.sample config.json
-$ ./neur0n
+$ ./gluon
 new machine #0 allocated for admin
 ```
 
@@ -27,6 +27,6 @@ Push these structures as JSON strings into the 'neur0n' redis channel (defined i
 
 # Supported language/runtimes
 
-* ruby/mruby
+* ruby/mruby (done)
 * javascript/v8 (planned)
 

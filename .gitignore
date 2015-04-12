@@ -1,7 +1,9 @@
 /gems/
 /bin/
+/build/
 /.bundle/
 /mruby
 node_modules/
 /config.json
+/gluon
 
