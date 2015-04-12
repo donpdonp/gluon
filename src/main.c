@@ -125,11 +125,22 @@ my_machine_add(mrb_state *mrb, mrb_value self) {
   }
 }
 
-static mrb_value
-my_machine_get(mrb_state *mrb, mrb_value self) {
+mrb_value
+machine_get_as_ruby(mrb_state *mrb, int i) {
   mrb_value hash;
   hash = mrb_hash_new(mrb);
+  ruby_vm machine = machines[i];
+  mrb_value key = mrb_str_new_cstr(mrb, "name");
+  mrb_value value = mrb_str_new_cstr(mrb, machine.owner);
+  mrb_hash_set(mrb, hash, key, value);
   return hash;
+}
+
+static mrb_value
+my_machine_get(mrb_state *mrb, mrb_value self) {
+  mrb_value machine;
+  // fix id/owner mess
+  return machine;
 }
 
 static mrb_value
@@ -137,6 +148,9 @@ my_machine_list(mrb_state *mrb, mrb_value self) {
   mrb_value list;
   list = mrb_ary_new(mrb);
   for(int i=0; i < machines_count; i++) {
+    mrb_value machine;
+    machine = machine_get_as_ruby(mrb, i);
+    mrb_ary_push(mrb, list, machine);
   }
   return list;
 }

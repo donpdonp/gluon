@@ -38,6 +38,7 @@ static mrb_value my_http_get(mrb_state *mrb, mrb_value self);
 /* VM list */
 int machines_add(const char* name);
 int machines_find(const char* name);
+int machines_get_as_ruby(const char* name, int i);
 
 /* mruby calls */
 const char* mruby_eval(ruby_vm vm, const char* code);
