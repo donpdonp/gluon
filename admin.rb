@@ -10,12 +10,12 @@ class MasterControlProgram
         machine = { id: newId, name: msg['name'] }
         puts "Adding machine #{machine}"
         idx = Neur0n::machine_add(machine[:id])
-        @machines[machine['id']] = machine
+        @machines[machine[:id]] = machine
         if idx && msg["url"]
           machine[:url] = msg['url']
           puts "loading #{msg['url']}"
           code = Neur0n::http_get(msg['url'])
-          Neur0n::machine_eval(msg['name'], code)
+          Neur0n::machine_eval(machine[:id], code)
         end
       end
     end
