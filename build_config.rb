@@ -23,6 +23,7 @@ MRuby::Build.new do |conf|
   conf.gembox 'default'
   conf.gem :github => 'mattn/mruby-json'
   conf.gem :github => 'mattn/mruby-pcre-regexp'
+  conf.gem :github => 'iij/mruby-simple-random'
 
   # C compiler settings
   # conf.cc do |cc|
