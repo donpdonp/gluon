@@ -21,7 +21,7 @@ function add_irc_session(server, nick, name) {
   })
 
   irc.on('data', function (message) {
-    console.log('<', message)
+    console.log('<irc', message)
     var ircmsg = /^:([^ ]+) ([^ ]+) ([^ ]+)( :?(.*))?/.exec(message)
     if(ircmsg) {
       handle_irc_msg(session, ircmsg)
@@ -44,7 +44,7 @@ redisSub.on("subscribe", function (channel, count) {
 })
 
 redisSub.on("message", function (channel, message) {
-  console.log("<", message);
+  console.log("<redis", message);
   var payload = JSON.parse(message)
   if(payload.type && payload.type.match(/^irc\./)) { irc_dispatch(payload) }
 })
@@ -90,13 +90,19 @@ function irc_privmsg(network, channel, message) {
 }
 
 function irc_say(network, msg) {
-  console.log('>', msg)
+  console.log('irc>', msg)
   var session = sessions[network]
   if(session) {
     session.irc.raw(msg)
   }
 }
 function handle_irc_msg(session, ircmsg){
+    console.log('ircmsg', ircmsg)
+    if(ircmsg[2] == "001") {
+      console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
+      session['nick'] = ircmsg[3]
+    }
+
     if(ircmsg[2] == "005") {
       var capstr = ircmsg[5].match(/(.*)\s+:[^:]+$/)
       var capabilities = split005(session.server.caps, capstr[1])
@@ -104,7 +110,7 @@ function handle_irc_msg(session, ircmsg){
     if(ircmsg[2] == "251") {
       console.log('irc network detect', session.server.caps.network)
       sessions[session.server.caps.network] = session
-      var reply = {type:'irc.connected', network: session.server.caps.network}
+      var reply = {type:'irc.connected', network: session.server.caps.network, nick: session.nick}
       redis_pub(reply)
     }
     if(ircmsg[2] == "JOIN") {
@@ -112,17 +118,21 @@ function handle_irc_msg(session, ircmsg){
       redis_pub(reply)
     }
     if(ircmsg[2] == "PRIVMSG") {
-      var reply = {type:'irc.privmsg',
-                   network: session.server.caps.network,
-                   nick: ircmsg[1].split('!')[0],
-                   channel: ircmsg[3],
-                   message: ircmsg[5] }
-      redis_pub(reply)
+      var from_nick = ircmsg[1].split('!')[0]
+      console.log('from_nick', from_nick)
+      if(from_nick != session.nick) {
+        var reply = {type:'irc.privmsg',
+                     network: session.server.caps.network,
+                     nick: from_nick,
+                     channel: ircmsg[3],
+                     message: ircmsg[5] }
+        redis_pub(reply)
+      }
     }
 }
 
 function redis_pub(msg){
   var json = JSON.stringify(msg)
-  console.log('>', json)
+  console.log('redis>', json)
   redisPub.publish('neur0n', json)
 }
