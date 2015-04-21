@@ -74,7 +74,9 @@ mainloop(JSON_Object* config) {
             const char* json = mruby_stringify_json(this_vm, result);
             printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
             reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
-            freeReplyObject(reply_pub);
+            if(reply_pub != NULL) {
+              freeReplyObject(reply_pub);
+            }
           }
         }
       }
