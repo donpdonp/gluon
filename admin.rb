@@ -38,7 +38,6 @@ MCP = MasterControlProgram.new
 
 module Neur0n
   def self.dispatch(msg)
-    puts "MCP relay #{msg}"
     MCP.dispatch(msg)
   end
 end

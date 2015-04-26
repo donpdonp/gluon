@@ -73,16 +73,22 @@ mainloop(JSON_Object* config) {
           if(result.tt == MRB_TT_HASH){
             const char* json = mruby_stringify_json(this_vm, result);
             printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
+
             reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
-            if(reply_pub != NULL) {
+            if(reply_pub == NULL) {
+              printf("Warning: reply_pub is null\n");
+              if(redis_pub->err) {
+                  printf("Redis post-error: %s\n", redis_pub->errstr);
+              }
+            } else {
               freeReplyObject(reply_pub);
             }
           }
         }
       }
     }
+    freeReplyObject(reply);
   }
-  freeReplyObject(reply);
 }
 
 
