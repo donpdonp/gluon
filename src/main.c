@@ -240,6 +240,7 @@ my_http_get(mrb_state *mrb, mrb_value self) {
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_on_page);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "gluon curl");
     res = curl_easy_perform(curl);
     if(res == CURLE_OK) {
       mrb_value rbody = mrb_str_new(mrb, body.memory, body.size);
