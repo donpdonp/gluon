@@ -33,7 +33,12 @@ function add_irc_session(server, nick, name) {
   })
 
   irc.on('error', function(err){
+  /* input: ':zrobo!~user
+   * @75-175-104-74.ptld.qwest.net QUIT :Ping timeout: 240 seconds' ]
+   * <irc ERROR :Closing Link: 75-175-104-74.ptld.qwest.net (Ping timeout: 240 seconds)
+   */
     console.log(err)
+
   })
 
   irc.connect();
