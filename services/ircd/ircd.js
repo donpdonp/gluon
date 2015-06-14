@@ -25,9 +25,8 @@ function dispatch(payload) {
   // manage irc sessions
   var cmd = payload.type.split('.')[1]
   if(cmd == 'connect') {
-    var session = sessions.generate(payload.server, payload.nick, payload.nick)
-    session.connected = sessions.add
-    session.publish = redis_pub
+    var session = sessions.generate(payload.server, payload.nick,
+                                    payload.nick, redis_pub)
     irc.add(session)
     irc.connect(session)
   }

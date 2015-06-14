@@ -2,11 +2,13 @@ module.exports = (function(){
   var sessions = {}
   var o = {}
 
-  o.generate = function(hostname, nick, name) {
+  o.generate = function(hostname, nick, name, publish) {
     var session = { server: {caps: {}},
                     hostname: hostname,
                     nick: nick,
                     name: name }
+    session.connected = o.add
+    session.publish = publish
     return session
   }
 
