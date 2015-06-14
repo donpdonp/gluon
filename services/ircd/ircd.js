@@ -38,6 +38,9 @@ function add_irc_session(server, nick, name) {
    * <irc ERROR :Closing Link: 75-175-104-74.ptld.qwest.net (Ping timeout: 240 seconds)
    */
     console.log(err)
+    irc.end()
+/*{ [Error: read ETIMEDOUT] code: 'ETIMEDOUT', errno: 'ETIMEDOUT', syscall: 'read' }
+ */
 
   })
 
@@ -102,7 +105,6 @@ function irc_say(network, msg) {
   }
 }
 function handle_irc_msg(session, ircmsg){
-    console.log('ircmsg', ircmsg)
     if(ircmsg[2] == "001") {
       console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
       session['nick'] = ircmsg[3]
