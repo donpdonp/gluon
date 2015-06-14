@@ -55,7 +55,7 @@ module.exports = (function(){
 
   o.privmsg = function(session, channel, message) {
     var cmd = "PRIVMSG "+channel+" "+message
-    o.say(network, cmd)
+    o.say(session, cmd)
   }
 
   o.say = function(session, msg) {
