@@ -21,6 +21,10 @@ module.exports = (function(){
     return sessions[network]
   }
 
+  o.list = function() {
+    return Object.keys(sessions)
+  }
+
   return o
 })()
 

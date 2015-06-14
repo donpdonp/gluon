@@ -30,6 +30,9 @@ function dispatch(payload) {
     irc.add(session)
     irc.connect(session)
   }
+  if(cmd == 'list') {
+    console.log("irc sessions:", sessions.list())
+  }
   if(cmd == 'join') {
     irc.join(sessions.get(payload.network), payload.channel)
   }
