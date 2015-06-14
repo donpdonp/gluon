@@ -7,11 +7,11 @@ class MasterControlProgram
     puts "admin.rb dispatch #{msg.inspect}"
     if msg['type'] == 'vm.add'
       if msg['name']
-        machine = { id: newId, name: msg['name'] url: msg['url']}
+        machine = { id: newId, name: msg['name'], url: msg['url']}
         puts "Adding machine #{machine}"
         idx = Neur0n::machine_add(machine[:id])
         @machines[machine[:id]] = machine
-        if idx && machine['url']
+        if idx && machine[:url]
           machine_load(machine)
         end
       end
@@ -35,7 +35,7 @@ class MasterControlProgram
   end
 
   def machine_load(machine)
-    url = machine[:url] = msg['url']
+    url = machine[:url]
     puts "parsing #{url}"
     if gist_id = gistId(url)
       puts "gist id #{gist_id}"
