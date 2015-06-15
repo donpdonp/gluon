@@ -1,23 +1,17 @@
 // npm
 var IrcSocket = require('irc-socket')
-var NetSocket = require("net").Socket
 
 module.exports = (function(){
   var o = {}
 
-  o.connect = function(session) {
-    session.irc.connect()
-  }
-
-  o.add = function(session) {
+  o.connect = function(session, socket) {
     var opts = {
         server: session.hostname,
         port: 6667,
         nicknames: [session.nick],
         realname: session.name
       }
-    var netSocket = new NetSocket();
-    var irc = session.irc = IrcSocket(opts, netSocket);
+    var irc = session.irc = IrcSocket(opts, socket);
 
     irc.once('ready', function () {
       console.log("irc connected")
@@ -31,20 +25,7 @@ module.exports = (function(){
       }
     })
 
-    irc.on('closed', function (message) {
-      console.log(server, 'closed')
-    })
-
-    irc.on('error', function(err){
-    /* input: ':zrobo!~user
-     * @75-175-104-74.ptld.qwest.net QUIT :Ping timeout: 240 seconds' ]
-     * <irc ERROR :Closing Link: 75-175-104-74.ptld.qwest.net (Ping timeout: 240 seconds)
-     */
-      console.log(err)
-      irc.end()
-  /*{ [Error: read ETIMEDOUT] code: 'ETIMEDOUT', errno: 'ETIMEDOUT', syscall: 'read' }
-   */
-    })
+    irc.connect()
   }
 
 
