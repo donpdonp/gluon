@@ -4,7 +4,7 @@ var IrcSocket = require('irc-socket')
 module.exports = (function(){
   var o = {}
 
-  o.connect = function(session, socket) {
+  o.connect = function(session, socket, restart) {
     var opts = {
         server: session.hostname,
         port: 6667,
@@ -25,7 +25,9 @@ module.exports = (function(){
       }
     })
 
-    irc.connect()
+    irc.on('error', restart)
+    irc.connect().then(function(a){console.log('good', a)},
+                       function(a){console.log('bad', a)})
   }
 
 

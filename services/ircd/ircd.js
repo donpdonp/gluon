@@ -1,5 +1,5 @@
 // node
-var NetSocket = require("net").Socket
+var net = require("net")
 
 // npm
 var redisLib = require("redis"),
@@ -30,7 +30,7 @@ function dispatch(payload) {
   if(cmd == 'connect') {
     var session = sessions.generate(payload.server, payload.nick,
                                     payload.nick, redis_pub)
-    irc.connect(session, socketer(session))
+    start(session)
   }
   if(cmd == 'list') {
     console.log("irc sessions:", sessions.list())
@@ -51,18 +51,13 @@ function redis_pub(msg){
   redisPub.publish('neur0n', json)
 }
 
-function socketer(session) {
-    var socket = new NetSocket()
-    socket.on('closed', function (message) {
-      console.log(server, 'closed')
-    })
+function restart(session, err){
+  if(err) {
+    console.log('restarting', err)
+    setTimeout(function(){start(session)}, 3000)
+  }
+}
 
-    socket.on('error', function(err){
-      console.log('sock err', err)
-      // what
-      //irc.connect(session, socketer(session))
-      return true
-    })
-
-    return socket
+function start(session) {
+  irc.connect(session, new net.Socket(), function(err){restart(session, err)})
 }
