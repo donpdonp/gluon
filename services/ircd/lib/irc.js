@@ -59,26 +59,31 @@ module.exports = (function(){
   }
 
   function handle_irc_msg(session, ircmsg){
-      if(ircmsg[2] == "001") {
+    var command = ircmsg[2]
+    switch(command) {
+      case "001":
         console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
         session['nick'] = ircmsg[3]
-      }
+        break
 
-      if(ircmsg[2] == "005") {
+      case "005":
         var capstr = ircmsg[5].match(/(.*)\s+:[^:]+$/)
         var capabilities = split005(session.server.caps, capstr[1])
-      }
-      if(ircmsg[2] == "251") {
+        break
+
+      case "251":
         console.log('irc network detect', session.server.caps.network)
         session.connected(session.server.caps.network, session)
         var reply = {type:'irc.connected', network: session.server.caps.network, nick: session.nick}
         session.publish(reply)
-      }
-      if(ircmsg[2] == "JOIN") {
+        break
+
+      case "JOIN":
         var reply = {type:'irc.joined', network: session.server.caps.network, channel: ircmsg[3]}
         session.publish(reply)
-      }
-      if(ircmsg[2] == "PRIVMSG") {
+        break
+
+      case "PRIVMSG":
         var from_nick = ircmsg[1].split('!')[0]
         console.log('from_nick', from_nick)
         if(from_nick != session.nick) {
@@ -89,7 +94,8 @@ module.exports = (function(){
                        message: ircmsg[5] }
           session.publish(reply)
         }
-      }
+        break
+    }
   }
 
   return o
