@@ -32,7 +32,6 @@ module.exports = function(publish){
                        function(a){console.log('connect bad', a)})
   }
 
-
   o.join = function(session, channel) {
     var cmd = "JOIN "+channel
     o.say(session, cmd)
