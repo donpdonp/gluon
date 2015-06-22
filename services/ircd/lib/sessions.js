@@ -7,6 +7,7 @@ module.exports = (function(){
                     id: newId(36, 7),
                     state: 'new',
                     server: {caps: {}},
+                    channels: [],
                     hostname: hostname,
                     nick: nick,
                     name: name

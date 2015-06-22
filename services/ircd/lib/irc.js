@@ -91,7 +91,16 @@ module.exports = function(publish){
         var reply = {type:'irc.joined',
                      irc_session_id: session.id,
                      channel: ircmsg[3]}
+        if(session.channels.indexOf(ircmsg[3]) == -1) {
+          session.channels.push(ircmsg[3])
+        }
         publish(reply)
+        break
+
+      case "PART":
+        if(session.channels.indexOf(ircmsg[3]) >= 0) {
+          delete session.channels[ircmsg[3]]
+        }
         break
 
       case "PRIVMSG":
