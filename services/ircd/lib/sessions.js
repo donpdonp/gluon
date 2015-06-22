@@ -2,27 +2,31 @@ module.exports = (function(){
   var sessions = {}
   var o = {}
 
-  o.generate = function(hostname, nick, name, publish) {
-    var session = { server: {caps: {}},
+  o.generate = function(hostname, nick, name) {
+    var session = {
+                    id: newId(36, 7),
+                    state: 'new',
+                    server: {caps: {}},
                     hostname: hostname,
                     nick: nick,
-                    name: name }
-    session.connected = o.add
-    session.publish = publish
+                    name: name
+                  }
+    sessions[session.id] = session
     return session
   }
 
-  o.add = function(network, session) {
-    console.log('sessions.add', network)
-    sessions[network] = session
-  }
-
-  o.get = function(network) {
-    return sessions[network]
+  o.get = function(id) {
+    return sessions[id]
   }
 
   o.list = function() {
-    return Object.keys(sessions)
+    return Object.keys(sessions).map(function(key){return sessions[key]})
+  }
+
+  function newId(base, length) {
+    var width = Math.pow(base,length) - Math.pow(base,length-1)
+    var add = Math.floor(Math.random()*width)
+    return (Math.pow(base,length-1)+add).toString(base)
   }
 
   return o

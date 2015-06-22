@@ -8,7 +8,7 @@ var redisLib = require("redis"),
 
 // local
 var sessions = require('./lib/sessions')
-var irc = require('./lib/irc')
+var irc = require('./lib/irc')(redis_pub)
 
 redisSub.on("subscribe", function (channel, count) {
   console.log("redis subscribe "+channel)
@@ -33,14 +33,26 @@ function dispatch(payload) {
     start(session)
   }
   if(cmd == 'list') {
-    console.log("irc sessions:", sessions.list())
+    var session_list = sessions.list()
+    console.log("irc sessions:", session_list)
+    redis_pub({id: payload.id, result: session_list})
   }
   if(cmd == 'join') {
-    irc.join(sessions.get(payload.network), payload.channel)
+    var session = sessions.get(payload.irc_session_id)
+    if(session) {
+      irc.join(session, payload.channel)
+    } else {
+      console.log('join: bad irc session id', payload.irc_session_id)
+    }
   }
   if(cmd == 'privmsg') {
     if(!payload.nick) {
-      irc.privmsg(sessions.get(payload.network), payload.channel, ':'+payload.message)
+      var session = sessions.get(payload.irc_session_id)
+      if(session) {
+        irc.privmsg(session, payload.channel, ':'+payload.message)
+      } else {
+        console.log('privmsg: bad irc session id', payload.irc_session_id)
+      }
     }
   }
 }

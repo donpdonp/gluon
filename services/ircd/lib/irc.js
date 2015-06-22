@@ -1,20 +1,22 @@
 // npm
 var IrcSocket = require('irc-socket')
 
-module.exports = (function(){
+module.exports = function(publish){
   var o = {}
+  var channels = {}
 
-  o.connect = function(session, socket, restart) {
+  o.connect = function(session, socket) {
     var opts = {
         server: session.hostname,
         port: 6667,
         nicknames: [session.nick],
         realname: session.name
       }
-    var irc = session.irc = IrcSocket(opts, socket);
+    var irc = channels[session.id] = IrcSocket(opts, socket);
+    session.state = 'connecting'
 
     irc.once('ready', function () {
-      console.log("irc connected")
+      console.log("irc ready")
     })
 
     irc.on('data', function (message) {
@@ -25,9 +27,9 @@ module.exports = (function(){
       }
     })
 
-    irc.on('error', restart)
-    irc.connect().then(function(a){console.log('good', a)},
-                       function(a){console.log('bad', a)})
+    irc.on('error', function() { session.state = 'error' })
+    irc.connect().then(function(a){console.log('connect good', a)},
+                       function(a){console.log('connect bad', a)})
   }
 
 
@@ -42,9 +44,9 @@ module.exports = (function(){
   }
 
   o.say = function(session, msg) {
-    console.log('irc>', msg)
     if(session) {
-      session.irc.raw(msg)
+      console.log('irc-'+session.id+'-'+session.state+'>', msg)
+      channels[session.id].raw(msg)
     }
   }
 
@@ -66,6 +68,7 @@ module.exports = (function(){
       case "001":
         console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
         session['nick'] = ircmsg[3]
+        session.state = 'connected'
         break
 
       case "005":
@@ -74,15 +77,21 @@ module.exports = (function(){
         break
 
       case "251":
+        // 251 signals CAPS list is over
         console.log('irc network detect', session.server.caps.network)
-        session.connected(session.server.caps.network, session)
-        var reply = {type:'irc.connected', network: session.server.caps.network, nick: session.nick}
-        session.publish(reply)
+        session.network = session.server.caps.network
+        var reply = {type:'irc.connected',
+                     irc_session_id: session.id,
+                     network: session.server.caps.network,
+                     nick: session.nick}
+        publish(reply)
         break
 
       case "JOIN":
-        var reply = {type:'irc.joined', network: session.server.caps.network, channel: ircmsg[3]}
-        session.publish(reply)
+        var reply = {type:'irc.joined',
+                     irc_session_id: session.id,
+                     channel: ircmsg[3]}
+        publish(reply)
         break
 
       case "PRIVMSG":
@@ -90,15 +99,15 @@ module.exports = (function(){
         console.log('from_nick', from_nick)
         if(from_nick != session.nick) {
           var reply = {type:'irc.privmsg',
-                       network: session.server.caps.network,
+                       irc_session_id: session.id,
                        nick: from_nick,
                        channel: ircmsg[3],
                        message: ircmsg[5] }
-          session.publish(reply)
+          publish(reply)
         }
         break
     }
   }
 
   return o
-})()
+}
