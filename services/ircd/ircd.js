@@ -61,6 +61,13 @@ function redis_pub(msg){
   var json = JSON.stringify(msg)
   console.log('redis>', json)
   redisPub.publish('neur0n', json)
+  if(msg.type === 'irc.connected') {
+    var session = sessions.get(msg.irc_session_id)
+    session.channels.forEach(function(channel){
+      console.log('!! rejoining ', channel)
+      irc.join(session, channel)
+    })
+  }
 }
 
 setInterval(sessionsCheck, 60*1000)
