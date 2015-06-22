@@ -63,11 +63,16 @@ function redis_pub(msg){
   redisPub.publish('neur0n', json)
 }
 
-function restart(session, err){
-  if(err) {
-    console.log('restarting', err)
-    setTimeout(function(){start(session)}, 3000)
-  }
+setInterval(sessionsCheck, 60*1000)
+
+function sessionsCheck(){
+  sessions.list().forEach(function(session){
+    console.log('checking session', session.id, session.state)
+    if(session.state == 'error') {
+      console.log('!! re-starting session', session.id)
+      start(session)
+    }
+  })
 }
 
 function start(session) {
