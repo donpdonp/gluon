@@ -17,7 +17,7 @@ redisSub.on("subscribe", function (channel, count) {
 redisSub.on("message", function (channel, message) {
   console.log("<redis", message);
   var payload = JSON.parse(message)
-  if(payload.type && payload.type.match(/^irc\./)) {
+  if(payload.method && payload.method.match(/^irc\./)) {
     dispatch(payload)
   }
 })
@@ -26,7 +26,7 @@ redisSub.subscribe("neur0n")
 
 function dispatch(payload) {
   // manage irc sessions
-  var cmd = payload.type.split('.')[1]
+  var cmd = payload.method.split('.')[1]
   if(cmd == 'connect') {
     var session = sessions.generate(payload.server, payload.nick,
                                     payload.nick, redis_pub)
@@ -61,7 +61,7 @@ function redis_pub(msg){
   var json = JSON.stringify(msg)
   console.log('redis>', json)
   redisPub.publish('neur0n', json)
-  if(msg.type === 'irc.connected') {
+  if(msg.method === 'irc.connected') {
     var session = sessions.get(msg.irc_session_id)
     session.channels.forEach(function(channel){
       console.log('!! rejoining ', channel)

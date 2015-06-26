@@ -79,17 +79,23 @@ module.exports = function(publish){
         // 251 signals CAPS list is over
         console.log('irc network detect', session.server.caps.network)
         session.network = session.server.caps.network
-        var reply = {type:'irc.connected',
-                     irc_session_id: session.id,
-                     network: session.server.caps.network,
-                     nick: session.nick}
+        var reply = {method:'irc.connected',
+                     params: {
+                       irc_session_id: session.id,
+                       network: session.server.caps.network,
+                       nick: session.nick
+                     }
+                    }
         publish(reply)
         break
 
       case "JOIN":
-        var reply = {type:'irc.joined',
-                     irc_session_id: session.id,
-                     channel: ircmsg[3]}
+        var reply = {method:'irc.joined',
+                     params: {
+                       irc_session_id: session.id,
+                       channel: ircmsg[3]
+                     }
+                    }
         if(session.channels.indexOf(ircmsg[3]) == -1) {
           session.channels.push(ircmsg[3])
         }
@@ -106,11 +112,13 @@ module.exports = function(publish){
         var from_nick = ircmsg[1].split('!')[0]
         console.log('from_nick', from_nick)
         if(from_nick != session.nick) {
-          var reply = {type:'irc.privmsg',
-                       irc_session_id: session.id,
-                       nick: from_nick,
-                       channel: ircmsg[3],
-                       message: ircmsg[5] }
+          var reply = {method:'irc.privmsg',
+                       params: {
+                         irc_session_id: session.id,
+                         nick: from_nick,
+                         channel: ircmsg[3],
+                         message: ircmsg[5] }
+                      }
           publish(reply)
         }
         break
