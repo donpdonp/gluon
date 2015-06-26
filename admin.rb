@@ -4,8 +4,8 @@ class MasterControlProgram
   end
 
   def dispatch(msg)
+    params = msg['params']
     if msg['method'] == 'vm.add'
-      params = msg['params']
       if params['name']
         machine = { id: newId, name: params['name'], url: params['url']}
         puts "Adding machine #{machine}"
