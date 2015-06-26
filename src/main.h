@@ -1,3 +1,5 @@
+#include <hiredis/hiredis.h>
+
 #include "mruby.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
@@ -20,8 +22,12 @@ struct ruby_vm_t {
 
 typedef struct ruby_vm_t ruby_vm;
 
+/* main.c */
 void admin_setup();
 void mainloop(JSON_Object* config);
+void send_result(redisContext *redis_pub, const char* id, const char* json);
+
+
 /* admin callbacks */
 static mrb_value my_machine_add(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_get(mrb_state *mrb, mrb_value self);

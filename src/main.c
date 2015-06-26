@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <hiredis/hiredis.h>
 #include <curl/curl.h>
 
 #include "main.h"
@@ -41,7 +40,6 @@ mainloop(JSON_Object* config) {
   redisContext *redis_sub;
   redisContext *redis_pub;
   redisReply *reply;
-  redisReply *reply_pub;
 
   printf("redis: connect to %s. subscribe to %s.\n", CONFIG("redis.host"), CONFIG("redis.channel"));
   redis_sub = redisConnect(CONFIG("redis.host"), 6379);
@@ -62,7 +60,7 @@ mainloop(JSON_Object* config) {
         ruby_vm this_vm = machines[i];
         printf("    machine %d/%s -> Neur0n::dispatch\n", i, this_vm.owner);
         mrb_value result = mruby_dispatch(this_vm, json_obj);
-        printf("    machine %d/%s -> return type %d\n", i, this_vm.owner, result.tt);
+        printf("    machine %d/%s -> %s\n", i, this_vm.owner, result.tt);
 
         if (this_vm.state->exc) {
           mrb_value errstr;
@@ -73,24 +71,9 @@ mainloop(JSON_Object* config) {
           this_vm.state->exc = 0;
         } else {
           if(result.tt == MRB_TT_HASH){
-            JSON_Value *resp_json = json_value_init_object();
-            json_object_set_string(json_value_get_object(resp_json), "id", id);
             const char* json = mruby_stringify_json(this_vm, result);
-            JSON_Value *payload_json = json_parse_string(json);
-            json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
-            const char* safe_json = json_serialize_to_string(resp_json);
-            printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, safe_json);
-
-            reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
-            if(reply_pub == NULL) {
-              printf("Warning: reply_pub is null\n");
-              if(redis_pub->err) {
-                  printf("Redis post-error: %s\n", redis_pub->errstr);
-              }
-            } else {
-              freeReplyObject(reply_pub);
-            }
-            json_value_free(resp_json);
+            printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
+            send_result(redis_pub, id, json);
           }
         }
       }
@@ -100,6 +83,26 @@ mainloop(JSON_Object* config) {
   }
 }
 
+void
+send_result(redisContext *redis_pub, const char* id, const char* json) {
+  JSON_Value *resp_json = json_value_init_object();
+  json_object_set_string(json_value_get_object(resp_json), "id", id);
+  JSON_Value *payload_json = json_parse_string(json);
+  json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
+  const char* safe_json = json_serialize_to_string(resp_json);
+
+  redisReply *reply_pub;
+  reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
+  if(reply_pub == NULL) {
+    printf("Warning: reply_pub is null\n");
+    if(redis_pub->err) {
+        printf("Redis post-error: %s\n", redis_pub->errstr);
+    }
+  } else {
+    freeReplyObject(reply_pub);
+  }
+  json_value_free(resp_json);
+}
 
 int
 machines_add(const char* name){

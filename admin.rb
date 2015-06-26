@@ -4,7 +4,6 @@ class MasterControlProgram
   end
 
   def dispatch(msg)
-    puts "admin.rb dispatch #{msg.inspect}"
     if msg['type'] == 'vm.add'
       if msg['name']
         machine = { id: newId, name: msg['name'], url: msg['url']}
