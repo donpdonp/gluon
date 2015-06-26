@@ -4,9 +4,10 @@ class MasterControlProgram
   end
 
   def dispatch(msg)
-    if msg['type'] == 'vm.add'
-      if msg['name']
-        machine = { id: newId, name: msg['name'], url: msg['url']}
+    if msg['method'] == 'vm.add'
+      params = msg['params']
+      if params['name']
+        machine = { id: newId, name: params['name'], url: params['url']}
         puts "Adding machine #{machine}"
         idx = Neur0n::machine_add(machine[:id])
         @machines[machine[:id]] = machine
@@ -15,11 +16,11 @@ class MasterControlProgram
         end
       end
     end
-    if msg['type'] == 'vm.reload'
-      machine = @machines[msg['name']]
+    if msg['method'] == 'vm.reload'
+      machine = @machines[params['name']]
       machine_load(machine)
     end
-    if msg['type'] == 'vm.list'
+    if msg['method'] == 'vm.list'
       #{machines: Neur0n::machine_list}
       puts "list #{@machines.inspect}"
       @machines
