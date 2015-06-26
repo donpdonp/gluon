@@ -60,12 +60,12 @@ mainloop(JSON_Object* config) {
         ruby_vm this_vm = machines[i];
         printf("    machine %d/%s -> Neur0n::dispatch\n", i, this_vm.owner);
         mrb_value result = mruby_dispatch(this_vm, json_obj);
-        printf("    machine %d/%s -> %s\n", i, this_vm.owner, result.tt);
+        printf("    machine %d/%s -> type %d\n", i, this_vm.owner, result.tt);
 
         if (this_vm.state->exc) {
           mrb_value errstr;
           errstr = mrb_funcall(this_vm.state, mrb_obj_value(this_vm.state->exc), "inspect", 0);
-          printf("    machine %d/%s -> EXCEPTION\n", i, this_vm.owner);
+          printf("    machine %d/%s -> VM EXCEPTION\n", i, this_vm.owner);
           fwrite(RSTRING_PTR(errstr), RSTRING_LEN(errstr), 1, stdout);
           putc('\n', stdout);
           this_vm.state->exc = 0;
