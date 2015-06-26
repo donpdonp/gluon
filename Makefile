@@ -10,6 +10,10 @@ mruby/.git:
 
 mruby/build/host/lib/libmruby.a:
 	make -C mruby
+	# Hack: Freshen parson lib
+	curl https://raw.githubusercontent.com/kgabis/parson/master/parson.h > mruby/build/mrbgems/mruby-json/src/parson.h
+	curl https://raw.githubusercontent.com/kgabis/parson/master/parson.c > mruby/build/mrbgems/mruby-json/src/parson.c
+	make -C mruby
 
 build/:
 	mkdir build

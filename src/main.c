@@ -51,6 +51,8 @@ mainloop(JSON_Object* config) {
     // consume message
     const char* json_in = reply->element[2]->str;
     ruby_vm admin_vm = machines[admin_vm_idx];
+    JSON_Value *input_json = json_parse_string(json_in);
+    const char* id = json_object_get_string(json_value_get_object(input_json), "id");
     mrb_value json_obj = mruby_json_parse(admin_vm, json_in);
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
 
@@ -71,8 +73,13 @@ mainloop(JSON_Object* config) {
           this_vm.state->exc = 0;
         } else {
           if(result.tt == MRB_TT_HASH){
+            JSON_Value *resp_json = json_value_init_object();
+            json_object_set_string(json_value_get_object(resp_json), "id", id);
             const char* json = mruby_stringify_json(this_vm, result);
-            printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
+            JSON_Value *payload_json = json_parse_string(json);
+            json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
+            const char* safe_json = json_serialize_to_string(resp_json);
+            printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, safe_json);
 
             reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
             if(reply_pub == NULL) {
@@ -83,10 +90,12 @@ mainloop(JSON_Object* config) {
             } else {
               freeReplyObject(reply_pub);
             }
+            json_value_free(resp_json);
           }
         }
       }
     }
+    json_value_free(input_json);
     freeReplyObject(reply);
   }
 }
