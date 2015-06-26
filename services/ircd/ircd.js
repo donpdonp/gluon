@@ -28,8 +28,8 @@ function dispatch(payload) {
   // manage irc sessions
   var cmd = payload.method.split('.')[1]
   if(cmd == 'connect') {
-    var session = sessions.generate(payload.server, payload.nick,
-                                    payload.nick, redis_pub)
+    var session = sessions.generate(payload.params.server, payload.params.nick,
+                                    payload.params.nick, redis_pub)
     start(session)
   }
   if(cmd == 'list') {
@@ -38,20 +38,20 @@ function dispatch(payload) {
     redis_pub({id: payload.id, result: session_list})
   }
   if(cmd == 'join') {
-    var session = sessions.get(payload.irc_session_id)
+    var session = sessions.get(payload.params.irc_session_id)
     if(session) {
-      irc.join(session, payload.channel)
+      irc.join(session, payload.params.channel)
     } else {
-      console.log('join: bad irc session id', payload.irc_session_id)
+      console.log('join: bad irc session id', payload.params.irc_session_id)
     }
   }
   if(cmd == 'privmsg') {
-    if(!payload.nick) {
-      var session = sessions.get(payload.irc_session_id)
+    if(!payload.params.nick) {
+      var session = sessions.get(payload.params.irc_session_id)
       if(session) {
-        irc.privmsg(session, payload.channel, ':'+payload.message)
+        irc.privmsg(session, payload.params.channel, ':'+payload.params.message)
       } else {
-        console.log('privmsg: bad irc session id', payload.irc_session_id)
+        console.log('privmsg: bad irc session id', payload.params.irc_session_id)
       }
     }
   }
@@ -62,7 +62,7 @@ function redis_pub(msg){
   console.log('redis>', json)
   redisPub.publish('neur0n', json)
   if(msg.method === 'irc.connected') {
-    var session = sessions.get(msg.irc_session_id)
+    var session = sessions.get(msg.params.irc_session_id)
     session.channels.forEach(function(channel){
       console.log('!! rejoining ', channel)
       irc.join(session, channel)
