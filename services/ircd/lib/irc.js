@@ -20,7 +20,7 @@ module.exports = function(publish){
     })
 
     irc.on('data', function (message) {
-      console.log('<irc', new Date(), message)
+      console.log('<irc', new Date().toISOString(), message)
       var ircmsg = /^:([^ ]+) ([^ ]+) ([^ ]+)( :?(.*))?/.exec(message)
       if(ircmsg) {
         handle_irc_msg(session, ircmsg)
