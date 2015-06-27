@@ -73,7 +73,6 @@ mainloop(JSON_Object* config) {
         } else {
           if(result.tt == MRB_TT_HASH){
             const char* json = mruby_stringify_json(this_vm, result);
-            printf("    machine %d/%s -> publish json %s\n", i, this_vm.owner, json);
             send_result(redis_pub, id, json);
           }
         }
@@ -92,8 +91,10 @@ send_result(redisContext *redis_pub, const char* id, const char* json) {
   json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
   const char* safe_json = json_serialize_to_string(resp_json);
 
+  printf("   -> publish json %s\n", safe_json);
+
   redisReply *reply_pub;
-  reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
+  reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", safe_json);
   if(reply_pub == NULL) {
     printf("Warning: reply_pub is null\n");
     if(redis_pub->err) {
