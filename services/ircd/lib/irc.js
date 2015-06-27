@@ -94,8 +94,8 @@ module.exports = function(publish){
         break
 
       case "JOIN":
-        var reply = {method:'irc.joined',
-                     params: {
+        var reply = {id: session.msg_id,
+                     result: {
                        irc_session_id: session.id,
                        channel: ircmsg[3]
                      }
