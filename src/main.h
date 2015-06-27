@@ -25,7 +25,7 @@ typedef struct ruby_vm_t ruby_vm;
 /* main.c */
 void admin_setup();
 void mainloop(JSON_Object* config);
-void send_result(redisContext *redis_pub, const char* id, const char* json);
+void send_result(const char* json);
 
 
 /* admin callbacks */
