@@ -33,7 +33,7 @@ static mrb_value my_machine_add(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_get(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_list(mrb_state *mrb, mrb_value self);
 static mrb_value my_machine_eval(mrb_state *mrb, mrb_value self);
-static mrb_value my_dispatch(mrb_state *mrb, mrb_value self);
+static mrb_value my_emit(mrb_state *mrb, mrb_value self);
 /* callbacks */
 static mrb_value my_db_get(mrb_state *mrb, mrb_value self);
 static mrb_value my_db_set(mrb_state *mrb, mrb_value self);

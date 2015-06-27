@@ -25,13 +25,12 @@ void
 admin_setup() {
   admin_vm_idx = machines_add("admin");
   ruby_vm* admin_vm = &machines[admin_vm_idx];
-  struct RClass *class_cextension = mrb_define_module(admin_vm->state, "Neur0n");
+  struct RClass *class_cextension = mrb_module_get(admin_vm->state, "Neur0n");
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_add", my_machine_add, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_get", my_machine_get, MRB_ARGS_REQ(1));
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_list", my_machine_list, MRB_ARGS_NONE());
   mrb_define_class_method(admin_vm->state, class_cextension, "machine_eval", my_machine_eval, MRB_ARGS_REQ(2));
   mrb_define_class_method(admin_vm->state, class_cextension, "http_get", my_http_get, MRB_ARGS_REQ(1));
-  mrb_define_class_method(admin_vm->state, class_cextension, "dispatch", my_dispatch, MRB_ARGS_REQ(1));
   mruby_parse_file(*admin_vm, "admin.rb");
 }
 
@@ -116,6 +115,8 @@ machines_add(const char* name){
     ruby_vm* new_vm = &machines[idx];
     new_vm->state = mrb_open();
     new_vm->owner = name;
+    struct RClass *class_cextension = mrb_define_module(new_vm->state, "Neur0n");
+    mrb_define_class_method(new_vm->state, class_cextension, "emit", my_emit, MRB_ARGS_REQ(1));
     printf("new machine #%d allocated for %s\n", machines_count-1, name);
     return idx;
   }
@@ -197,7 +198,7 @@ my_machine_eval(mrb_state *mrb, mrb_value self) {
 }
 
 static mrb_value
-my_dispatch(mrb_state *mrb, mrb_value self) {
+my_emit(mrb_state *mrb, mrb_value self) {
 //  mrb_value vm_id;
 //  mrb_get_args(mrb, "S", &vm_id);
 
