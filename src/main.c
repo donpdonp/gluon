@@ -52,7 +52,7 @@ mainloop(JSON_Object* config) {
     const char* id = json_object_get_string(json_value_get_object(input_json), "id");
     mrb_value json_obj = mruby_json_parse(admin_vm, json_in);
     printf("#####\n");
-    printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
+    printf("<- %s\n", json_in);
 
     if(json_obj.tt == MRB_TT_HASH){
       int local_count = machines_count;
@@ -207,7 +207,7 @@ my_emit(mrb_state *mrb, mrb_value self) {
   mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, msg);
   const char* json = mrb_string_value_cstr(mrb, &str);
   send_result(json);
-  printf("my_emit %s", json);
+  printf("my_emit %s\n", json);
 
   return msg;
 };
