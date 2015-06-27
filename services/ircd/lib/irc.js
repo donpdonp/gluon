@@ -83,8 +83,8 @@ module.exports = function(publish){
         // 251 signals CAPS list is over
         console.log('irc network detect', session.server.caps.network)
         session.network = session.server.caps.network
-        var reply = {method:'irc.connected',
-                     params: {
+        var reply = {id: session.msg_id,
+                     result: {
                        irc_session_id: session.id,
                        network: session.server.caps.network,
                        nick: session.nick

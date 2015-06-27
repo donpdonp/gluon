@@ -29,7 +29,7 @@ function dispatch(payload) {
   var cmd = payload.method.split('.')[1]
   if(cmd == 'connect') {
     var session = sessions.generate(payload.params.server, payload.params.nick,
-                                    payload.params.nick, redis_pub)
+                                    payload.params.nick, payload.id)
     start(session)
   }
   if(cmd == 'list') {

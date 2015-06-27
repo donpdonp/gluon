@@ -2,7 +2,7 @@ module.exports = (function(){
   var sessions = {}
   var o = {}
 
-  o.generate = function(hostname, nick, name) {
+  o.generate = function(hostname, nick, name, msg_id) {
     var session = {
                     id: newId(36, 6),
                     state: 'new',
@@ -10,7 +10,8 @@ module.exports = (function(){
                     channels: [],
                     hostname: hostname,
                     nick: nick,
-                    name: name
+                    name: name,
+                    msg_id: msg_id
                   }
     sessions[session.id] = session
     return session
