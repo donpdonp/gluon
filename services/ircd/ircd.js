@@ -82,5 +82,6 @@ function sessionsCheck(){
 }
 
 function start(session) {
+  console.log('ircd', 'session', '#'+session.id, 'start', session.hostname)
   irc.connect(session, new net.Socket(), function(err){restart(session, err)})
 }

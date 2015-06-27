@@ -27,7 +27,11 @@ module.exports = function(publish){
       }
     })
 
-    irc.on('error', function() { session.state = 'error' })
+    irc.on('error', function(e) {
+      console.log('ircd', 'session', '#'+session.id, 'in error', e.code)
+      session.state = 'error'
+    })
+
     irc.connect().then(function(a){console.log('connect good', a)},
                        function(a){console.log('connect bad', a)})
   }
