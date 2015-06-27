@@ -16,9 +16,13 @@ redisSub.on("subscribe", function (channel, count) {
 
 redisSub.on("message", function (channel, message) {
   console.log("<redis", message);
-  var payload = JSON.parse(message)
-  if(payload.method && payload.method.match(/^irc\./)) {
-    dispatch(payload)
+  try {
+    var payload = JSON.parse(message)
+    if(payload.method && payload.method.match(/^irc\./)) {
+      dispatch(payload)
+    }
+  } catch(err) {
+      console.log("redis json err %s", err);
   }
 })
 
