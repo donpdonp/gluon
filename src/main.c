@@ -52,6 +52,7 @@ mainloop(JSON_Object* config) {
     JSON_Value *input_json = json_parse_string(json_in);
     const char* id = json_object_get_string(json_value_get_object(input_json), "id");
     mrb_value json_obj = mruby_json_parse(admin_vm, json_in);
+    printf("#####\n");
     printf("<- %s (mrb type %d)\n", json_in, json_obj.tt);
 
     if(json_obj.tt == MRB_TT_HASH){
