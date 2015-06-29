@@ -22,8 +22,6 @@ class MasterControlProgram
       machine_load(machine)
     end
     if msg['method'] == 'vm.list'
-      #{machines: Neur0n::machine_list}
-      puts "list #{@machines.inspect}"
       @machines
     end
   end
