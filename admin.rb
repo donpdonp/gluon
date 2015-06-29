@@ -17,7 +17,8 @@ class MasterControlProgram
       end
     end
     if msg['method'] == 'vm.reload'
-      machine = @machines[params['name']]
+      machine = machine_find(params['name'])
+      puts "*!*! machine find #{machine}"
       machine_load(machine)
     end
     if msg['method'] == 'vm.list'
@@ -44,6 +45,10 @@ class MasterControlProgram
     puts "loading #{url}"
     code = Neur0n::http_get(url)
     Neur0n::machine_eval(machine[:id], code)
+  end
+
+  def machine_find(name)
+    @machines.select{|kv| kv[1][:name] == name}.values[0]
   end
 
   def gistId(url)
