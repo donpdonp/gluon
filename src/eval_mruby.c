@@ -3,7 +3,7 @@
 
 const char*
 mruby_eval(ruby_vm vm, const char* code){
-  printf("mruby_eval vm:%s code: %s\n", vm.owner, code);
+  printf("mruby_eval vm:%s code: %d bytes\n", vm.owner, (int)strlen(code));
 
   mrbc_context* context;
   context = mrbc_context_new(vm.state);
