@@ -32,6 +32,13 @@ module.exports = function(publish){
       session.state = 'error'
     })
 
+    irc.on('close', function(err) {
+      console.log('ircd', 'session', '#'+session.id, 'closed. has error', err)
+      if(session.state !== 'closing') {
+        session.state = 'error'
+      }
+    })
+
     irc.connect().then(function(a){console.log('connect good', a)},
                        function(a){console.log('connect bad', a)})
   }
