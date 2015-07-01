@@ -81,6 +81,7 @@ module.exports = function(publish){
         console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
         session['nick'] = ircmsg[3]
         session.state = 'connected'
+        if(!session.network) { session.network = session.hostname}
         break
 
       case "005":
