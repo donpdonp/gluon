@@ -9,6 +9,7 @@ module.exports = (function(){
                     server: {caps: {}},
                     channels: [],
                     hostname: hostname,
+                    network: hostname,
                     nick: nick,
                     name: name,
                     msg_id: msg_id

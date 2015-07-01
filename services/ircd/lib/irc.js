@@ -81,7 +81,6 @@ module.exports = function(publish){
         console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
         session['nick'] = ircmsg[3]
         session.state = 'connected'
-        if(!session.network) { session.network = session.hostname}
         break
 
       case "005":
@@ -91,7 +90,6 @@ module.exports = function(publish){
 
       case "251":
         // 251 signals CAPS list is over
-        console.log('irc network detect', session.server.caps.network)
         session.network = session.server.caps.network
         var reply = {id: session.msg_id,
                      result: {
