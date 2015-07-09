@@ -21,7 +21,7 @@ MRuby::Build.new do |conf|
 
   # include the default GEMs
   conf.gembox 'default'
-  conf.gem :github => 'mattn/mruby-json'
+  conf.gem :github => 'iij/mruby-iijson'
   conf.gem :github => 'mattn/mruby-pcre-regexp'
   conf.gem :github => 'iij/mruby-simple-random'
   conf.gem "#{root}/mrbgems/mruby-eval"

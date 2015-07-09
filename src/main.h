@@ -6,7 +6,7 @@
 #include "mruby/hash.h"
 #include "mruby/array.h"
 #include "mruby/variable.h"
-#include "mruby-json/src/parson.h"
+#include "parson.h"
 
 #if __STDC_VERSION__ < 199901L
 #pragma message "C compiler is older than C99"
@@ -48,7 +48,8 @@ int machines_get_as_ruby(const char* name, int i);
 
 /* mruby calls */
 const char* mruby_eval(ruby_vm vm, const char* code);
-const char* mruby_stringify_json(ruby_vm vm, mrb_value val);
+const char* mruby_stringify_json_cstr(ruby_vm vm, mrb_value val);
+mrb_value mruby_stringify_json_value(mrb_state *mrb, mrb_value val);
 void mruby_parse_file(ruby_vm vm, const char* filename);
 mrb_value mruby_json_parse(ruby_vm vm, const char* json);
 mrb_value mruby_dispatch(ruby_vm vm, mrb_value msg);

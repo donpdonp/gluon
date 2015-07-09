@@ -71,7 +71,7 @@ mainloop(JSON_Object* config) {
           this_vm.state->exc = 0;
         } else {
           if(result.tt == MRB_TT_HASH){
-            const char* json = mruby_stringify_json(this_vm, result);
+            const char* json = mruby_stringify_json_cstr(this_vm, result);
             JSON_Value *resp_json = json_value_init_object();
             json_object_set_string(json_value_get_object(resp_json), "id", id);
             JSON_Value *payload_json = json_parse_string(json);
@@ -204,8 +204,7 @@ my_emit(mrb_state *mrb, mrb_value self) {
   mrb_value msg;
   mrb_get_args(mrb, "o", &msg);
 
-  struct RClass* clazz = mrb_module_get(mrb, "JSON");
-  mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, msg);
+  mrb_value str = mruby_stringify_json_value(mrb, msg);
   const char* json = mrb_string_value_cstr(mrb, &str);
   printf("my_emit pre-send %s\n", json);
   send_result(json);
