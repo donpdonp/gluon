@@ -69,15 +69,12 @@ mainloop(JSON_Object* config) {
           fwrite(RSTRING_PTR(errstr), RSTRING_LEN(errstr), 1, stdout);
           putc('\n', stdout);
           this_vm.state->exc = 0;
+          const char* safe_err_json = build_error_json(id, mrb_string_value_cstr(this_vm.state, &errstr));
+          send_result(safe_err_json);
         } else {
           if(result.tt == MRB_TT_HASH){
             const char* json = mruby_stringify_json_cstr(this_vm, result);
-            JSON_Value *resp_json = json_value_init_object();
-            json_object_set_string(json_value_get_object(resp_json), "id", id);
-            JSON_Value *payload_json = json_parse_string(json);
-            json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
-            const char* safe_json = json_serialize_to_string(resp_json);
-            json_value_free(resp_json);
+            const char* safe_json = build_result_json(id, json);
             printf("    machine %d/%s -> %s\n", i, this_vm.owner, safe_json);
             send_result(safe_json);
           }
@@ -87,6 +84,29 @@ mainloop(JSON_Object* config) {
     json_value_free(input_json);
     freeReplyObject(reply);
   }
+}
+
+const char*
+build_result_json(const char* id, const char* json) {
+  JSON_Value *resp_json = json_value_init_object();
+  json_object_set_string(json_value_get_object(resp_json), "id", id);
+  JSON_Value *payload_json = json_parse_string(json);
+  json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
+  char* result = json_serialize_to_string(resp_json);
+  json_value_free(resp_json);
+  return result;
+}
+
+const char*
+build_error_json(const char* id, const char* errstr) {
+  JSON_Value *resp_json = json_value_init_object();
+  json_object_set_string(json_value_get_object(resp_json), "id", id);
+
+  json_object_set_string(json_value_get_object(resp_json), "error", errstr);
+
+  char* result = json_serialize_to_string(resp_json);
+  json_value_free(resp_json);
+  return result;
 }
 
 void

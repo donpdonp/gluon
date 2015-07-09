@@ -54,6 +54,11 @@ void mruby_parse_file(ruby_vm vm, const char* filename);
 mrb_value mruby_json_parse(ruby_vm vm, const char* json);
 mrb_value mruby_dispatch(ruby_vm vm, mrb_value msg);
 
+/* json rpc */
+const char* build_result_json(const char* id, const char* json);
+const char* build_error_json(const char* id, const char* json);
+
+
 /* libcurl */
 size_t curl_on_page(char *ptr, size_t size, size_t nmemb, void *userdata);
 struct CurlStr {
