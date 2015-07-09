@@ -92,6 +92,7 @@ mainloop(JSON_Object* config) {
 void
 send_result(const char* json) {
   redisReply *reply_pub;
+  printf("send_result pre-pub %s\n", json);
   reply_pub = (redisReply*)redisCommand(redis_pub, "publish %s %s", "neur0n", json);
   if(reply_pub == NULL) {
     printf("Warning: reply_pub is null\n");
@@ -206,8 +207,8 @@ my_emit(mrb_state *mrb, mrb_value self) {
   struct RClass* clazz = mrb_module_get(mrb, "JSON");
   mrb_value str = mrb_funcall(mrb, mrb_obj_value(clazz), "stringify", 1, msg);
   const char* json = mrb_string_value_cstr(mrb, &str);
+  printf("my_emit pre-send %s\n", json);
   send_result(json);
-  printf("my_emit %s\n", json);
 
   return msg;
 };
