@@ -4,7 +4,7 @@ module.exports = (function(){
 
   o.generate = function(hostname, nick, name, msg_id) {
     var session = {
-                    id: newId(36, 6),
+                    id: newId(36, 5),
                     state: 'new',
                     server: {caps: {}},
                     channels: [],
