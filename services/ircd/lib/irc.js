@@ -33,7 +33,9 @@ module.exports = function(publish){
     })
 
     irc.on('close', function(err) {
-      console.log('ircd', 'session', '#'+session.id, 'closed. has error', err)
+      var msg = 'session ' + session.id + ' closed.'
+      if(err) { msg = msg + ' has error: ' + err }
+      console.log('ircd', msg)
       if(session.state === 'closing') {
         delete channels[session.id]
       } else {
@@ -59,6 +61,15 @@ module.exports = function(publish){
     if(session) {
       console.log('irc-'+session.id+'-'+session.state+'>', msg)
       channels[session.id].raw(msg)
+    }
+  }
+
+  o.disconnect = function(session) {
+    console.log('removing session '+session.id)
+    var channel = channels[session.id]
+    if(channel) {
+      channel.end()
+      delete channels[session.id]
     }
   }
 

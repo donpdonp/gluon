@@ -41,6 +41,15 @@ function dispatch(payload) {
     console.log("irc sessions:", session_list)
     redis_pub({id: payload.id, result: session_list})
   }
+  if(cmd == 'disconnect') {
+    var session = sessions.get(payload.params.irc_session_id)
+    if(session) {
+      irc.disconnect(session)
+      redis_pub({id: payload.id, result: "irc session "+session.d+" disconnected."})
+    } else {
+      console.log('disconnect: bad irc session id', payload.params.irc_session_id)
+    }
+  }
   if(cmd == 'join') {
     var session = sessions.get(payload.params.irc_session_id)
     if(session) {
