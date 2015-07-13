@@ -26,6 +26,8 @@ typedef struct ruby_vm_t ruby_vm;
 void admin_setup();
 void mainloop(JSON_Object* config);
 void send_result(const char* json);
+JSON_Object* read_config();
+
 
 
 /* admin callbacks */

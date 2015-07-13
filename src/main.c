@@ -12,13 +12,22 @@ redisContext *redis_pub;
 
 int
 main() {
-  JSON_Value *config_json = json_parse_file("config.json");
-  if(json_value_get_type(config_json) == JSONObject){
-    JSON_Object* config = json_value_get_object(config_json);
+  JSON_Object* config  = read_config();
+  if(config){
+    redis_pub = redisConnect(CONFIG("redis.host"), 6379);
     admin_setup();
     mainloop(config);
   } else {
     puts("error reading/parsing config.json");
+  }
+}
+
+JSON_Object*
+read_config() {
+  JSON_Value *config_json = json_parse_file("config.json");
+  if(json_value_get_type(config_json) == JSONObject){
+    JSON_Object* config = json_value_get_object(config_json);
+    return config;
   }
 }
 
@@ -42,7 +51,6 @@ mainloop(JSON_Object* config) {
 
   printf("redis: connect to %s. subscribe to %s.\n", CONFIG("redis.host"), CONFIG("redis.channel"));
   redis_sub = redisConnect(CONFIG("redis.host"), 6379);
-  redis_pub = redisConnect(CONFIG("redis.host"), 6379);
   reply = (redisReply*)redisCommand(redis_sub, "SUBSCRIBE %s", CONFIG("redis.channel"));
   while(redisGetReply(redis_sub, (void**)&reply) == REDIS_OK) {
     // consume message
