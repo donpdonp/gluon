@@ -140,7 +140,7 @@ machines_add(const char* name){
   if(machines){
     ruby_vm* new_vm = &machines[idx];
     new_vm->state = mrb_open();
-    new_vm->owner = strdup(name);
+    new_vm->owner = name;
     struct RClass *class_cextension = mrb_define_module(new_vm->state, "Neur0n");
     mrb_define_class_method(new_vm->state, class_cextension, "emit", my_emit, MRB_ARGS_REQ(1));
     printf("new machine #%d allocated for %s\n", machines_count-1, name);
@@ -163,7 +163,7 @@ my_machine_add(mrb_state *mrb, mrb_value self) {
   mrb_value name;
   mrb_get_args(mrb, "S", &name);
 
-  const char* mname = mrb_string_value_cstr(mrb, &name);
+  const char* mname = strdup(mrb_string_value_cstr(mrb, &name));
   printf("my_machine_add %s\n", mname);
   int midx = machines_find(mname);
   if(midx == -1) {
