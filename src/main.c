@@ -52,6 +52,7 @@ mainloop(JSON_Object* config) {
   printf("redis: connect to %s. subscribe to %s.\n", CONFIG("redis.host"), CONFIG("redis.channel"));
   redis_sub = redisConnect(CONFIG("redis.host"), 6379);
   reply = (redisReply*)redisCommand(redis_sub, "SUBSCRIBE %s", CONFIG("redis.channel"));
+  freeReplyObject(reply);
   while(redisGetReply(redis_sub, (void**)&reply) == REDIS_OK) {
     // consume message
     const char* json_in = reply->element[2]->str;
@@ -101,7 +102,6 @@ build_result_json(const char* id, const char* json) {
   JSON_Value *payload_json = json_parse_string(json);
   json_object_set_value(json_value_get_object(resp_json), "result", payload_json);
   char* result = json_serialize_to_string(resp_json);
-  json_value_free(resp_json);
   return result;
 }
 
@@ -113,7 +113,6 @@ build_error_json(const char* id, const char* errstr) {
   json_object_set_string(json_value_get_object(resp_json), "error", errstr);
 
   char* result = json_serialize_to_string(resp_json);
-  json_value_free(resp_json);
   return result;
 }
 
