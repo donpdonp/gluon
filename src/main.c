@@ -215,7 +215,7 @@ my_machine_eval(mrb_state *mrb, mrb_value self) {
   printf("my_machine_eval finding %s\n", machine_name);
   int midx = machines_find(machine_name);
   printf("my_machine_eval BEGIN for %s #%d\n", machine_name, midx);
-  if(midx){
+  if(midx >= 0){
     ruby_vm name_vm = machines[midx];
     mruby_eval(name_vm, code);
   } else {
