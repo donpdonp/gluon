@@ -212,14 +212,14 @@ my_machine_eval(mrb_state *mrb, mrb_value self) {
 
   const char* machine_name = mrb_string_value_cstr(mrb, &name);
   const char* code = mrb_string_value_cstr(mrb, &rcode);
-  printf("my_machine_eval BEGIN for %s\n", machine_name);
+  printf("my_machine_eval finding %s\n", machine_name);
   int midx = machines_find(machine_name);
   printf("my_machine_eval BEGIN for %s #%d\n", machine_name, midx);
   if(midx){
     ruby_vm name_vm = machines[midx];
     mruby_eval(name_vm, code);
   } else {
-      printf("my_machine_eval %s does not exist\n", machine_name);
+    printf("my_machine_eval %s does not exist\n", machine_name);
   }
   return name;
 }
