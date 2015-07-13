@@ -35,12 +35,12 @@ class MasterControlProgram
 
   def machine_load(machine)
     url = machine[:url]
-    puts "parsing #{url}"
+    puts "machine_load: parsing #{url}"
     if gist_id = gistId(url)
-      puts "gist id #{gist_id}"
+      puts "machine_load: gist id #{gist_id}"
       url = gist_api(gist_id)
     end
-    puts "loading #{url}"
+    puts "machine_load: loading #{url} on #{machine[:id]} from #{machine}"
     code = Neur0n::http_get(url)
     Neur0n::machine_eval(machine[:id], code)
   end
