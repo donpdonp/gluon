@@ -85,6 +85,13 @@ module.exports = function(publish){
     }
   }
 
+  function rejoin(session) {
+    console.log('rejoin', session.channels)
+    session.channels.forEach(function(channel){
+      o.join(session, channel)
+    })
+  }
+
   function handle_irc_msg(session, ircmsg){
     var command = ircmsg[2]
     switch(command) {
@@ -92,6 +99,7 @@ module.exports = function(publish){
         console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
         session['nick'] = ircmsg[3]
         session.state = 'connected'
+        rejoin(session)
         break
 
       case "005":
