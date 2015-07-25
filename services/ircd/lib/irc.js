@@ -42,7 +42,7 @@ module.exports = function(publish){
     irc.on('close', function(err) {
       var msg = 'session ' + session.id + ' closed.'
       if(err) { msg = msg + ' has error: ' + err }
-      console.log('ircd', msg)
+      log(session, ['ircd', msg])
       if(session.state === 'closing') {
         delete channels[session.id]
       } else {
