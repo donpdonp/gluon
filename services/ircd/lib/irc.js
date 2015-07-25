@@ -1,9 +1,12 @@
+// node
+var fs = require('fs')
 // npm
 var IrcSocket = require('irc-socket')
 
 module.exports = function(publish){
   var o = {}
   var channels = {}
+  var logfiles = {}
 
   o.connect = function(session, socket) {
     var opts = {
@@ -12,6 +15,10 @@ module.exports = function(publish){
         nicknames: [session.nick],
         realname: session.name
       }
+    logfiles[session.id] = fs.openSync('logs/'+session.hostname, 'a')
+    log(session, [new Date().toISOString(), '!#!'])
+    log(session, [new Date().toISOString(), '!#!', 'Session begin', session.id, "!#!"])
+    log(session, [new Date().toISOString(), '!#!'])
     var irc = channels[session.id] = IrcSocket(opts, socket);
     session.state = 'connecting'
 
@@ -20,7 +27,7 @@ module.exports = function(publish){
     })
 
     irc.on('data', function (message) {
-      console.log('<irc', new Date().toISOString(), message)
+      log(session, [new Date().toISOString(), message])
       var ircmsg = /^:([^ ]+) ([^ ]+) ([^ ]+)( :?(.*))?/.exec(message)
       if(ircmsg) {
         handle_irc_msg(session, ircmsg)
@@ -28,7 +35,7 @@ module.exports = function(publish){
     })
 
     irc.on('error', function(e) {
-      console.log('ircd', 'session', '#'+session.id, 'in error', e.code)
+      log(session, ['ircd', 'session', '#'+session.id, 'in error', e.code])
       session.state = 'error'
     })
 
@@ -83,6 +90,11 @@ module.exports = function(publish){
         scaps[kv[0].toLowerCase()] = kv[1]
       }
     }
+  }
+
+  function log(session, words) {
+    var message = words.join(' ')+"\n"
+    fs.writeSync(logfiles[session.id], message)
   }
 
   function rejoin(session) {
