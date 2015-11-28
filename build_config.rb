@@ -18,14 +18,14 @@ MRuby::Build.new do |conf|
   # conf.gem 'examples/mrbgems/c_and_ruby_extension_example'
   # conf.gem :github => 'masuidrive/mrbgems-example', :checksum_hash => '76518e8aecd131d047378448ac8055fa29d974a9'
   # conf.gem :git => 'git@github.com:masuidrive/mrbgems-example.git', :branch => 'master', :options => '-v'
-
-  # include the default GEMs
-  conf.gembox 'default'
   conf.gem :github => 'iij/mruby-iijson'
   conf.gem :github => 'mattn/mruby-pcre-regexp'
   conf.gem :github => 'iij/mruby-simple-random'
   conf.gem "#{root}/mrbgems/mruby-eval"
 
+
+  # include the default GEMs
+  conf.gembox 'default'
   # C compiler settings
   # conf.cc do |cc|
   #   cc.command = ENV['CC'] || 'gcc'
@@ -103,13 +103,28 @@ MRuby::Build.new('host-debug') do |conf|
   conf.gembox 'default'
 
   # C compiler settings
-  conf.cc.defines = %w(ENABLE_DEBUG)
+  conf.cc.defines = %w(MRB_ENABLE_DEBUG_HOOK)
 
   # Generate mruby debugger command (require mruby-eval)
   conf.gem :core => "mruby-bin-debugger"
 
   # bintest
   # conf.enable_bintest
+end
+
+MRuby::Build.new('test') do |conf|
+  # Gets set by the VS command prompts.
+  if ENV['VisualStudioVersion'] || ENV['VSINSTALLDIR']
+    toolchain :visualcpp
+  else
+    toolchain :gcc
+  end
+
+  enable_debug
+  conf.enable_bintest
+  conf.enable_test
+
+  conf.gembox 'default'
 end
 
 # Define cross build settings
