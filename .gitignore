@@ -1,9 +1,9 @@
 /gems/
 /bin/
-/build/
+/cpp/build/
 /.bundle/
 /mruby
 node_modules/
-/config.json
-/gluon
+/cpp/config.json
+/cpp/gluon
 
