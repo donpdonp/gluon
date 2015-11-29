@@ -7,3 +7,4 @@ node_modules/
 /cpp/config.json
 /cpp/gluon
 
+/golang/pkg
