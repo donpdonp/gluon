@@ -8,3 +8,4 @@ node_modules/
 /cpp/gluon
 /golang/src
 /golang/bin
+/golang/cmd

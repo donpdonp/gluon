@@ -9,8 +9,8 @@ src/gopkg.in/redis.v3:
 src/github.com/gdamore/mangos:
 	go get -u github.com/gdamore/mangos
 
-build:  cmd
+build: cmd
 
-cmd:    src/donpdonp/gluon
+cmd: src/donpdonp/gluon/**/*.go
 	go build donpdonp/gluon/cmd
 

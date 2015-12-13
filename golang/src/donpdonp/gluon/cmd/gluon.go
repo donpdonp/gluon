@@ -6,6 +6,7 @@ import (
 )
 
 func main() {
-  comm.Start()
+  go comm.Start()
+
   fmt.Println("bus started")
 }
