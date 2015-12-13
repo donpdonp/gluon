@@ -44,7 +44,11 @@ func main() {
   if err != nil {
     die("can't listen on pub socket: %s", err.Error())
   }
-  err = pub_sock.Send([]byte(time.Now().Format(time.ANSIC)))
+  err = pub_sock.SetOption(mangos.OptionSubscribe, []byte(""))
+  err = pub_sock.Send([]byte("X1goy"))
+  for {
+    err = pub_sock.Send([]byte(time.Now().Format(time.ANSIC)+"x2"))
+  }
 
   fmt.Fprintln(os.Stdout, fmt.Sprintf("sub"))
   var sub_sock mangos.Socket
