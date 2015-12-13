@@ -3,6 +3,7 @@ package comm
 import (
   "fmt"
   "os"
+  "encoding/json"
 
   // message bus
   "github.com/gdamore/mangos"
@@ -11,39 +12,49 @@ import (
 
 )
 
+type Bus struct {
+  sock mangos.Socket
+  Pipe chan string
+}
+
 func die(format string, v ...interface{}) {
   fmt.Fprintln(os.Stderr, fmt.Sprintf(format, v...))
   os.Exit(1)
 }
 
-func Start(pipe chan string) {
+func Factory() (Bus, error) {
+  new_bus := Bus{}
+  bus_sock, err := bus.NewSocket()
+  new_bus.sock = bus_sock
+  new_bus.Pipe = make(chan string)
+  return new_bus, err
+}
+
+func (comm *Bus) Start() {
   fmt.Fprintln(os.Stdout, fmt.Sprintf("bus %s", "0.1"))
 
   var err error
   var url = "tcp://127.0.0.1:40899"
 
   fmt.Printf("bus on  %s\n", url)
-  var bus_sock mangos.Socket
-  bus_sock, err = bus.NewSocket()
-  if err != nil {
-
-  }
-  bus_sock.AddTransport(tcp.NewTransport())
-  err = bus_sock.Listen(url)
+  comm.sock.AddTransport(tcp.NewTransport())
+  err = comm.sock.Listen(url)
   if err != nil {
     die("can't listen on bus socket: %s", err.Error())
   }
 
-  for i := 0; i < 10; i++ {
-    bus_sock.Send([]byte("Hello"))
-  }
-
   var msg []byte
   for {
-    if msg, err = bus_sock.Recv(); err != nil {
+    if msg, err = comm.sock.Recv(); err != nil {
       die("Cannot recv: %s", err.Error())
     }
-    pipe <- string(msg)
+    comm.Pipe <- string(msg)
   }
 
+}
+
+func (comm *Bus) Send(msg map[string]string) {
+  line, _ := json.Marshal(msg)
+  fmt.Println("->"+string(line))
+  comm.sock.Send(line)
 }

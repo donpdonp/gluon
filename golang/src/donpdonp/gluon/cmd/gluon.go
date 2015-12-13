@@ -6,13 +6,15 @@ import (
 )
 
 func main() {
-  bus := make(chan string)
-  go comm.Start(bus)
+  bus, _ := comm.Factory()
+
+  go bus.Start()
 
   fmt.Println("bus started")
 
+  bus.Send(map[string]string{"a":"b"})
   for {
-    msg := <-bus
+    msg := <-bus.Pipe
     fmt.Println("main got: "+msg)
   }
 }
