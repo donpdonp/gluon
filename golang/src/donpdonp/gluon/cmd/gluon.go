@@ -6,7 +6,13 @@ import (
 )
 
 func main() {
-  go comm.Start()
+  bus := make(chan string)
+  go comm.Start(bus)
 
   fmt.Println("bus started")
+
+  for {
+    msg := <-bus
+    fmt.Println("main got: "+msg)
+  }
 }

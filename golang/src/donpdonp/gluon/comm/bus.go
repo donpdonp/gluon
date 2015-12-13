@@ -16,7 +16,7 @@ func die(format string, v ...interface{}) {
   os.Exit(1)
 }
 
-func Start() {
+func Start(pipe chan string) {
   fmt.Fprintln(os.Stdout, fmt.Sprintf("bus %s", "0.1"))
 
   var err error
@@ -40,11 +40,10 @@ func Start() {
 
   var msg []byte
   for {
-    fmt.Println("bus listening")
     if msg, err = bus_sock.Recv(); err != nil {
       die("Cannot recv: %s", err.Error())
     }
-    fmt.Printf("CLIENT(%s): RECEIVED %s\n", "name", string(msg))
+    pipe <- string(msg)
   }
 
 }
