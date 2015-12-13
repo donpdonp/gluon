@@ -14,7 +14,7 @@ import (
 
 type Bus struct {
   sock mangos.Socket
-  Pipe chan string
+  Pipe chan map[string]interface{}
 }
 
 func die(format string, v ...interface{}) {
@@ -26,15 +26,14 @@ func Factory() (Bus, error) {
   new_bus := Bus{}
   bus_sock, err := bus.NewSocket()
   new_bus.sock = bus_sock
-  new_bus.Pipe = make(chan string)
+  new_bus.Pipe = make(chan map[string]interface{})
   return new_bus, err
 }
 
-func (comm *Bus) Start() {
+func (comm *Bus) Start(url string) {
   fmt.Fprintln(os.Stdout, fmt.Sprintf("bus %s", "0.1"))
 
   var err error
-  var url = "tcp://127.0.0.1:40899"
 
   fmt.Printf("bus on  %s\n", url)
   comm.sock.AddTransport(tcp.NewTransport())
@@ -48,7 +47,11 @@ func (comm *Bus) Start() {
     if msg, err = comm.sock.Recv(); err != nil {
       die("Cannot recv: %s", err.Error())
     }
-    comm.Pipe <- string(msg)
+    jmsg := string(msg)
+    fmt.Println("<-"+jmsg)
+    var pkt map[string]interface{}
+    json.Unmarshal(msg, &pkt)
+    comm.Pipe <- pkt
   }
 
 }

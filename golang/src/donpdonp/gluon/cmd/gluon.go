@@ -8,13 +8,14 @@ import (
 func main() {
   bus, _ := comm.Factory()
 
-  go bus.Start()
+  go bus.Start("tcp://127.0.0.1:40899")
 
   fmt.Println("bus started")
 
   bus.Send(map[string]string{"a":"b"})
+
   for {
     msg := <-bus.Pipe
-    fmt.Println("main got: "+msg)
+    fmt.Println("method: "+msg["method"].(string))
   }
 }
