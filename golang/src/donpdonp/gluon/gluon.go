@@ -24,7 +24,12 @@ func main() {
     case "vm.add":
       params := msg["params"].(map[string]interface{})
       url := params["url"].(string)
-      vm.Add(url)
+      vm.Add(vm.VM{}, url)
+    case "irc.privmsg":
+      for _, vm := range vm.List {
+        fmt.Println("VM "+vm.Name)
+        vm.Js.Run("1")
+      }
     }
   }
 }
