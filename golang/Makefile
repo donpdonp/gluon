@@ -12,5 +12,5 @@ src/github.com/gdamore/mangos:
 build: cmd
 
 cmd: src/donpdonp/gluon/**/*.go
-	go build donpdonp/gluon/cmd
+	go build donpdonp/gluon
 

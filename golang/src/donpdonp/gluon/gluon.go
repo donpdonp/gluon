@@ -16,6 +16,12 @@ func main() {
 
   for {
     msg := <-bus.Pipe
-    fmt.Println("method: "+msg["method"].(string))
+    method := msg["method"].(string)
+    fmt.Println("method: "+method)
+
+    switch method {
+    case "vm.add":
+      fmt.Println("adding")
+    }
   }
 }
