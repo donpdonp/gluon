@@ -3,6 +3,7 @@ package main;
 import (
   "fmt"
   "donpdonp/gluon/comm"
+  "donpdonp/gluon/vm"
 )
 
 func main() {
@@ -21,7 +22,9 @@ func main() {
 
     switch method {
     case "vm.add":
-      fmt.Println("adding")
+      params := msg["params"].(map[string]interface{})
+      url := params["url"].(string)
+      vm.Add(url)
     }
   }
 }
