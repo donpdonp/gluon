@@ -24,12 +24,23 @@ func main() {
     case "vm.add":
       params := msg["params"].(map[string]interface{})
       url := params["url"].(string)
-      vm.Add(vm.VM{}, url)
+      new_vm := vm.Factory("Bob")
+      new_vm.Load(url)
     case "irc.privmsg":
       for _, vm := range vm.List {
         fmt.Println("VM "+vm.Name)
-        vm.Js.Run("1")
+        params := msg["params"].(map[string]interface{})
+        p1 := params["msg"].(string)
+        call_js := "go(\""+p1+"\")"
+        fmt.Println("js call: "+call_js)
+        value, err := vm.Js.Run(call_js)
+        if err != nil {
+          bus.Send(map[string]string{"error":err.Error()})
+        } else {
+          bus.Send(map[string]string{"result":value.String()})
+        }
       }
     }
   }
+
 }

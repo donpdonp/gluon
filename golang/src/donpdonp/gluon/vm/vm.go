@@ -18,18 +18,21 @@ var (
   List []VM
 )
 
-func Add(newvm VM, url string) {
-  fmt.Println("adding "+url )
-  List = append(List, newvm)
+func Factory(name string) (*VM) {
+  new_vm := VM{Name: name,
+               Js: otto.New()};
+  List = append(List, new_vm)
+  return &new_vm;
+}
 
-  newvm.Name = "Name"
-  newvm.Js = otto.New()
-  newvm.Url = url
+func (vm *VM) Load(url string) {
   resp, err := http.Get(url)
   if err != nil {
     fmt.Println("http err")
   }
   defer resp.Body.Close()
   body, err := ioutil.ReadAll(resp.Body)
-  newvm.Js.Run(body)
+  fmt.Println("about to eval", string(body))
+  vm.Js.Run(body)
 }
+
