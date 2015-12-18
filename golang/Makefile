@@ -1,16 +1,10 @@
 all: build
 
-src/github.com/robertkrimen/otto:
-	go get github.com/robertkrimen/otto
+build: main cmd
 
-src/gopkg.in/redis.v3:
-	go get gopkg.in/redis.v3
-
-src/github.com/gdamore/mangos:
-	go get -u github.com/gdamore/mangos
-
-build: cmd
+main: src/donpdonp/gluon/**/*.go
+	go build donpdonp/gluon
 
 cmd: src/donpdonp/gluon/**/*.go
-	go build donpdonp/gluon
+	go build donpdonp/gluon/cmd
 

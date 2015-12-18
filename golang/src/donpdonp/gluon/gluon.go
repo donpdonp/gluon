@@ -9,7 +9,8 @@ import (
 func main() {
   bus, _ := comm.Factory()
 
-  go bus.Start("tcp://127.0.0.1:40899")
+  bus.Start("tcp://127.0.0.1:40899")
+  go bus.Loop()
 
   fmt.Println("bus started")
 
