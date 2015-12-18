@@ -13,8 +13,6 @@ func main() {
 
   fmt.Println("bus started")
 
-  bus.Send(map[string]string{"a":"b"})
-
   for {
     msg := <-bus.Pipe
     method := msg["method"].(string)
@@ -24,7 +22,8 @@ func main() {
     case "vm.add":
       params := msg["params"].(map[string]interface{})
       url := params["url"].(string)
-      new_vm := vm.Factory("Bob")
+      name := params["name"].(string)
+      new_vm := vm.Factory(name)
       new_vm.Load(url)
     case "irc.privmsg":
       for _, vm := range vm.List {
