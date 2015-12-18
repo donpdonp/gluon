@@ -35,9 +35,9 @@ func main() {
         fmt.Println("js call: "+call_js)
         value, err := vm.Js.Run(call_js)
         if err != nil {
-          bus.Send(map[string]string{"error":err.Error()})
+          bus.Send(map[string]interface{}{"error":err.Error()})
         } else {
-          bus.Send(map[string]string{"result":value.String()})
+          bus.Send(map[string]interface{}{"result":value.String()})
         }
       }
     }

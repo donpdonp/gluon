@@ -66,7 +66,7 @@ func (comm *Bus) Connect(url string) {
   }
 }
 
-func (comm *Bus) Send(msg map[string]string) {
+func (comm *Bus) Send(msg map[string]interface{}) {
   line, _ := json.Marshal(msg)
   err := comm.sock.Send(line)
   if err != nil {
