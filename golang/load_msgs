@@ -1,0 +1,5 @@
+./cmd vm.add --name=bob --url="https://gist.githubusercontent.com/donpdonp/70bde585a0cb8a1f5f71/raw/20ea53c6946927c437a8e196f769b296d5400eff/firststep.js" 
+./cmd irc.privmsg --msg="I am the bot"
+./cmd irc.connect --server=irc.freenode.net --nick=zrobo
+
+
