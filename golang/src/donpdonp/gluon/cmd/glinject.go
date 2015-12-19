@@ -9,16 +9,16 @@ import (
 )
 
 func main() {
-  bus, _ := comm.Factory()
+  bus := comm.PubsubFactory()
 
-  bus.Connect("tcp://127.0.0.1:40899")
+  bus.Start("localhost:6379")
   if len(os.Args) > 1 {
     msg := map[string]interface{}{"method":os.Args[1]}
     if len(os.Args) > 2 {
       msg["params"] = argsParse(os.Args)
     }
-    bus.Send(msg)
     go bus.Loop()
+    bus.Send(msg)
     <- bus.Pipe
   } else {
     fmt.Println("usage: ", os.Args[0], "<method name> --param_name=value")

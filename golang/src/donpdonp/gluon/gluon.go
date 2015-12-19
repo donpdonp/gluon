@@ -7,9 +7,9 @@ import (
 )
 
 func main() {
-  bus, _ := comm.Factory()
+  bus := comm.PubsubFactory()
 
-  bus.Start("tcp://127.0.0.1:40899")
+  bus.Start("localhost:6379")
   go bus.Loop()
 
   fmt.Println("bus started")
