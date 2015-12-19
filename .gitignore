@@ -6,6 +6,8 @@
 node_modules/
 /cpp/config.json
 /cpp/gluon
-/golang/src
-/golang/bin
+/golang/src/
+/golang/bin/
+/golang/pkg/
 /golang/gluon
+/golang/cmd
