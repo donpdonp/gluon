@@ -6,6 +6,8 @@ var redisLib = require("redis"),
     redisSub = redisLib.createClient(),
     redisPub = redisLib.createClient()
 
+var pubsub_channel = 'gluon'
+
 // local
 var sessions = require('./lib/sessions')
 var irc = require('./lib/irc')(redis_pub)
@@ -26,7 +28,7 @@ redisSub.on("message", function (channel, message) {
   }
 })
 
-redisSub.subscribe("gluon")
+redisSub.subscribe(pubsub_channel)
 
 function dispatch(payload) {
   // manage irc sessions
@@ -73,7 +75,7 @@ function dispatch(payload) {
 function redis_pub(msg){
   var json = JSON.stringify(msg)
   console.log('redis>', json)
-  redisPub.publish('neur0n', json)
+  redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {
     var session = sessions.get(msg.params.irc_session_id)
     session.channels.forEach(function(channel){
