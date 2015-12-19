@@ -26,7 +26,7 @@ redisSub.on("message", function (channel, message) {
   }
 })
 
-redisSub.subscribe("neur0n")
+redisSub.subscribe("gluon")
 
 function dispatch(payload) {
   // manage irc sessions
