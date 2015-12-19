@@ -1,8 +1,8 @@
 all: build
 
-build: main cmd
+build: gluon cmd
 
-main: src/donpdonp/gluon/**/*.go
+gluon: src/donpdonp/gluon/**/*.go
 	go build donpdonp/gluon
 
 cmd: src/donpdonp/gluon/**/*.go

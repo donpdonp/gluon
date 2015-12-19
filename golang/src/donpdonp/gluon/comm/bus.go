@@ -2,7 +2,7 @@ package comm
 
 import (
   "fmt"
-  "os"
+  "net/url"
   "encoding/json"
 
   // message bus
@@ -20,21 +20,18 @@ type Bus struct {
 func Factory() (Bus, error) {
   new_bus := Bus{}
   bus_sock, err := bus.NewSocket()
-  bus_sock.AddTransport(tcp.NewTransport())
   new_bus.sock = bus_sock
   new_bus.Pipe = make(chan map[string]interface{})
   return new_bus, err
 }
 
-func (comm *Bus) Start(url string) {
-  fmt.Fprintln(os.Stdout, fmt.Sprintf("bus %s", "0.1"))
-
-  var err error
-
-  fmt.Printf("bus on  %s\n", url)
-  err = comm.sock.Listen(url)
+func (comm *Bus) Start(url_str string) {
+  u, _ := url.Parse(url_str)
+  fmt.Printf("bus start %s\n", u)
+  comm.addProtocol(u.Scheme)
+  err := comm.sock.Listen(u.String())
   if err != nil {
-    fmt.Println("can't listen on bus socket: %s", err.Error())
+    fmt.Println("can't listen on bus socket:", err.Error())
   }
 }
 
@@ -53,11 +50,13 @@ func (comm *Bus) Loop() {
   }
 }
 
-func (comm *Bus) Connect(url string) {
-  fmt.Println("bus connect", url)
-  err := comm.sock.Dial(url)
+func (comm *Bus) Connect(url_str string) {
+  u, _ := url.Parse(url_str)
+  comm.addProtocol(u.Scheme)
+  fmt.Println("bus connecting", u)
+  err := comm.sock.Dial(u.String())
   if err != nil {
-    fmt.Println("can't listen on bus socket: %s", err.Error())
+    fmt.Println("can't dial on bus socket:", err.Error())
   }
 }
 
@@ -68,5 +67,12 @@ func (comm *Bus) Send(msg map[string]interface{}) {
     fmt.Println("Send err", err)
   } else{
     fmt.Println("->"+string(line))
+  }
+}
+
+func (comm *Bus) addProtocol(scheme string) {
+  switch scheme {
+  case "tcp":
+    comm.sock.AddTransport(tcp.NewTransport())
   }
 }
