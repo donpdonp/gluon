@@ -17,11 +17,6 @@ type Bus struct {
   Pipe chan map[string]interface{}
 }
 
-func die(format string, v ...interface{}) {
-  fmt.Fprintln(os.Stderr, fmt.Sprintf(format, v...))
-  os.Exit(1)
-}
-
 func Factory() (Bus, error) {
   new_bus := Bus{}
   bus_sock, err := bus.NewSocket()
@@ -39,7 +34,7 @@ func (comm *Bus) Start(url string) {
   fmt.Printf("bus on  %s\n", url)
   err = comm.sock.Listen(url)
   if err != nil {
-    die("can't listen on bus socket: %s", err.Error())
+    fmt.Println("can't listen on bus socket: %s", err.Error())
   }
 }
 
@@ -48,7 +43,7 @@ func (comm *Bus) Loop() {
   var err error
   for {
     if msg, err = comm.sock.Recv(); err != nil {
-      die("Cannot recv: %s", err.Error())
+      fmt.Println("Cannot recv: %s", err.Error())
     }
     jmsg := string(msg)
     fmt.Println("<-"+jmsg)
@@ -62,7 +57,7 @@ func (comm *Bus) Connect(url string) {
   fmt.Println("bus connect", url)
   err := comm.sock.Dial(url)
   if err != nil {
-    die("can't listen on bus socket: %s", err.Error())
+    fmt.Println("can't listen on bus socket: %s", err.Error())
   }
 }
 
