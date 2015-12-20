@@ -34,11 +34,15 @@ func (comm *Pubsub) Start(addr string) {
 
 func (comm *Pubsub) Loop() {
   for {
-    msg, _ := comm.sock.ReceiveMessage()
-    fmt.Println("<-"+msg.Payload)
-    var pkt map[string]interface{}
-    json.Unmarshal([]byte(msg.Payload), &pkt)
-    comm.Pipe <- pkt
+    msg, err := comm.sock.ReceiveMessage()
+    if err != nil {
+      fmt.Println("<- receive err", err)
+    } else {
+      fmt.Println("<-"+msg.Payload)
+      var pkt map[string]interface{}
+      json.Unmarshal([]byte(msg.Payload), &pkt)
+      comm.Pipe <- pkt
+    }
   }
 }
 
