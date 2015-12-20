@@ -2,6 +2,8 @@ package main;
 
 import (
   "fmt"
+  "encoding/json"
+
   "donpdonp/gluon/comm"
   "donpdonp/gluon/vm"
 )
@@ -31,9 +33,8 @@ func main() {
       case "irc.privmsg":
         for _, vm := range vm.List {
           fmt.Println("VM "+vm.Name)
-          params := msg["params"].(map[string]interface{})
-          p1 := params["message"].(string)
-          call_js := "go(\""+p1+"\")"
+          pprm, _ := json.Marshal(msg)
+          call_js := "go("+string(pprm)+")"
           fmt.Println("js call: "+call_js)
           value, err := vm.Js.Run(call_js)
           if err != nil {
