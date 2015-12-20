@@ -45,7 +45,7 @@ func main() {
 func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   new_vm := vm.Factory(name)
   new_vm.Js.Set("say", func(call otto.FunctionCall) otto.Value {
-      fmt.Printf("say %s %s.\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
+      fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"irc_session_id":call.Argument(0).String(),
                                               "channel":call.Argument(1).String(),
@@ -64,9 +64,19 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub, my_uuid string) {
     fmt.Println("js call: "+call_js)
     value, err := vm.Js.Run(call_js)
     if err != nil {
-      bus.Send(map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "error":err.Error()})
+      bus.Send(irc_reply(msg, err.Error(), my_uuid))
     } else {
-      bus.Send(map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "result":value.String()})
+      bus.Send(irc_reply(msg, value.String(), my_uuid))
     }
   }
+}
+
+func irc_reply(msg map[string]interface{}, value string, my_uuid string) (map[string]interface{}) {
+  params := msg["params"].(map[string]interface{})
+  resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
+
+  resp["params"] = map[string]interface{}{"irc_session_id": params["irc_session_id"],
+                                          "channel": params["channel"],
+                                          "message": value}
+  return resp
 }
