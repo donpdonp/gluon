@@ -21,7 +21,8 @@ func main() {
 
   for {
     msg := <-bus.Pipe
-    if msg_check(msg, my_uuid.String()) {
+    if comm.Msg_check(msg, my_uuid.String()) {
+      fmt.Println("X<-", msg)
       //id := msg["id"].(string)
       method := msg["method"].(string)
       fmt.Println("method: "+method)
@@ -38,27 +39,6 @@ func main() {
     }
   }
 
-}
-
-func msg_check(msg map[string]interface{}, my_uuid string) (bool) {
-  if msg["id"] != nil && msg["from"] != nil {
-    if msg["method"] != nil || msg["result"] != nil || msg["error"] != nil {
-      from := msg["from"].(string)
-      if from == my_uuid {
-        // drop my own msgs
-        fmt.Println("dropping my own echo")
-        return false
-      } else {
-        return true
-      }
-    } else {
-      fmt.Println("missing msg method/result/error!")
-      return false
-    }
-  } else {
-    fmt.Println("missing msg id/from!")
-    return false
-  }
 }
 
 func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {

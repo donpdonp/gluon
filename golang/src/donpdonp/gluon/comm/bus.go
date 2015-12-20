@@ -42,8 +42,6 @@ func (comm *Bus) Loop() {
     if msg, err = comm.sock.Recv(); err != nil {
       fmt.Println("Cannot recv: %s", err.Error())
     }
-    jmsg := string(msg)
-    fmt.Println("<-"+jmsg)
     var pkt map[string]interface{}
     json.Unmarshal(msg, &pkt)
     comm.Pipe <- pkt

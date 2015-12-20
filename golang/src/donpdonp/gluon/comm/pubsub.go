@@ -40,7 +40,6 @@ func (comm *Pubsub) Loop() {
     if err != nil {
       fmt.Println("<- receive err", err)
     } else {
-      fmt.Println("<-"+msg.Payload)
       var pkt map[string]interface{}
       json.Unmarshal([]byte(msg.Payload), &pkt)
       comm.Pipe <- pkt
