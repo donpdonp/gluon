@@ -22,7 +22,8 @@ func main() {
   for {
     msg := <-bus.Pipe
     if comm.Msg_check(msg, my_uuid.String()) {
-      fmt.Println("X<-", msg)
+      json, _ := json.Marshal(msg)
+      fmt.Println("<-", string(json))
       //id := msg["id"].(string)
       method := msg["method"].(string)
       fmt.Println("method: "+method)
@@ -44,9 +45,11 @@ func main() {
 func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   new_vm := vm.Factory(name)
   new_vm.Js.Set("say", func(call otto.FunctionCall) otto.Value {
-      fmt.Printf("Hello, %s.\n", call.Argument(0).String())
+      fmt.Printf("say %s %s.\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
-      resp["params"] = map[string]interface{}{"message": call.Argument(0).String()}
+      resp["params"] = map[string]interface{}{"irc_session_id":call.Argument(0).String(),
+                                              "channel":call.Argument(1).String(),
+                                              "message": call.Argument(2).String()}
       bus.Send(resp)
       return otto.Value{}
   })

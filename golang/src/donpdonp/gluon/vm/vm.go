@@ -32,7 +32,10 @@ func (vm *VM) Load(url string) {
   }
   defer resp.Body.Close()
   body, err := ioutil.ReadAll(resp.Body)
-  fmt.Println("about to eval", string(body))
-  vm.Js.Run(body)
+  fmt.Println("Otto about to eval:", string(body))
+  _, err = vm.Js.Run(body)
+  if err != nil {
+    fmt.Println("eval failed", err)
+  }
 }
 
