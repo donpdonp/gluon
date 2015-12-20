@@ -24,18 +24,19 @@ func main() {
     if comm.Msg_check(msg, my_uuid.String()) {
       json, _ := json.Marshal(msg)
       fmt.Println("<-", string(json))
-      //id := msg["id"].(string)
-      method := msg["method"].(string)
-      fmt.Println("method: "+method)
+      if msg["method"] != nil {
+        method := msg["method"].(string)
+        fmt.Println("method: "+method)
 
-      switch method {
-      case "vm.add":
-        params := msg["params"].(map[string]interface{})
-        url := params["url"].(string)
-        name := params["name"].(string)
-        vm_add(name, url, bus, my_uuid.String())
-      case "irc.privmsg":
-        dispatch(msg, bus, my_uuid.String())
+        switch method {
+        case "vm.add":
+          params := msg["params"].(map[string]interface{})
+          url := params["url"].(string)
+          name := params["name"].(string)
+          vm_add(name, url, bus, my_uuid.String())
+        case "irc.privmsg":
+          dispatch(msg, bus, my_uuid.String())
+        }
       }
     }
   }
@@ -66,7 +67,9 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub, my_uuid string) {
     if err != nil {
       bus.Send(irc_reply(msg, err.Error(), my_uuid))
     } else {
-      bus.Send(irc_reply(msg, value.String(), my_uuid))
+      if value.IsDefined() {
+        bus.Send(irc_reply(msg, value.String(), my_uuid))
+      }
     }
   }
 }
