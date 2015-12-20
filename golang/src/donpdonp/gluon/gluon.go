@@ -32,7 +32,7 @@ func main() {
         for _, vm := range vm.List {
           fmt.Println("VM "+vm.Name)
           params := msg["params"].(map[string]interface{})
-          p1 := params["msg"].(string)
+          p1 := params["message"].(string)
           call_js := "go(\""+p1+"\")"
           fmt.Println("js call: "+call_js)
           value, err := vm.Js.Run(call_js)
