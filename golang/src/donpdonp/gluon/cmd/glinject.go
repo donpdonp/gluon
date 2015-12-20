@@ -13,7 +13,7 @@ func main() {
 
   bus.Start("localhost:6379")
   if len(os.Args) > 1 {
-    msg := map[string]interface{}{"method":os.Args[1]}
+    msg := map[string]interface{}{"id":"123abc", "from": "gluon-cli", "method":os.Args[1]}
     if len(os.Args) > 2 {
       msg["params"] = argsParse(os.Args)
     }
