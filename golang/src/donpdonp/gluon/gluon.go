@@ -3,6 +3,8 @@ package main;
 import (
   "fmt"
   "encoding/json"
+  "net/http"
+  "io/ioutil"
 
   "donpdonp/gluon/comm"
   "donpdonp/gluon/vm"
@@ -45,7 +47,7 @@ func main() {
 
 func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   new_vm := vm.Factory(name)
-  new_vm.Js.Set("say", func(call otto.FunctionCall) otto.Value {
+  new_vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"irc_session_id":call.Argument(0).String(),
@@ -53,7 +55,20 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
                                               "message": call.Argument(2).String()}
       bus.Send(resp)
       return otto.Value{}
-  })
+  }})
+  new_vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
+      fmt.Printf("get(%s)\n", call.Argument(0).String())
+      resp, err := http.Get(call.Argument(0).String())
+      if err != nil {
+        fmt.Println("http err")
+      }
+      defer resp.Body.Close()
+      body, err := ioutil.ReadAll(resp.Body)
+      fmt.Println(string(body))
+      ottoStr, _ := otto.ToValue(string(body))
+      fmt.Println("returning", ottoStr)
+      return ottoStr
+  }})
   new_vm.Load(url)
 }
 
