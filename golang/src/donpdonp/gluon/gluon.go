@@ -105,10 +105,10 @@ func irc_reply(msg map[string]interface{}, value string, my_uuid string) (map[st
 }
 
 func clocktower(bus comm.Pubsub) {
-  fmt.Println("clocktower started")
+  fmt.Println("clocktower started", time.Now())
   for {
     msg := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"clocktower"}
-    msg["params"] = map[string]interface{}{"now": time.Now().UTC().Format("2006-01-02T15:04:05Z")}
+    msg["params"] = map[string]interface{}{"time": time.Now().UTC().Format("2006-01-02T15:04:05Z")}
     dispatch(msg, bus, my_uuid.String())
 
     //bus.Send(msg)
