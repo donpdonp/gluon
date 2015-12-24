@@ -56,9 +56,8 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   new_vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
-      resp["params"] = map[string]interface{}{"irc_session_id":call.Argument(0).String(),
-                                              "channel":call.Argument(1).String(),
-                                              "message": call.Argument(2).String()}
+      resp["params"] = map[string]interface{}{"channel":call.Argument(0).String(),
+                                              "message": call.Argument(1).String()}
       bus.Send(resp)
       return otto.Value{}
   }})

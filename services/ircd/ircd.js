@@ -64,7 +64,13 @@ function dispatch(payload) {
   }
   if(cmd == 'privmsg') {
     if(!payload.params.nick) {
-      var session = sessions.get(payload.params.irc_session_id)
+      var session
+      if(payload.params.channel) {
+        session = sessions.search(payload.params.channel)
+      }
+      if(payload.params.irc_session_id) {
+        session = sessions.get(payload.params.irc_session_id)
+      }
       if(session) {
         irc.privmsg(session, payload.params.channel, ':'+payload.params.message)
       } else {

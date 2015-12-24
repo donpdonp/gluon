@@ -26,6 +26,14 @@ module.exports = (function(){
     return Object.keys(sessions).map(function(key){return sessions[key]})
   }
 
+  o.search = function(channel) {
+    var matches = Object.keys(sessions).filter(function(sid){
+      console.log('irc searching', sessions[sid].channels)
+      return sessions[sid].channels.indexOf(channel) > -1
+    })
+    return sessions[matches[0]]
+  }
+
   function newId(base, length) {
     var width = Math.pow(base,length) - Math.pow(base,length-1)
     var add = Math.floor(Math.random()*width)

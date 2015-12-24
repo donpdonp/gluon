@@ -28,7 +28,7 @@ module.exports = function(publish){
 
     irc.on('data', function (message) {
       log(session, [new Date().toISOString(), message])
-      var ircmsg = /^:([^ ]+) ([^ ]+) ([^ ]+)( :?(.*))?/.exec(message)
+      var ircmsg = /^:([^ ]+) ([^ ]+) :?([^ ]+)( :?(.*))?/.exec(message)
       if(ircmsg) {
         handle_irc_msg(session, ircmsg)
       }
@@ -140,6 +140,7 @@ module.exports = function(publish){
                      }
                     }
         if(session.channels.indexOf(ircmsg[3]) == -1) {
+          console.log('adding channel', ircmsg[3])
           session.channels.push(ircmsg[3])
         }
         publish(reply)
