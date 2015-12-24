@@ -6,15 +6,13 @@ var redisLib = require("redis"),
     redisSub = redisLib.createClient(),
     redisPub = redisLib.createClient()
 
-// local
-var irc = require('./lib/irc')(redis_pub)
+var pubsub_channel = 'gluon'
 
 redisSub.on("subscribe", function (channel, count) {
   console.log("redis subscribe "+channel)
 })
 
 redisSub.on("message", function (channel, message) {
-  console.log("db from redis", message);
   try {
     var payload = JSON.parse(message)
     if(payload.method && payload.method.match(/^db\./)) {
@@ -25,12 +23,12 @@ redisSub.on("message", function (channel, message) {
   }
 })
 
-redisSub.subscribe("neur0n")
+redisSub.subscribe(pubsub_channel)
 
 function redis_pub(msg){
   var json = JSON.stringify(msg)
   console.log('redis>', json)
-  redisPub.publish('neur0n', json)
+  redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {
     var session = sessions.get(msg.params.irc_session_id)
     session.channels.forEach(function(channel){
@@ -41,17 +39,21 @@ function redis_pub(msg){
 }
 
 function dispatch(payload) {
-  // manage irc sessions
   var cmd = payload.method.split('.')[1]
   if(cmd == 'get') {
-    var session = sessions.generate(payload.params.server, payload.params.nick,
-                                    payload.params.nick, payload.id)
-    start(session)
+    var value = redisPub.get(payload.params.key, function(err, value) {
+      redis_pub({id: payload.id, result: value})
+    })
   }
   if(cmd == 'set') {
-    var session_list = sessions.list()
-    console.log("irc sessions:", session_list)
-    redis_pub({id: payload.id, result: session_list})
+    var value = redisPub.set(payload.params.key, payload.params.value, function(err, value) {
+      redis_pub({id: payload.id, result: true})
+    })
+  }
+  if(cmd == 'delete') {
+    var value = redisPub.del(payload.params.key, function(err, value) {
+      redis_pub({id: payload.id, result: value})
+    })
   }
 }
 
