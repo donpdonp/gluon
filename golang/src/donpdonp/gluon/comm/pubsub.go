@@ -8,6 +8,10 @@ import (
   "gopkg.in/redis.v3"
 )
 
+var (
+  rpcq = RpcqueueMake()
+)
+
 type Pubsub struct {
   sclient *redis.Client
   client *redis.Client
@@ -15,6 +19,7 @@ type Pubsub struct {
   Pipe chan map[string]interface{}
   Connected chan bool
 }
+
 
 func PubsubFactory() (Pubsub) {
   new_bus := Pubsub{}
@@ -42,12 +47,20 @@ func (comm *Pubsub) Loop() {
     } else {
       var pkt map[string]interface{}
       json.Unmarshal([]byte(msg.Payload), &pkt)
+      if pkt["id"] != nil {
+        callback, _ := rpcq.q.Get(pkt["id"].(string))
+        rpcq.q.Remove(pkt["id"].(string))
+        callback.(func())()
+      }
       comm.Pipe <- pkt
     }
   }
 }
 
-func (comm *Pubsub) Send(msg map[string]interface{}) {
+func (comm *Pubsub) Send(msg map[string]interface{}, callback func()) {
+  if msg["id"] != nil {
+    rpcq.q.Set(msg["id"].(string), callback)
+  }
   line, _ := json.Marshal(msg)
   err := comm.client.Publish("gluon", string(line)).Err()
   if err != nil {

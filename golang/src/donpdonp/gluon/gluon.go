@@ -58,7 +58,7 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
       resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"channel":call.Argument(0).String(),
                                               "message": call.Argument(1).String()}
-      bus.Send(resp)
+      bus.Send(resp, nil)
       return otto.Value{}
   }})
   new_vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
@@ -74,6 +74,15 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
       fmt.Println("returning", ottoStr)
       return ottoStr
   }})
+  new_vm.Js.Set("db", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
+      fmt.Printf("get(%s)\n", call.Argument(0).String())
+      resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"db.get"}
+      resp["params"] = map[string]interface{}{"key":call.Argument(0).String()}
+      bus.Send(resp, func(){
+
+      })
+      return otto.Value{}
+  }})
   new_vm.Load(url)
 }
 
@@ -84,10 +93,10 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub, my_uuid string) {
     fmt.Println("**VM", vm.Name, ": ", call_js)
     value, err := vm.Js.Run(call_js)
     if err != nil {
-      bus.Send(irc_reply(msg, err.Error(), my_uuid))
+      bus.Send(irc_reply(msg, err.Error(), my_uuid), nil)
     } else {
       if value.IsDefined() {
-        bus.Send(irc_reply(msg, value.String(), my_uuid))
+        bus.Send(irc_reply(msg, value.String(), my_uuid), nil)
       }
     }
   }
