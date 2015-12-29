@@ -58,7 +58,7 @@ func (comm *Pubsub) Loop() {
           callback, ok := rpcq.q.Get(pkt["id"].(string))
           if ok {
             rpcq.q.Remove(pkt["id"].(string))
-            callback.(func())()
+            callback.(func(map[string]interface{}))(pkt)
           }
         }
 
@@ -68,7 +68,7 @@ func (comm *Pubsub) Loop() {
   }
 }
 
-func (comm *Pubsub) Send(msg map[string]interface{}, callback func()) {
+func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]interface{})) {
   msg["id"] = uuid.NewV4().String()
   msg["from"] = comm.uuid
   if callback != nil {

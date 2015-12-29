@@ -56,7 +56,7 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   new_vm := vm.Factory(name)
   new_vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
-      resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
+      resp := map[string]interface{}{"method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"channel":call.Argument(0).String(),
                                               "message": call.Argument(1).String()}
       bus.Send(resp, nil)
@@ -77,10 +77,11 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   }})
   new_vm.Js.Set("db", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("get(%s)\n", call.Argument(0).String())
-      resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"db.get"}
+      resp := map[string]interface{}{"method":"db.get"}
       resp["params"] = map[string]interface{}{"key":call.Argument(0).String()}
-      bus.Send(resp, func(){
+      bus.Send(resp, func(pkt map[string]interface{}){
         fmt.Println("callback jack!")
+        fmt.Println(pkt["result"])
       })
       return otto.Value{}
   }})
