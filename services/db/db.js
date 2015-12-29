@@ -1,5 +1,6 @@
 // node
 var net = require("net")
+var uuid = require('node-uuid')
 
 // npm
 var redisLib = require("redis"),
@@ -7,6 +8,7 @@ var redisLib = require("redis"),
     redisPub = redisLib.createClient()
 
 var pubsub_channel = 'gluon'
+var my_uuid = uuid.v4()
 
 redisSub.on("subscribe", function (channel, count) {
   console.log("redis subscribe "+channel)
@@ -26,6 +28,8 @@ redisSub.on("message", function (channel, message) {
 redisSub.subscribe(pubsub_channel)
 
 function redis_pub(msg){
+  msg["from"] = my_uuid
+  msg["id"] = uuid.v4()
   var json = JSON.stringify(msg)
   console.log('redis>', json)
   redisPub.publish(pubsub_channel, json)

@@ -46,6 +46,8 @@ func main() {
           dispatch(msg, bus, my_uuid.String())
         }
       }
+    } else {
+      fmt.Println(msg)
     }
   }
 
@@ -79,7 +81,7 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
       resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"db.get"}
       resp["params"] = map[string]interface{}{"key":call.Argument(0).String()}
       bus.Send(resp, func(){
-
+        fmt.Println("callback jack!")
       })
       return otto.Value{}
   }})

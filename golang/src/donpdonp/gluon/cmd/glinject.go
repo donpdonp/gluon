@@ -18,7 +18,9 @@ func main() {
       msg["params"] = argsParse(os.Args)
     }
     go bus.Loop()
-    bus.Send(msg, nil)
+    bus.Send(msg, func() {
+      fmt.Println("response received!")
+    })
     <- bus.Pipe
   } else {
     fmt.Println("usage: ", os.Args[0], "<method name> --param_name=value")

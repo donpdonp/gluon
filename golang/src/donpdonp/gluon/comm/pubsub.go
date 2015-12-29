@@ -48,9 +48,11 @@ func (comm *Pubsub) Loop() {
       var pkt map[string]interface{}
       json.Unmarshal([]byte(msg.Payload), &pkt)
       if pkt["id"] != nil {
-        callback, _ := rpcq.q.Get(pkt["id"].(string))
+        callback, ok := rpcq.q.Get(pkt["id"].(string))
         rpcq.q.Remove(pkt["id"].(string))
-        callback.(func())()
+        if ok {
+          callback.(func())()
+        }
       }
       comm.Pipe <- pkt
     }
@@ -58,7 +60,7 @@ func (comm *Pubsub) Loop() {
 }
 
 func (comm *Pubsub) Send(msg map[string]interface{}, callback func()) {
-  if msg["id"] != nil {
+  if msg["id"] != nil && callback != nil {
     rpcq.q.Set(msg["id"].(string), callback)
   }
   line, _ := json.Marshal(msg)
