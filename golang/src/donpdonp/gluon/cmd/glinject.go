@@ -24,7 +24,7 @@ func main() {
     bus.Send(msg, func() {
       fmt.Println("response received!")
     })
-    for { <- bus.Pipe }
+    <- bus.Pipe
   } else {
     fmt.Println("usage: ", os.Args[0], "<method name> --param_name=value")
   }

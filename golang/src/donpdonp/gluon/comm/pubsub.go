@@ -53,19 +53,17 @@ func (comm *Pubsub) Loop() {
 
       if pkt["from"].(string) == comm.uuid {
         // drop my own msgs
-        fmt.Println("dropping my own echo")
-        return
-      }
-
-      if pkt["id"] != nil {
-        callback, ok := rpcq.q.Get(pkt["id"].(string))
-        if ok {
-          rpcq.q.Remove(pkt["id"].(string))
-          callback.(func())()
+      } else {
+        if pkt["id"] != nil {
+          callback, ok := rpcq.q.Get(pkt["id"].(string))
+          if ok {
+            rpcq.q.Remove(pkt["id"].(string))
+            callback.(func())()
+          }
         }
-      }
 
-      comm.Pipe <- pkt
+        comm.Pipe <- pkt
+      }
     }
   }
 }
