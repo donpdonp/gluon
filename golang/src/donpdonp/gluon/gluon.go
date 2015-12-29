@@ -15,12 +15,11 @@ import (
 )
 
 var (
-  my_uuid uuid.UUID
+  my_uuid uuid.UUID = uuid.NewV4()
 )
 
 func main() {
-  bus := comm.PubsubFactory()
-  my_uuid = uuid.NewV4()
+  bus := comm.PubsubFactory(my_uuid.String())
   bus.Start("localhost:6379")
   go bus.Loop()
 
@@ -29,7 +28,7 @@ func main() {
 
   for {
     msg := <-bus.Pipe
-    if comm.Msg_check(msg, my_uuid.String()) {
+    if comm.Msg_check(msg) {
       json, _ := json.Marshal(msg)
       fmt.Println("<-", string(json))
       if msg["method"] != nil {
@@ -43,7 +42,7 @@ func main() {
           name := params["name"].(string)
           vm_add(name, url, bus, my_uuid.String())
         case "irc.privmsg":
-          dispatch(msg, bus, my_uuid.String())
+          dispatch(msg, bus)
         }
       }
     } else {
@@ -88,25 +87,25 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
   new_vm.Load(url)
 }
 
-func dispatch(msg map[string]interface{}, bus comm.Pubsub, my_uuid string) {
+func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
   for _, vm := range vm.List {
     pprm, _ := json.Marshal(msg)
     call_js := "go("+string(pprm)+")"
     fmt.Println("**VM", vm.Name, ": ", call_js)
     value, err := vm.Js.Run(call_js)
     if err != nil {
-      bus.Send(irc_reply(msg, err.Error(), my_uuid), nil)
+      bus.Send(irc_reply(msg, err.Error()), nil)
     } else {
       if value.IsDefined() {
-        bus.Send(irc_reply(msg, value.String(), my_uuid), nil)
+        bus.Send(irc_reply(msg, value.String()), nil)
       }
     }
   }
 }
 
-func irc_reply(msg map[string]interface{}, value string, my_uuid string) (map[string]interface{}) {
+func irc_reply(msg map[string]interface{}, value string) (map[string]interface{}) {
   params := msg["params"].(map[string]interface{})
-  resp := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"irc.privmsg"}
+  resp := map[string]interface{}{"method":"irc.privmsg"}
 
   resp["params"] = map[string]interface{}{"irc_session_id": params["irc_session_id"],
                                           "channel": params["channel"],
@@ -117,9 +116,9 @@ func irc_reply(msg map[string]interface{}, value string, my_uuid string) (map[st
 func clocktower(bus comm.Pubsub) {
   fmt.Println("clocktower started", time.Now())
   for {
-    msg := map[string]interface{}{"id": uuid.NewV4(), "from": my_uuid, "method":"clocktower"}
+    msg := map[string]interface{}{"method":"clocktower"}
     msg["params"] = map[string]interface{}{"time": time.Now().UTC().Format("2006-01-02T15:04:05Z")}
-    dispatch(msg, bus, my_uuid.String())
+    dispatch(msg, bus)
 
     //bus.Send(msg)
     time.Sleep(60 * time.Second)

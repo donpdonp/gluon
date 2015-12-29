@@ -29,7 +29,7 @@ redisSub.subscribe(pubsub_channel)
 
 function redis_pub(msg){
   msg["from"] = my_uuid
-  msg["id"] = uuid.v4()
+  msg["id"] = msg["id"] || uuid.v4()
   var json = JSON.stringify(msg)
   console.log('redis>', json)
   redisPub.publish(pubsub_channel, json)

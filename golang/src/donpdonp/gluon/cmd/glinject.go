@@ -6,14 +6,17 @@ import (
   "strings"
 
   "donpdonp/gluon/comm"
+  "github.com/satori/go.uuid"
+
 )
 
 func main() {
-  bus := comm.PubsubFactory()
+  my_uuid := uuid.NewV4().String()
+  bus := comm.PubsubFactory(my_uuid)
 
   bus.Start("localhost:6379")
   if len(os.Args) > 1 {
-    msg := map[string]interface{}{"id":"123abc", "from": "gluon-cli", "method":os.Args[1]}
+    msg := map[string]interface{}{"method":os.Args[1]}
     if len(os.Args) > 2 {
       msg["params"] = argsParse(os.Args)
     }
@@ -21,7 +24,7 @@ func main() {
     bus.Send(msg, func() {
       fmt.Println("response received!")
     })
-    <- bus.Pipe
+    for { <- bus.Pipe }
   } else {
     fmt.Println("usage: ", os.Args[0], "<method name> --param_name=value")
   }

@@ -4,15 +4,10 @@ import (
   "fmt"
 )
 
-func Msg_check(msg map[string]interface{}, my_uuid string) (bool) {
+func Msg_check(msg map[string]interface{}) (bool) {
   var ok bool
   if _, ok = msg["id"]; ok {
-    var from interface{}
-    if from, ok = msg["from"]; ok {
-      if from == my_uuid {
-        // drop my own msgs
-        return false
-      }
+    if _, ok = msg["from"]; ok {
       var allok = false
       if _, ok = msg["method"]; ok {
         allok = true

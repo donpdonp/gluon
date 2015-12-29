@@ -6,6 +6,8 @@ import (
 
   // redis
   "gopkg.in/redis.v3"
+  "github.com/satori/go.uuid"
+
 )
 
 var (
@@ -13,6 +15,7 @@ var (
 )
 
 type Pubsub struct {
+  uuid string
   sclient *redis.Client
   client *redis.Client
   sock *redis.PubSub
@@ -21,8 +24,8 @@ type Pubsub struct {
 }
 
 
-func PubsubFactory() (Pubsub) {
-  new_bus := Pubsub{}
+func PubsubFactory(uuid string) (Pubsub) {
+  new_bus := Pubsub{uuid: uuid}
   new_bus.Pipe = make(chan map[string]interface{})
   new_bus.Connected = make(chan bool)
   return new_bus
@@ -47,20 +50,30 @@ func (comm *Pubsub) Loop() {
     } else {
       var pkt map[string]interface{}
       json.Unmarshal([]byte(msg.Payload), &pkt)
+
+      if pkt["from"].(string) == comm.uuid {
+        // drop my own msgs
+        fmt.Println("dropping my own echo")
+        return
+      }
+
       if pkt["id"] != nil {
         callback, ok := rpcq.q.Get(pkt["id"].(string))
-        rpcq.q.Remove(pkt["id"].(string))
         if ok {
+          rpcq.q.Remove(pkt["id"].(string))
           callback.(func())()
         }
       }
+
       comm.Pipe <- pkt
     }
   }
 }
 
 func (comm *Pubsub) Send(msg map[string]interface{}, callback func()) {
-  if msg["id"] != nil && callback != nil {
+  msg["id"] = uuid.NewV4().String()
+  msg["from"] = comm.uuid
+  if callback != nil {
     rpcq.q.Set(msg["id"].(string), callback)
   }
   line, _ := json.Marshal(msg)
