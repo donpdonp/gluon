@@ -70,9 +70,7 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
       }
       defer resp.Body.Close()
       body, err := ioutil.ReadAll(resp.Body)
-      fmt.Println(string(body))
       ottoStr, _ := otto.ToValue(string(body))
-      fmt.Println("returning", ottoStr)
       return ottoStr
   }})
   new_vm.Js.Set("db", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
