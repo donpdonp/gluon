@@ -39,8 +39,8 @@ func main() {
         case "vm.add":
           params := msg["params"].(map[string]interface{})
           url := params["url"].(string)
-          name := params["name"].(string)
-          vm_add(name, url, bus, my_uuid.String())
+          owner := params["owner"].(string)
+          vm_add(owner, url, bus, my_uuid.String())
         case "irc.privmsg":
           dispatch(msg, bus)
         }
@@ -52,8 +52,8 @@ func main() {
 
 }
 
-func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
-  new_vm := vm.Factory(name)
+func vm_add(owner string, url string, bus comm.Pubsub, my_uuid string) {
+  new_vm := vm.Factory(owner)
   new_vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"method":"irc.privmsg"}
@@ -84,13 +84,14 @@ func vm_add(name string, url string, bus comm.Pubsub, my_uuid string) {
       return otto.Value{}
   }})
   new_vm.Load(url)
+  vm.List = append(vm.List, *new_vm)
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
   for _, vm := range vm.List {
     pprm, _ := json.Marshal(msg)
     call_js := "go("+string(pprm)+")"
-    fmt.Println("**VM", vm.Name, ": ", call_js)
+    fmt.Println("**VM", vm.Owner, "/", vm.Name, ": ", call_js)
     value, err := vm.Js.Run(call_js)
     if err != nil {
       bus.Send(irc_reply(msg, err.Error()), nil)
