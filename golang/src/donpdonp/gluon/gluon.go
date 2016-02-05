@@ -73,16 +73,28 @@ func vm_add(owner string, url string, bus comm.Pubsub, my_uuid string) {
       ottoStr, _ := otto.ToValue(string(body))
       return ottoStr
   }})
-  new_vm.Js.Set("db", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
+  new_vm.Js.Set("db", map[string]interface{}{
+    "get":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("get(%s)\n", call.Argument(0).String())
       resp := map[string]interface{}{"method":"db.get"}
-      resp["params"] = map[string]interface{}{"key":call.Argument(0).String()}
+      key := call.Argument(0).String()
+      resp["params"] = map[string]interface{}{"group":new_vm.Owner, "key":key}
       bus.Send(resp, func(pkt map[string]interface{}){
-        fmt.Println("callback jack!")
         fmt.Println(pkt["result"])
       })
       return otto.Value{}
-  }})
+    },
+    "set":func(call otto.FunctionCall) otto.Value {
+      key := call.Argument(0).String()
+      value := call.Argument(1).String()
+      fmt.Printf("set(%s, %s)\n", key, value)
+      resp := map[string]interface{}{"method":"db.set"}
+      resp["params"] = map[string]interface{}{"group":new_vm.Owner, "key":key, "value": value}
+      bus.Send(resp, func(pkt map[string]interface{}){
+        fmt.Println(pkt["result"])
+      })
+      return otto.Value{}
+    }})
   new_vm.Load(url)
   vm.List = append(vm.List, *new_vm)
 }

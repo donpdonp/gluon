@@ -45,17 +45,17 @@ function redis_pub(msg){
 function dispatch(payload) {
   var cmd = payload.method.split('.')[1]
   if(cmd == 'get') {
-    var value = redisPub.get(payload.params.key, function(err, value) {
+    var value = redisPub.hget(payload.params.group, payload.params.key, function(err, value) {
       redis_pub({id: payload.id, result: value})
     })
   }
   if(cmd == 'set') {
-    var value = redisPub.set(payload.params.key, payload.params.value, function(err, value) {
+    var value = redisPub.hset(payload.params.group, payload.params.key, payload.params.value, function(err, value) {
       redis_pub({id: payload.id, result: true})
     })
   }
   if(cmd == 'delete') {
-    var value = redisPub.del(payload.params.key, function(err, value) {
+    var value = redisPub.hdel(payload.params.group, payload.params.key, function(err, value) {
       redis_pub({id: payload.id, result: value})
     })
   }
