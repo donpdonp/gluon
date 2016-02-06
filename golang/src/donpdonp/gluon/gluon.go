@@ -110,7 +110,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
     if msg["method"] == "irc.privmsg" {
       var sayback string
       if err != nil {
-        sayback = err.Error()
+        sayback = "["+vm.Name+"] "+err.Error()
       } else {
         if value.IsDefined() {
           sayback = value.String()
