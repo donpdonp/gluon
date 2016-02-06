@@ -61,7 +61,7 @@ func vm_add(owner string, url string, bus comm.Pubsub, my_uuid string) {
                                               "message": call.Argument(1).String()}
       bus.Send(resp, nil)
       return otto.Value{}
-  }})
+  }, "owner": new_vm.Owner})
   new_vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("get(%s)\n", call.Argument(0).String())
       resp, err := http.Get(call.Argument(0).String())
