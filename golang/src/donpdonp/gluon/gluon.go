@@ -81,6 +81,8 @@ func vm_add(owner string, url string, bus comm.Pubsub, my_uuid string) {
       resp["params"] = map[string]interface{}{"group":new_vm.Owner, "key":key}
       bus.Send(resp, func(pkt map[string]interface{}){
         fmt.Println(pkt["result"])
+        callback := call.Argument(1)
+        callback.Call(callback, pkt["result"])
       })
       return otto.Value{}
     },
