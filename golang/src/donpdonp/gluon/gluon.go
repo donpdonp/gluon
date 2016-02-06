@@ -107,12 +107,16 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
     call_js := "go("+string(pprm)+")"
     fmt.Println("**VM", vm.Owner, "/", vm.Name, ": ", call_js)
     value, err := vm.Js.Run(call_js)
-    if err != nil {
-      bus.Send(irc_reply(msg, err.Error()), nil)
-    } else {
-      if value.IsDefined() {
-        bus.Send(irc_reply(msg, value.String()), nil)
+    if msg["method"] == "irc.privmsg" {
+      var sayback string
+      if err != nil {
+        sayback = err.Error()
+      } else {
+        if value.IsDefined() {
+          sayback = value.String()
+        }
       }
+      bus.Send(irc_reply(msg, sayback), nil)
     }
   }
 }
