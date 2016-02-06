@@ -121,8 +121,13 @@ func irc_reply(msg map[string]interface{}, value string) (map[string]interface{}
   params := msg["params"].(map[string]interface{})
   resp := map[string]interface{}{"method":"irc.privmsg"}
 
+  out := params["channel"].(string)
+  if out[0:1] != "#" {
+    out = params["nick"].(string)
+  }
+
   resp["params"] = map[string]interface{}{"irc_session_id": params["irc_session_id"],
-                                          "channel": params["channel"],
+                                          "channel": out,
                                           "message": value}
   return resp
 }
