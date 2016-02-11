@@ -46,6 +46,10 @@ func main() {
           params := msg["params"].(map[string]interface{})
           name := params["name"].(string)
           vm_reload(name, bus)
+        case "vm.del":
+          params := msg["params"].(map[string]interface{})
+          name := params["name"].(string)
+          vm_del(name, bus)
         case "vm.list":
           do_vm_list(bus)
         case "irc.privmsg":
@@ -115,6 +119,17 @@ func vm_reload(name string, bus comm.Pubsub) bool {
     vm := vm_list.At(idx)
     fmt.Println(name+" found. reloading "+vm.Url)
     vm.Load(vm.Url)
+    return true
+  }
+  fmt.Println(name+" not found.")
+  return false
+}
+
+func vm_del(name string, bus comm.Pubsub) bool {
+  idx := vm_list.IndexOf(name)
+  if idx >-1 {
+    vm_list.Del(name)
+    fmt.Println(name+" deleted.")
     return true
   }
   fmt.Println(name+" not found.")
