@@ -15,7 +15,10 @@ import (
 )
 
 var (
+  // load these from json
   my_uuid uuid.UUID = uuid.NewV4()
+  my_key string = uuid.NewV4().String()[0:8]
+
   vm_list vm.List
 )
 
@@ -24,7 +27,7 @@ func main() {
   bus.Start("localhost:6379")
   go bus.Loop()
 
-  fmt.Println("gluon started")
+  fmt.Println("gluon started. key "+my_key)
   go clocktower(bus)
 
   for {
@@ -41,17 +44,26 @@ func main() {
           params := msg["params"].(map[string]interface{})
           url := params["url"].(string)
           owner := params["owner"].(string)
-          vm_add(owner, url, bus)
+          if key_check(params) {
+            vm_add(owner, url, bus)
+          }
         case "vm.reload":
           params := msg["params"].(map[string]interface{})
           name := params["name"].(string)
-          vm_reload(name, bus)
+          if key_check(params) {
+            vm_reload(name, bus)
+          }
         case "vm.del":
           params := msg["params"].(map[string]interface{})
           name := params["name"].(string)
-          vm_del(name, bus)
+          if key_check(params) {
+            vm_del(name, bus)
+          }
         case "vm.list":
-          do_vm_list(bus)
+          params := msg["params"].(map[string]interface{})
+          if key_check(params) {
+            do_vm_list(bus)
+          }
         case "irc.privmsg":
           dispatch(msg, bus)
         }
@@ -61,6 +73,19 @@ func main() {
     }
   }
 
+}
+
+func key_check(params map[string]interface{}) bool {
+  ok := false
+  if params["key"] != nil {
+    if params["key"] == my_key {
+      ok = true
+    }
+  }
+  if ok == false {
+    fmt.Println("key check failed!")
+  }
+  return ok
 }
 
 func vm_add(owner string, url string, bus comm.Pubsub) bool {
