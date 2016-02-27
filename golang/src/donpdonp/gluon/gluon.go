@@ -90,15 +90,30 @@ func key_check(params map[string]interface{}) bool {
 
 func vm_add(owner string, url string, bus comm.Pubsub) bool {
   new_vm := vm.Factory(owner)
-  new_vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
+
+  vm_enhance_standard(new_vm, bus)
+
+  eval := new_vm.Load(url)
+
+  if eval {
+    success, _ := vm_list.Add(*new_vm)
+    fmt.Println("VM "+new_vm.Owner+"/"+new_vm.Name+" added!")
+    return success
+  }
+  return false
+}
+
+func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
+  vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"channel":call.Argument(0).String(),
                                               "message": call.Argument(1).String()}
       bus.Send(resp, nil)
       return otto.Value{}
-  }, "owner": new_vm.Owner})
-  new_vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
+    },
+    "owner": vm.Owner})
+  vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("get(%s)\n", call.Argument(0).String())
       resp, err := http.Get(call.Argument(0).String())
       if err != nil {
@@ -109,11 +124,11 @@ func vm_add(owner string, url string, bus comm.Pubsub) bool {
       ottoStr, _ := otto.ToValue(string(body))
       return ottoStr
   }})
-  new_vm.Js.Set("db", map[string]interface{}{
+  vm.Js.Set("db", map[string]interface{}{
     "get":func(call otto.FunctionCall) otto.Value {
       resp := map[string]interface{}{"method":"db.get"}
       key := call.Argument(0).String()
-      resp["params"] = map[string]interface{}{"group":new_vm.Owner, "key":key}
+      resp["params"] = map[string]interface{}{"group":vm.Owner, "key":key}
       bus.Send(resp, func(pkt map[string]interface{}){
         callback := call.Argument(1)
         callback.Call(callback, pkt["result"])
@@ -124,18 +139,11 @@ func vm_add(owner string, url string, bus comm.Pubsub) bool {
       key := call.Argument(0).String()
       value := call.Argument(1).String()
       resp := map[string]interface{}{"method":"db.set"}
-      resp["params"] = map[string]interface{}{"group":new_vm.Owner, "key":key, "value": value}
+      resp["params"] = map[string]interface{}{"group":vm.Owner, "key":key, "value": value}
       bus.Send(resp, func(pkt map[string]interface{}){
       })
       return otto.Value{}
     }})
-  eval := new_vm.Load(url)
-  if eval {
-    success, _ := vm_list.Add(*new_vm)
-    fmt.Println("VM "+new_vm.Owner+"/"+new_vm.Name+" added!")
-    return success
-  }
-  return false
 }
 
 func vm_reload(name string, bus comm.Pubsub) bool {
