@@ -13,16 +13,18 @@ import (
 )
 
 type Bus struct {
+  uuid string
   sock mangos.Socket
   Pipe chan map[string]interface{}
 }
 
-func Factory() (Bus, error) {
-  new_bus := Bus{}
+func BusFactory(uuid string) (Bus) {
+  new_bus := Bus{uuid: uuid}
   bus_sock, err := bus.NewSocket()
   new_bus.sock = bus_sock
   new_bus.Pipe = make(chan map[string]interface{})
-  return new_bus, err
+  if err != nil { fmt.Println("nanomsg socket err", err.Error())}
+  return new_bus
 }
 
 func (comm *Bus) Start(url_str string) {
@@ -30,9 +32,7 @@ func (comm *Bus) Start(url_str string) {
   fmt.Printf("bus start %s\n", u)
   comm.addProtocol(u.Scheme)
   err := comm.sock.Listen(u.String())
-  if err != nil {
-    fmt.Println("can't listen on bus socket:", err.Error())
-  }
+  if err != nil { fmt.Println("can't listen on bus socket:", err.Error()) }
 }
 
 func (comm *Bus) Loop() {

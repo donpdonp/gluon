@@ -24,6 +24,7 @@ var (
 
 func main() {
   bus := comm.PubsubFactory(my_uuid.String())
+  //bus := comm.BusFactory(my_uuid.String())
   bus.Start("localhost:6379")
   go bus.Loop()
 
@@ -132,6 +133,15 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
       resp := map[string]interface{}{"method":"db.set"}
       resp["params"] = map[string]interface{}{"group":vm.Owner, "key":key, "value": value}
       bus.Send(resp, func(pkt map[string]interface{}){
+      })
+      return otto.Value{}
+    }})
+  vm.Js.Set("vm", map[string]interface{}{
+    "list":func(call otto.FunctionCall) otto.Value {
+      resp := map[string]interface{}{"method":"vm.list"}
+      bus.Send(resp, func(pkt map[string]interface{}){
+        callback := call.Argument(0)
+        callback.Call(callback, pkt["result"])
       })
       return otto.Value{}
     }})
