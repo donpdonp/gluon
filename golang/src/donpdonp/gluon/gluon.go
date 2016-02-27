@@ -44,26 +44,17 @@ func main() {
           params := msg["params"].(map[string]interface{})
           url := params["url"].(string)
           owner := params["owner"].(string)
-          if key_check(params) {
-            vm_add(owner, url, bus)
-          }
+          vm_add(owner, url, bus)
         case "vm.reload":
           params := msg["params"].(map[string]interface{})
           name := params["name"].(string)
-          if key_check(params) {
-            vm_reload(name, bus)
-          }
+          vm_reload(name, bus)
         case "vm.del":
           params := msg["params"].(map[string]interface{})
           name := params["name"].(string)
-          if key_check(params) {
-            vm_del(name, bus)
-          }
+          vm_del(name, bus)
         case "vm.list":
-          params := msg["params"].(map[string]interface{})
-          if key_check(params) {
-            do_vm_list(bus)
-          }
+          do_vm_list(bus)
         case "irc.privmsg":
           dispatch(msg, bus)
         }
