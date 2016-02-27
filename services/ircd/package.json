@@ -2,7 +2,7 @@
   "version" : "0.0.2",
   "dependencies" : {
                      "irc-socket": "*",
-                     "redis": "*",
+                     "nanomsg": "*",
                      "node-uuid": "*"
                    },
   "repository" :{

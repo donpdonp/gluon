@@ -23,9 +23,8 @@ var (
 )
 
 func main() {
-  bus := comm.PubsubFactory(my_uuid.String())
-  //bus := comm.BusFactory(my_uuid.String())
-  bus.Start("localhost:6379")
+  bus := comm.BusFactory(my_uuid.String())
+  bus.Start("tcp://127.0.0.1:40899")
   go bus.Loop()
 
   fmt.Println("gluon started. key "+my_key)
@@ -80,7 +79,7 @@ func key_check(params map[string]interface{}) bool {
   return ok
 }
 
-func vm_add(owner string, url string, bus comm.Pubsub) bool {
+func vm_add(owner string, url string, bus comm.Bus) bool {
   new_vm := vm.Factory(owner)
 
   vm_enhance_standard(new_vm, bus)
@@ -95,7 +94,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) bool {
   return false
 }
 
-func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
+func vm_enhance_standard(vm *vm.VM, bus comm.Bus) {
   vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"method":"irc.privmsg"}
@@ -147,7 +146,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
     }})
 }
 
-func vm_reload(name string, bus comm.Pubsub) bool {
+func vm_reload(name string, bus comm.Bus) bool {
   idx := vm_list.IndexOf(name)
   if idx >-1 {
     vm := vm_list.At(idx)
@@ -159,7 +158,7 @@ func vm_reload(name string, bus comm.Pubsub) bool {
   return false
 }
 
-func vm_del(name string, bus comm.Pubsub) bool {
+func vm_del(name string, bus comm.Bus) bool {
   idx := vm_list.IndexOf(name)
   if idx >-1 {
     vm_list.Del(name)
@@ -170,7 +169,7 @@ func vm_del(name string, bus comm.Pubsub) bool {
   return false
 }
 
-func do_vm_list(bus comm.Pubsub) {
+func do_vm_list(bus comm.Bus) {
   fmt.Println("VM List")
   for vm := range vm_list.Range() {
     fmt.Println("* "+vm.Owner+"/"+vm.Name)
@@ -178,7 +177,7 @@ func do_vm_list(bus comm.Pubsub) {
   fmt.Println("VM List done")
 }
 
-func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
+func dispatch(msg map[string]interface{}, bus comm.Bus) {
   for vm := range vm_list.Range() {
     pprm, _ := json.Marshal(msg)
     call_js := "go("+string(pprm)+")"
@@ -213,7 +212,7 @@ func irc_reply(msg map[string]interface{}, value string) (map[string]interface{}
   return resp
 }
 
-func clocktower(bus comm.Pubsub) {
+func clocktower(bus comm.Bus) {
   fmt.Println("clocktower started", time.Now())
   for {
     msg := map[string]interface{}{"method":"clocktower"}

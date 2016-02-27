@@ -3,23 +3,18 @@ var net = require("net")
 var uuid = require('node-uuid')
 
 // npm
-var redisLib = require("redis"),
-    redisSub = redisLib.createClient(),
-    redisPub = redisLib.createClient()
+var nano = require('nanomsg');
+var bus = nano.socket('bus');
 
-var pubsub_channel = 'gluon'
 var my_uuid = uuid.v4()
 
 // local
 var sessions = require('./lib/sessions')
 var irc = require('./lib/irc')(redis_pub)
 
-redisSub.on("subscribe", function (channel, count) {
-  console.log("redis subscribe "+channel)
-})
-
-redisSub.on("message", function (channel, message) {
-  console.log("<redis", message);
+bus.on("data", function (message) { console.log (message) })
+bus.on("datas", function (message) {
+  console.log("<nano", message);
   try {
     var payload = JSON.parse(message)
     if(payload.method && payload.method.match(/^irc\./)) {
@@ -30,7 +25,9 @@ redisSub.on("message", function (channel, message) {
   }
 })
 
-redisSub.subscribe(pubsub_channel)
+var addr = 'tcp://127.0.0.1:40899'
+console.log('connecting', addr)
+bus.connect(addr);
 
 function dispatch(payload) {
   // manage irc sessions

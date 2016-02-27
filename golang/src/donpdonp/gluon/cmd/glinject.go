@@ -13,9 +13,9 @@ import (
 
 func main() {
   my_uuid := uuid.NewV4().String()
-  bus := comm.PubsubFactory(my_uuid)
+  bus := comm.BusFactory(my_uuid)
 
-  bus.Start("localhost:6379")
+  bus.Connect("tcp://127.0.0.1:40899")
   if len(os.Args) > 1 {
     msg := map[string]interface{}{"method":os.Args[1]}
     if len(os.Args) > 2 {

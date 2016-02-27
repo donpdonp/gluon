@@ -10,6 +10,7 @@ import (
   "github.com/gdamore/mangos/transport/tcp"
   "github.com/gdamore/mangos/protocol/bus"
 
+  "github.com/satori/go.uuid"
 )
 
 type Bus struct {
@@ -58,7 +59,9 @@ func (comm *Bus) Connect(url_str string) {
   }
 }
 
-func (comm *Bus) Send(msg map[string]interface{}) {
+func (comm *Bus) Send(msg map[string]interface{}, callback func(map[string]interface{})) {
+  msg["id"] = uuid.NewV4().String()
+  msg["from"] = comm.uuid
   line, _ := json.Marshal(msg)
   err := comm.sock.Send(line)
   if err != nil {
