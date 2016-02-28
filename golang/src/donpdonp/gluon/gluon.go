@@ -96,7 +96,8 @@ func vm_add(owner string, url string, bus comm.Pubsub) bool {
 }
 
 func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
-  vm.Js.Set("bot", map[string]interface{}{"say":func(call otto.FunctionCall) otto.Value {
+  vm.Js.Set("bot", map[string]interface{}{
+    "say":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
       resp := map[string]interface{}{"method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"channel":call.Argument(0).String(),
@@ -138,11 +139,12 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
     }})
   vm.Js.Set("vm", map[string]interface{}{
     "list":func(call otto.FunctionCall) otto.Value {
-      resp := map[string]interface{}{"method":"vm.list"}
-      bus.Send(resp, func(pkt map[string]interface{}){
-        callback := call.Argument(0)
-        callback.Call(callback, pkt["result"])
-      })
+      vm_names := []string{}
+      for vm := range vm_list.Range() {
+        vm_names = append(vm_names, vm.Name)
+      }
+      callback := call.Argument(0)
+      callback.Call(callback, vm_names)
       return otto.Value{}
     }})
 }
