@@ -138,10 +138,25 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
       return otto.Value{}
     }})
   vm.Js.Set("vm", map[string]interface{}{
+    "add":func(call otto.FunctionCall) otto.Value {
+      url := call.Argument(0).String()
+      vm_add(vm.Owner, url, bus)
+      return otto.Value{}
+    },
+    "del":func(call otto.FunctionCall) otto.Value {
+      name := call.Argument(0).String()
+      vm_del(name, bus)
+      return otto.Value{}
+    },
+    "reload":func(call otto.FunctionCall) otto.Value {
+      name := call.Argument(0).String()
+      vm_reload(name, bus)
+      return otto.Value{}
+    },
     "list":func(call otto.FunctionCall) otto.Value {
       vm_names := []string{}
       for vm := range vm_list.Range() {
-        vm_names = append(vm_names, vm.Name)
+        vm_names = append(vm_names, vm.Owner+"/"+vm.Name)
       }
       callback := call.Argument(0)
       callback.Call(callback, vm_names)
