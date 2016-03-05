@@ -69,7 +69,7 @@ func (comm *Pubsub) Loop() {
 }
 
 func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]interface{})) {
-  msg["id"] = uuid.NewV4().String()
+  msg["id"] = uuid.NewV4().String()[0:8]
   msg["from"] = comm.uuid
   if callback != nil {
     rpcq.q.Set(msg["id"].(string), callback)

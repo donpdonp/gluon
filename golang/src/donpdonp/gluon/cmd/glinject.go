@@ -7,12 +7,11 @@ import (
   "reflect"
 
   "donpdonp/gluon/comm"
-  "github.com/satori/go.uuid"
-
+  "donpdonp/gluon/util"
 )
 
 func main() {
-  my_uuid := uuid.NewV4().String()
+  my_uuid := util.Snowflake()
   bus := comm.PubsubFactory(my_uuid)
 
   bus.Start("localhost:6379")

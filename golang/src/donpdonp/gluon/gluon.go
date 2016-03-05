@@ -9,22 +9,22 @@ import (
 
   "donpdonp/gluon/comm"
   "donpdonp/gluon/vm"
+  "donpdonp/gluon/util"
 
   "github.com/robertkrimen/otto"
-  "github.com/satori/go.uuid"
 )
 
 var (
   // load these from json
-  my_uuid uuid.UUID = uuid.NewV4()
-  my_key string = uuid.NewV4().String()[0:8]
+  my_uuid string = util.Snowflake()
+  my_key string = util.Snowflake()
 
   vm_list vm.List
 )
 
 func main() {
-  bus := comm.PubsubFactory(my_uuid.String())
-  //bus := comm.BusFactory(my_uuid.String())
+  bus := comm.PubsubFactory(my_uuid)
+  //bus := comm.BusFactory(my_uuid)
   bus.Start("localhost:6379")
   go bus.Loop()
 
