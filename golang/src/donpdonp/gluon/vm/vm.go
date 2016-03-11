@@ -2,8 +2,6 @@ package vm
 
 import (
   "fmt"
-  "net/http"
-  "io/ioutil"
 
   "github.com/robertkrimen/otto"
 )
@@ -21,39 +19,33 @@ func Factory(owner string) (*VM) {
   return &new_vm;
 }
 
-func (vm *VM) Load(url string) bool {
-  resp, err := http.Get(url)
+func (vm *VM) Eval(js_code string) (error) {
+  fmt.Println(string(js_code)[0:15])
+  fmt.Println("--eval begins--")
+
+  src, err := vm.Js.Compile("", js_code)
+
   if err != nil {
-    fmt.Println("http err")
+    fmt.Println("compile failed!", err)
+    return err
   } else {
-    defer resp.Body.Close()
-    vm.Url = url
-    body, err := ioutil.ReadAll(resp.Body)
-    fmt.Println(string(body))
-    fmt.Println("--eval begins--")
-
-    src, err := vm.Js.Compile("", body)
-
+    fmt.Println("compile good!")
+    setup, err := vm.Js.Run(src)
     if err != nil {
-      fmt.Println("compile failed!", err)
+      fmt.Println("eval failed", err, vm.Js.Context().Stacktrace)
+      return err
     } else {
-      fmt.Println("compile good!")
-      setup, err := vm.Js.Run(src)
+      descriptor_value, err := setup.Call(setup)
       if err != nil {
-        fmt.Println("eval failed", err, vm.Js.Context().Stacktrace)
+        fmt.Println("js func setup eval fail")
+        return err
       } else {
-        descriptor_value, err := setup.Call(setup)
-        if err != nil {
-          fmt.Println("js func setup eval fail")
-        } else {
-          descriptor_map, _ := descriptor_value.Export()
-          descriptor := descriptor_map.(map[string]interface{})
-          vm.Name = descriptor["name"].(string)
-          return true
-        }
+        descriptor_map, _ := descriptor_value.Export()
+        descriptor := descriptor_map.(map[string]interface{})
+        vm.Name = descriptor["name"].(string)
+        return nil
       }
     }
   }
-  return false
 }
 

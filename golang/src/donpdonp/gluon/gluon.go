@@ -6,6 +6,7 @@ import (
   "encoding/json"
   "net/http"
   "io/ioutil"
+  "errors"
 
   "donpdonp/gluon/comm"
   "donpdonp/gluon/vm"
@@ -80,19 +81,25 @@ func key_check(params map[string]interface{}) bool {
   return ok
 }
 
-func vm_add(owner string, url string, bus comm.Pubsub) bool {
+func vm_add(owner string, url string, bus comm.Pubsub) error {
   new_vm := vm.Factory(owner)
 
   vm_enhance_standard(new_vm, bus)
 
-  eval := new_vm.Load(url)
+  new_vm.Url = url
+  code, err := comm.HttpGet(url)
+  if err == nil {
+    fmt.Println("vm_add eval")
+    err := new_vm.Eval(code)
 
-  if eval {
-    success, _ := vm_list.Add(*new_vm)
-    fmt.Println("VM "+new_vm.Owner+"/"+new_vm.Name+" added!")
-    return success
+    if err == nil {
+      vm_list.Add(*new_vm)
+      fmt.Println("VM "+new_vm.Owner+"/"+new_vm.Name+" added!")
+      return nil
+    }
+    return err
   }
-  return false
+  return err
 }
 
 func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
@@ -140,8 +147,13 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
   vm.Js.Set("vm", map[string]interface{}{
     "add":func(call otto.FunctionCall) otto.Value {
       url := call.Argument(0).String()
-      vm_add(vm.Owner, url, bus)
-      return otto.Value{}
+      err := vm_add(vm.Owner, url, bus)
+      if err == nil {
+        return otto.Value{}
+      } else {
+        otto_str, _ := otto.ToValue(err.Error())
+        return otto_str
+      }
     },
     "del":func(call otto.FunctionCall) otto.Value {
       name := call.Argument(0).String()
@@ -150,8 +162,13 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
     },
     "reload":func(call otto.FunctionCall) otto.Value {
       name := call.Argument(0).String()
-      vm_reload(name, bus)
-      return otto.Value{}
+      err := vm_reload(name, bus)
+      if err == nil {
+        return otto.Value{}
+      } else {
+        otto_str, _ := otto.ToValue(err.Error())
+        return otto_str
+      }
     },
     "list":func(call otto.FunctionCall) otto.Value {
       vm_names := []string{}
@@ -164,16 +181,18 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
     }})
 }
 
-func vm_reload(name string, bus comm.Pubsub) bool {
+func vm_reload(name string, bus comm.Pubsub) error {
   idx := vm_list.IndexOf(name)
   if idx >-1 {
     vm := vm_list.At(idx)
     fmt.Println(name+" found. reloading "+vm.Url)
-    vm.Load(vm.Url)
-    return true
+    code, err := comm.HttpGet(vm.Url)
+    if err != nil {
+      err := vm.Eval(code)
+      return err
+    }
   }
-  fmt.Println(name+" not found.")
-  return false
+  return errors.New(name+" not found")
 }
 
 func vm_del(name string, bus comm.Pubsub) bool {
