@@ -6,9 +6,9 @@ import (
   "encoding/json"
 
   // message bus
-  "github.com/gdamore/mangos"
-  "github.com/gdamore/mangos/transport/tcp"
-  "github.com/gdamore/mangos/protocol/bus"
+  "gopkg.in/mangos.v1"
+  "gopkg.in/mangos.v1/transport/tcp"
+  "gopkg.in/mangos.v1/protocol/bus"
 
 )
 

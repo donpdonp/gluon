@@ -6,8 +6,7 @@ import (
 
   // redis
   "gopkg.in/redis.v3"
-  "github.com/satori/go.uuid"
-
+  "gopkg.in/satori/go.uuid.v0"
 )
 
 var (

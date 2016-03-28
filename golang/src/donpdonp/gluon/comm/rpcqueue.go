@@ -1,7 +1,7 @@
 package comm
 
 import (
-  "github.com/streamrail/concurrent-map"
+  "gopkg.in/streamrail/concurrent-map.v0"
 )
 
 type Rpcqueue struct {
