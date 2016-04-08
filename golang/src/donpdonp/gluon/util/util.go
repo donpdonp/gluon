@@ -4,7 +4,7 @@ import (
   "encoding/base64"
   "crypto/sha1"
 
-  "gopkg.in/satori/go.uuid.v0"
+  "gopkg.in/satori/go.uuid.v1"
 )
 
 
