@@ -16,20 +16,17 @@ import (
 )
 
 var (
-  // load these from json
-  my_uuid string = util.Snowflake()
-  my_key string = util.Snowflake()
-
   vm_list vm.List
 )
 
 func main() {
-  bus := comm.PubsubFactory(my_uuid)
-  //bus := comm.BusFactory(my_uuid)
+  util.LoadSettings()
+
+  bus := comm.PubsubFactory(util.Settings.Id)
   bus.Start("localhost:6379")
   go bus.Loop()
 
-  fmt.Println("gluon started. key "+my_key)
+  fmt.Println("gluon started. key "+util.Settings.Key)
   go clocktower(bus)
 
   for {
@@ -71,7 +68,7 @@ func main() {
 func key_check(params map[string]interface{}) bool {
   ok := false
   if params["key"] != nil {
-    if params["key"] == my_key {
+    if params["key"] == util.Settings.Key {
       ok = true
     }
   }
