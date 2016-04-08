@@ -109,7 +109,8 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
       bus.Send(resp, nil)
       return otto.Value{}
     },
-    "owner": vm.Owner})
+    "owner": vm.Owner,
+    "host_id": util.Settings.Id})
   vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("get(%s)\n", call.Argument(0).String())
       resp, err := http.Get(call.Argument(0).String())
