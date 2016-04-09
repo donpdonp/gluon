@@ -7,7 +7,6 @@ import (
   "gopkg.in/satori/go.uuid.v1"
 )
 
-
 func Sha1Base64(word string) string {
   word_sha := sha1.Sum([]byte(word))
   word_b64 := base64.StdEncoding.EncodeToString(word_sha[:])

@@ -193,15 +193,18 @@ func vm_reload(name string, bus comm.Pubsub) error {
   return errors.New(name+" not found")
 }
 
-func vm_del(name string, bus comm.Pubsub) bool {
+func vm_del(name string, bus comm.Pubsub) (string, error) {
   idx := vm_list.IndexOf(name)
   if idx >-1 {
-    vm_list.Del(name)
-    fmt.Println(name+" deleted.")
-    return true
+    url, err := vm_list.Del(name)
+    if err == nil {
+      fmt.Println(name+" deleted.")
+      return url, nil
+    }
+    return "", err
   }
   fmt.Println(name+" not found.")
-  return false
+  return "", errors.New("not found")
 }
 
 func do_vm_list(bus comm.Pubsub) {

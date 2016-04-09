@@ -1,5 +1,9 @@
 package vm
 
+import (
+  "errors"
+)
+
 type List struct {
   entries []VM
 }
@@ -13,13 +17,14 @@ func (list *List) Add(new_vm VM) (bool, int) {
   return false, pos
 }
 
-func (list *List) Del(name string) (bool, int) {
+func (list *List) Del(name string) (string, error) {
   pos := list.IndexOf(name)
   if pos > -1 {
+    winner := list.At(pos)
     list.entries = append(list.entries[:pos], list.entries[pos+1:]...)
-    return true, pos
+    return winner.Url, nil
   }
-  return false, -1
+  return "", errors.New("missing")
 }
 
 func (list *List) IndexOf(name string) (int) {
