@@ -155,8 +155,14 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
     },
     "del":func(call otto.FunctionCall) otto.Value {
       name := call.Argument(0).String()
-      vm_del(name, bus)
-      return otto.Value{}
+      url, err := vm_del(name, bus)
+      if err == nil {
+        otto_str, _ := otto.ToValue(url)
+        return otto_str
+      } else {
+        err_str, _ := otto.ToValue(err.Error())
+        return err_str
+      }
     },
     "reload":func(call otto.FunctionCall) otto.Value {
       name := call.Argument(0).String()
