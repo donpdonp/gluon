@@ -18,7 +18,6 @@ module.exports = function(publish){
     logfiles[session.id] = fs.openSync('logs/'+session.hostname, 'a')
     log(session, [new Date().toISOString(), '!#!'])
     log(session, [new Date().toISOString(), '!#!', 'Session begin', session.id, "!#!"])
-    log(session, [new Date().toISOString(), '!#!'])
     var irc = channels[session.id] = IrcSocket(opts, socket);
     session.state = 'connecting'
 
@@ -35,6 +34,7 @@ module.exports = function(publish){
     })
 
     irc.on('error', function(e) {
+      log(session, [new Date().toISOString(), '!#!'])
       log(session, ['ircd', 'session', '#'+session.id, 'in error', e.code])
       session.state = 'error'
     })
@@ -111,6 +111,7 @@ module.exports = function(publish){
         console.log('irc 001 greeting. nick confirmed as', ircmsg[3])
         session['nick'] = ircmsg[3]
         session.state = 'connected'
+        log(session, [new Date().toISOString(), '!#!', 'IRC connected', session.id, "!#!"])
         rejoin(session)
         break
 
@@ -144,12 +145,14 @@ module.exports = function(publish){
           session.channels.push(ircmsg[3])
         }
         publish(reply)
+        log(session, [new Date().toISOString(), '!#!', session.id, '/join', ircmsg[3], "!#!"])
         break
 
       case "PART":
         if(session.channels.indexOf(ircmsg[3]) >= 0) {
           delete session.channels[ircmsg[3]]
         }
+        log(session, [new Date().toISOString(), '!#!', session.id, '/part', ircmsg[3], "!#!"])
         break
 
       case "PRIVMSG":
