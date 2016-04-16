@@ -19,7 +19,6 @@ redisSub.on("subscribe", function (channel, count) {
 })
 
 redisSub.on("message", function (channel, message) {
-  console.log("<redis", message);
   try {
     var payload = JSON.parse(message)
     if(payload.method && payload.method.match(/^irc\./)) {
@@ -84,7 +83,6 @@ function redis_pub(msg){
   msg["from"] = my_uuid
   msg["id"] = uuid.v4()
   var json = JSON.stringify(msg)
-  console.log('redis>', json)
   redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {
     var session = sessions.get(msg.params.irc_session_id)
