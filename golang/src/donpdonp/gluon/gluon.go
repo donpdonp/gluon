@@ -236,7 +236,9 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
           sayback = value.String()
         }
       }
-      bus.Send(irc_reply(msg, sayback), nil)
+      if len(sayback) > 0 {
+        bus.Send(irc_reply(msg, sayback), nil)
+      }
     }
   }
 }
