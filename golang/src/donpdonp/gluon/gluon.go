@@ -114,12 +114,15 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
   vm.Js.Set("http", map[string]interface{}{"get":func(call otto.FunctionCall) otto.Value {
       fmt.Printf("get(%s)\n", call.Argument(0).String())
       resp, err := http.Get(call.Argument(0).String())
+      var ottoStr otto.Value
       if err != nil {
         fmt.Println("http err")
+        ottoStr, _ = otto.ToValue("")
+      } else {
+        defer resp.Body.Close()
+        body, _ := ioutil.ReadAll(resp.Body)
+        ottoStr, _ = otto.ToValue(string(body))
       }
-      defer resp.Body.Close()
-      body, err := ioutil.ReadAll(resp.Body)
-      ottoStr, _ := otto.ToValue(string(body))
       return ottoStr
   }})
   vm.Js.Set("db", map[string]interface{}{
