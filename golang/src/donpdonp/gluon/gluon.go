@@ -16,7 +16,7 @@ import (
 )
 
 var (
-  vm_list vm.List
+  vm_list = vm.ListFactory()
 )
 
 func main() {
@@ -43,9 +43,11 @@ func main() {
         } else {
           fmt.Println(msg)
         }
-      case callback := <-vm_list.Backchan:
-        fmt.Println("callback go")
-        fmt.Println(callback)
+      case pkt := <-vm_list.Backchan:
+        if pkt["callback"] != nil {
+          callback := pkt["callback"].(otto.Value)
+          callback.Call(callback, pkt["result"])
+        }
     }
   }
 
@@ -53,23 +55,23 @@ func main() {
 
 func rpc_dispatch(bus comm.Pubsub, method string, msg map[string]interface{}) {
   switch method {
-  case "vm.add":
-    params := msg["params"].(map[string]interface{})
-    url := params["url"].(string)
-    owner := params["owner"].(string)
-    vm_add(owner, url, bus)
-  case "vm.reload":
-    params := msg["params"].(map[string]interface{})
-    name := params["name"].(string)
-    vm_reload(name, bus)
-  case "vm.del":
-    params := msg["params"].(map[string]interface{})
-    name := params["name"].(string)
-    vm_del(name, bus)
-  case "vm.list":
-    do_vm_list(bus)
-  case "irc.privmsg":
-    dispatch(msg, bus)
+    case "vm.add":
+      params := msg["params"].(map[string]interface{})
+      url := params["url"].(string)
+      owner := params["owner"].(string)
+      vm_add(owner, url, bus)
+    case "vm.reload":
+      params := msg["params"].(map[string]interface{})
+      name := params["name"].(string)
+      vm_reload(name, bus)
+    case "vm.del":
+      params := msg["params"].(map[string]interface{})
+      name := params["name"].(string)
+      vm_del(name, bus)
+    case "vm.list":
+      do_vm_list(bus)
+    case "irc.privmsg":
+      dispatch(msg, bus)
   }
 }
 
@@ -139,8 +141,8 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
       key := call.Argument(0).String()
       resp["params"] = map[string]interface{}{"group":vm.Owner, "key":key}
       bus.Send(resp, func(pkt map[string]interface{}){
-        callback := call.Argument(1)
-        callback.Call(callback, pkt["result"])
+        pkt["callback"] = call.Argument(1)
+        vm_list.Backchan <- pkt;
       })
       return otto.Value{}
     },

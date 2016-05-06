@@ -6,7 +6,13 @@ import (
 
 type List struct {
   entries []VM
-  Backchan chan string
+  Backchan chan map[string]interface{}
+}
+
+func ListFactory() (List) {
+  thing := List{}
+  thing.Backchan = make(chan map[string]interface{})
+  return thing
 }
 
 func (list *List) Add(new_vm VM) (bool, int) {
