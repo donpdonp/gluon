@@ -6,6 +6,7 @@ import (
 
 type List struct {
   entries []VM
+  Backchan chan string
 }
 
 func (list *List) Add(new_vm VM) (bool, int) {

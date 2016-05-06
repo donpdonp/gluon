@@ -30,39 +30,47 @@ func main() {
   go clocktower(bus)
 
   for {
-    msg := <-bus.Pipe
-    if comm.Msg_check(msg) {
-      json, _ := json.Marshal(msg)
-      fmt.Println("<-", string(json))
-      if msg["method"] != nil {
-        method := msg["method"].(string)
-        fmt.Println("method: "+method)
-
-        switch method {
-        case "vm.add":
-          params := msg["params"].(map[string]interface{})
-          url := params["url"].(string)
-          owner := params["owner"].(string)
-          vm_add(owner, url, bus)
-        case "vm.reload":
-          params := msg["params"].(map[string]interface{})
-          name := params["name"].(string)
-          vm_reload(name, bus)
-        case "vm.del":
-          params := msg["params"].(map[string]interface{})
-          name := params["name"].(string)
-          vm_del(name, bus)
-        case "vm.list":
-          do_vm_list(bus)
-        case "irc.privmsg":
-          dispatch(msg, bus)
+    select {
+      case msg := <-bus.Pipe:
+        if comm.Msg_check(msg) {
+          json, _ := json.Marshal(msg)
+          fmt.Println("<-", string(json))
+          if msg["method"] != nil {
+            method := msg["method"].(string)
+            fmt.Println("method: "+method)
+            rpc_dispatch(bus, method, msg)
+          }
+        } else {
+          fmt.Println(msg)
         }
-      }
-    } else {
-      fmt.Println(msg)
+      case callback := <-vm_list.Backchan:
+        fmt.Println("callback go")
+        fmt.Println(callback)
     }
   }
 
+}
+
+func rpc_dispatch(bus comm.Pubsub, method string, msg map[string]interface{}) {
+  switch method {
+  case "vm.add":
+    params := msg["params"].(map[string]interface{})
+    url := params["url"].(string)
+    owner := params["owner"].(string)
+    vm_add(owner, url, bus)
+  case "vm.reload":
+    params := msg["params"].(map[string]interface{})
+    name := params["name"].(string)
+    vm_reload(name, bus)
+  case "vm.del":
+    params := msg["params"].(map[string]interface{})
+    name := params["name"].(string)
+    vm_del(name, bus)
+  case "vm.list":
+    do_vm_list(bus)
+  case "irc.privmsg":
+    dispatch(msg, bus)
+  }
 }
 
 func key_check(params map[string]interface{}) bool {
