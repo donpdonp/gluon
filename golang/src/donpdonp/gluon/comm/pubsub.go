@@ -6,7 +6,6 @@ import (
 
   // redis
   "gopkg.in/redis.v3"
-  "gopkg.in/satori/go.uuid.v1"
 )
 
 var (
@@ -68,7 +67,7 @@ func (comm *Pubsub) Loop() {
 }
 
 func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]interface{})) {
-  msg["id"] = uuid.NewV4().String()[0:8]
+  msg["id"] = IdGenerate()
   msg["from"] = comm.uuid
   if callback != nil {
     rpcq.q.Set(msg["id"].(string), callback)

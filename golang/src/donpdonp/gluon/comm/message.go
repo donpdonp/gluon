@@ -2,7 +2,12 @@ package comm
 
 import (
   "fmt"
+  "gopkg.in/satori/go.uuid.v1"
 )
+
+func IdGenerate() (string) {
+  return uuid.NewV4().String()[0:8]
+}
 
 func Msg_check(msg map[string]interface{}) (bool) {
   var ok bool
