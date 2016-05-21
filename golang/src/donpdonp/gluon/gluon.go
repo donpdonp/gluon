@@ -276,7 +276,7 @@ func clocktower(bus comm.Pubsub) {
   for {
     msg := map[string]interface{}{"method":"clocktower"}
     msg["params"] = map[string]interface{}{"time": time.Now().UTC().Format("2006-01-02T15:04:05Z")}
-    dispatch(msg, bus)
+    bus.Pipe <- msg
 
     //bus.Send(msg)
     time.Sleep(60 * time.Second)
