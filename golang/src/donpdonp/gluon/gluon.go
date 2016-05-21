@@ -17,6 +17,7 @@ import (
 
 var (
   vm_list = vm.ListFactory()
+  bigben = make(chan map[string]interface{})
 )
 
 func main() {
@@ -48,6 +49,8 @@ func main() {
           callback := pkt["callback"].(otto.Value)
           callback.Call(callback, pkt["result"])
         }
+      case tick := <- bigben:
+        dispatch(tick, bus)
     }
   }
 
@@ -275,12 +278,9 @@ func clocktower(bus comm.Pubsub) {
   fmt.Println("clocktower started", time.Now())
   for {
     msg := map[string]interface{}{"method":"clocktower"}
-    msg["id"] = comm.IdGenerate()
-    msg["from"] = "clocktower"
     msg["params"] = map[string]interface{}{"time": time.Now().UTC().Format("2006-01-02T15:04:05Z")}
-    bus.Pipe <- msg
+    bigben <- msg
 
-    //bus.Send(msg)
     time.Sleep(60 * time.Second)
   }
 }
