@@ -1,0 +1,12 @@
+{ "name" : "gluon-service-icecondor",
+  "version" : "0.0.1",
+  "dependencies" : {
+                     "websock": "*",
+                     "redis": "*",
+                     "node-uuid": "*"
+                   },
+  "repository" :{
+    "type" : "git",
+    "url" : "http://github.com/donpdonp/gluon.git"
+  }
+}
