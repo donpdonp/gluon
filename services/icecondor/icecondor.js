@@ -36,10 +36,17 @@ ws.on('message', function(data) {
                 params: {type: "location", follow: true}}
       ws.send(JSON.stringify(m))
     } else {
-      console.log(msg.result.id, msg.result.latitude, msg.result.longitude)
-      redis_pub({method: "icecondor.location",
-                params: {latitude: msg.result.latitude,
-                         longitude: msg.result.longitude}})
+      if(msg.result.latitude && msg.result.longitude) {
+        console.log(msg.result.id, msg.result.latitude, msg.result.longitude)
+        redis_pub({method: "irc.privmsg",
+                   param: {method: "icecondor.location",
+                           params: {user_id: msg.result.user_id,
+                                    latitude: msg.result.latitude,
+                                    longitude: msg.result.longitude,
+                                    date: msg.result.date,
+                                    accuracy: msg.result.accuracy}}
+                  })
+      }
     }
   }
 });
