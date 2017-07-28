@@ -38,8 +38,12 @@ ws.on('message', function(data) {
     } else {
       console.log(msg.result.id, msg.result.latitude, msg.result.longitude)
       redis_pub({method: "icecondor.location",
-                params: {latitude: msg.result.latitude,
-                         longitude: msg.result.longitude}})
+                params: {user_id: msg.result.user_id,
+                         latitude: msg.result.latitude,
+                         longitude: msg.result.longitude,
+                         date: msg.result.date,
+                         accuracy: msg.result.accuracy
+                       }})
     }
   }
 });
