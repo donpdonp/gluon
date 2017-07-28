@@ -16,10 +16,8 @@ func main() {
 
   bus.Start("localhost:6379")
   if len(os.Args) > 1 {
-    msg := map[string]interface{}{"method":os.Args[1]}
-    if len(os.Args) > 2 {
-      msg["params"] = argsParse(os.Args)
-    }
+    msg := map[string]interface{}{"method":os.Args[1], "key":os.Getenv("GLUON_KEY")}
+    msg["params"] = argsParse(os.Args)
     go bus.Loop()
     bus.Send(msg, func(pkt map[string]interface{}) {
       fmt.Println(reflect.TypeOf(pkt["result"]))

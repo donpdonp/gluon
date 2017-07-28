@@ -75,6 +75,11 @@ func rpc_dispatch(bus comm.Pubsub, method string, msg map[string]interface{}) {
       do_vm_list(bus)
     case "irc.privmsg":
       dispatch(msg, bus)
+    default:
+      if key_check(msg) {
+        delete(msg, "key")
+        dispatch(msg, bus)
+      }
   }
 }
 
