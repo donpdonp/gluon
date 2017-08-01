@@ -45,6 +45,7 @@ func main() {
           fmt.Println(msg)
         }
       case pkt := <-vm_list.Backchan:
+        fmt.Printf("Backchan <- %+v \n", pkt)
         if pkt["callback"] != nil {
           callback := pkt["callback"].(otto.Value)
           callback.Call(callback, pkt["result"])
