@@ -18,6 +18,7 @@ var uri = Url.parse(settings.api)
 
 var ws = new wsock.connect(uri, {agent:{rejectUnauthorized:false}})
 ws.on('open', function() {
+  redis_pub({method: "icecondor.open"})
   console.log('icecondor connected')
 })
 ws.on('message', function(data) {
@@ -51,6 +52,7 @@ ws.on('error', function(data) {
   console.error(data)
 });
 ws.on('close', function() {
+  redis_pub({method: "icecondor.closed"})
   console.log("closed")
 });
 
