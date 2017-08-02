@@ -48,6 +48,7 @@ func main() {
         fmt.Printf("Backchan <- %+v \n", pkt)
         if pkt["callback"] != nil {
           callback := pkt["callback"].(otto.Value)
+          fmt.Printf("callback <- %+v \n", reflect.TypeOf(callback))
           callback.Call(callback, pkt["result"])
         }
       case tick := <- bigben:
