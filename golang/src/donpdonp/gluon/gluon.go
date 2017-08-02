@@ -7,7 +7,6 @@ import (
   "net/http"
   "io/ioutil"
   "errors"
-  "reflect"
 
   "donpdonp/gluon/comm"
   "donpdonp/gluon/vm"
@@ -46,7 +45,6 @@ func main() {
           fmt.Println(msg)
         }
       case pkt := <-vm_list.Backchan:
-        fmt.Printf("Backchan <- %+v \n", pkt)
         if pkt["callback"] != nil {
           callback := pkt["callback"].(otto.Value)
           callback.Call(callback, pkt["result"])
@@ -150,7 +148,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
       resp := map[string]interface{}{"method":"db.get"}
       key := call.Argument(0).String()
       resp["params"] = map[string]interface{}{"group":vm.Owner, "key":key}
-      if call.Argument(1) != nil {
+      if call.Argument(1).IsDefined() {
         bus.Send(resp, func(pkt map[string]interface{}){
           pkt["callback"] = call.Argument(1)
           vm_list.Backchan <- pkt;
