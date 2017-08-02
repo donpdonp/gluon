@@ -49,7 +49,6 @@ func main() {
         fmt.Printf("Backchan <- %+v \n", pkt)
         if pkt["callback"] != nil {
           callback := pkt["callback"].(otto.Value)
-          fmt.Printf("callback <- %+v \n", reflect.TypeOf(callback))
           callback.Call(callback, pkt["result"])
         }
       case tick := <- bigben:
@@ -151,10 +150,12 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
       resp := map[string]interface{}{"method":"db.get"}
       key := call.Argument(0).String()
       resp["params"] = map[string]interface{}{"group":vm.Owner, "key":key}
-      bus.Send(resp, func(pkt map[string]interface{}){
-        pkt["callback"] = call.Argument(1)
-        vm_list.Backchan <- pkt;
-      })
+      if call.Argument(1) != nil {
+        bus.Send(resp, func(pkt map[string]interface{}){
+          pkt["callback"] = call.Argument(1)
+          vm_list.Backchan <- pkt;
+        })
+      }
       return otto.Value{}
     },
     "set":func(call otto.FunctionCall) otto.Value {
