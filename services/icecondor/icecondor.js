@@ -17,11 +17,13 @@ var my_uuid = uuid.v4()
 var uri = Url.parse(settings.api)
 var stream_id
 var usercache = {}
+var opened
 
 var ws = new wsock.connect(uri, {agent:{rejectUnauthorized:false}})
 ws.on('open', function() {
   redis_pub({method: "icecondor.open"})
   console.log('icecondor connected')
+  opened = new Date()
 })
 
 ws.on('message', function(data) {
@@ -58,15 +60,17 @@ ws.on('message', function(data) {
       console.log('unknown response:', msg)
     }
   }
-});
+})
+
 ws.on('error', function(data) {
   console.error(data)
-});
+})
+
 ws.on('close', function() {
   redis_pub({method: "icecondor.closed"})
-  console.log("closed")
-});
-
+  var minutes = ((new Date()).getTime() - opened.getTime())/1000/60
+  console.log("closed. duration "+minutes.toFixed(1))
+})
 
 
 redisSub.on("subscribe", function (channel, count) {
