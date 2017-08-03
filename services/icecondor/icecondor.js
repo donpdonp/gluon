@@ -15,12 +15,15 @@ var pubsub_channel = 'gluon'
 var my_uuid = uuid.v4()
 
 var uri = Url.parse(settings.api)
+var stream_id
+var usercache = {}
 
 var ws = new wsock.connect(uri, {agent:{rejectUnauthorized:false}})
 ws.on('open', function() {
   redis_pub({method: "icecondor.open"})
   console.log('icecondor connected')
 })
+
 ws.on('message', function(data) {
   //process.stdout.write("ic: "+data)
   var msg = JSON.parse(data)
@@ -36,15 +39,23 @@ ws.on('message', function(data) {
                 method: "stream.follow",
                 params: {type: "location", follow: true}}
       ws.send(JSON.stringify(m))
-    } else {
+    } else if (msg.id == "456") {
+      console.log('fw', JSON.stringify(msg.result))
+      stream_id = msg.result.stream_id
+      var added = msg.result.added[0]
+      usercache[added.id] = added.username
+    } else if (stream_id && msg.id == stream_id) {
       console.log(msg.result.id, msg.result.latitude, msg.result.longitude)
+
       redis_pub({method: "icecondor.location",
-                params: {user_id: msg.result.user_id,
+                params: {username: usercache[msg.result.user_id],
                          latitude: msg.result.latitude,
                          longitude: msg.result.longitude,
                          date: msg.result.date,
                          accuracy: msg.result.accuracy
                        }})
+    } else {
+      console.log('unknown response:', msg)
     }
   }
 });
