@@ -47,15 +47,25 @@ ws.on('message', function(data) {
       var added = msg.result.added[0]
       usercache[added.id] = added.username
     } else if (stream_id && msg.id == stream_id) {
-      console.log(msg.result.id, msg.result.latitude, msg.result.longitude)
-
-      redis_pub({method: "icecondor.location",
-                params: {username: usercache[msg.result.user_id],
-                         latitude: msg.result.latitude,
-                         longitude: msg.result.longitude,
-                         date: msg.result.date,
-                         accuracy: msg.result.accuracy
-                       }})
+      var username = usercache[msg.result.user_id]
+      var ldate = new Date(msg.result.date)
+      var ago = ((new Date()).getTime() - ldate.getTime())/1000/60/60
+      console.log(username, msg.result.latitude, msg.result.longitude, ago, "hours ago")
+      if (msg.result.latitude) {
+        if (ago < 48) {
+          redis_pub({method: "icecondor.location",
+                    params: {username: username,
+                             latitude: msg.result.latitude,
+                             longitude: msg.result.longitude,
+                             date: msg.result.date,
+                             accuracy: msg.result.accuracy
+                           }})
+        } else {
+          console.log(username, 'too old')
+        }
+      } else {
+        console.log(username, 'cloaked')
+      }
     } else {
       console.log('unknown response:', msg)
     }
@@ -69,7 +79,7 @@ ws.on('error', function(data) {
 ws.on('close', function() {
   redis_pub({method: "icecondor.closed"})
   var minutes = ((new Date()).getTime() - opened.getTime())/1000/60
-  console.log("closed. duration "+minutes.toFixed(1))
+  console.log("closed. duration "+minutes.toFixed(1)+"min")
 })
 
 
