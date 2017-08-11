@@ -16,8 +16,8 @@ module.exports = function(publish){
         realname: session.name
       }
     logfiles[session.id] = fs.openSync('logs/'+session.hostname, 'a')
-    log(session, [new Date().toISOString(), '!#!'])
-    log(session, [new Date().toISOString(), '!#!', 'Session begin', session.id, "!#!"])
+    log(session, [])
+    log(session, ['Session begin', "!#!"])
     var irc = channels[session.id] = IrcSocket(opts, socket);
     session.state = 'connecting'
 
@@ -93,9 +93,9 @@ module.exports = function(publish){
   }
 
   function log(session, words) {
-    words.unshift(new Date().toISOString())
-    words.unshift('!#!')
     words.unshift(session.id)
+    words.unshift('!#!')
+    words.unshift(new Date().toISOString())
     var message = words.join(' ')+"\n"
     fs.writeSync(logfiles[session.id], message)
   }
