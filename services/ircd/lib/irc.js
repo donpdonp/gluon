@@ -22,7 +22,7 @@ module.exports = function(publish){
     session.state = 'connecting'
 
     irc.once('ready', function () {
-      console.log("irc ready")
+      console.log(session.id, "irc ready")
     })
 
     irc.on('data', function (message) {
@@ -93,6 +93,9 @@ module.exports = function(publish){
   }
 
   function log(session, words) {
+    words.unshift(new Date().toISOString())
+    words.unshift('!#!')
+    words.unshift(session.id)
     var message = words.join(' ')+"\n"
     fs.writeSync(logfiles[session.id], message)
   }
@@ -141,23 +144,23 @@ module.exports = function(publish){
                      }
                     }
         if(session.channels.indexOf(ircmsg[3]) == -1) {
-          console.log('adding channel', ircmsg[3])
+          log(session, ['adding channel', ircmsg[3]])
           session.channels.push(ircmsg[3])
         }
         publish(reply)
-        log(session, [new Date().toISOString(), '!#!', session.id, '/join', ircmsg[3], "!#!"])
+        log(session, ['/join', ircmsg[3], "!#!"])
         break
 
       case "PART":
         if(session.channels.indexOf(ircmsg[3]) >= 0) {
           delete session.channels[ircmsg[3]]
         }
-        log(session, [new Date().toISOString(), '!#!', session.id, '/part', ircmsg[3], "!#!"])
+        log(session, ['/part', ircmsg[3], "!#!"])
         break
 
       case "PRIVMSG":
         var from_nick = ircmsg[1].split('!')[0]
-        console.log('from_nick', from_nick)
+        log(session, [ircmsg])
         if(from_nick != session.nick) {
           var reply = {method:'irc.privmsg',
                        params: {
