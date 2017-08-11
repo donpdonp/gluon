@@ -50,8 +50,8 @@ module.exports = function(publish){
       }
     })
 
-    irc.connect().then(function(a){console.log('connect good', a)},
-                       function(a){console.log('connect bad', a)})
+    irc.connect().then(function(a){console.log(new Date(), 'connect good', a)},
+                       function(a){console.log(new Date(), 'connect bad', a)})
   }
 
   o.join = function(session, channel) {

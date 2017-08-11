@@ -98,7 +98,7 @@ setInterval(sessionsCheck, 60*1000)
 function sessionsCheck(){
   sessions.list().forEach(function(session){
     if(session.state == 'error') {
-      console.log('!! re-starting session', session.id)
+      console.log(new Date(), '!! re-starting session', session.id, 'in', session.state)
       start(session)
     }
   })
