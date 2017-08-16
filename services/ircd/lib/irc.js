@@ -46,6 +46,7 @@ module.exports = function(publish){
       if(session.state === 'closing') {
         delete channels[session.id]
       } else {
+        log(session, ['irc close error. session', session.id, 'is in', session.state])
         session.state = 'error'
       }
     })
