@@ -50,7 +50,7 @@ ws.on('message', function(data) {
       var username = usercache[msg.result.user_id]
       var ldate = new Date(msg.result.date)
       var ago = ((new Date()).getTime() - ldate.getTime())/1000/60/60
-      console.log(username, msg.result.latitude, msg.result.longitude, ago, "hours ago")
+      console.log(username, msg.result.latitude.toFixed(4), msg.result.longitude.toFixed(4), ago.toFixed(1), "hours ago")
       if (msg.result.latitude) {
         if (ago < 48) {
           redis_pub({method: "icecondor.location",
