@@ -58,6 +58,7 @@ ws.on('message', function(data) {
                              latitude: msg.result.latitude,
                              longitude: msg.result.longitude,
                              date: msg.result.date,
+                             received_at: msg.result.received_at,
                              accuracy: msg.result.accuracy
                            }})
         } else {
