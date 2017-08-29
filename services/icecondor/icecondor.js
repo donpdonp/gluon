@@ -53,7 +53,7 @@ ws.on('message', function(data) {
       if (msg.result.latitude) {
         console.log(username, msg.result.latitude.toFixed(4),
                     msg.result.longitude.toFixed(4),
-                    msg.result.accuracy.toFixed(4)
+                    msg.result.accuracy.toFixed(4),
                     ago.toFixed(1), "hours ago")
         if (ago < 48) {
           redis_pub({method: "icecondor.location",
