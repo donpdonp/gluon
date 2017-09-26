@@ -8,7 +8,7 @@ var redisLib = require("redis"),
     redisPub = redisLib.createClient()
 
 var pubsub_channel = 'gluon'
-var my_uuid = uuid.v4()
+var my_uuid = uuid.v4().substr(0,8)
 
 // local
 var sessions = require('./lib/sessions')
@@ -81,7 +81,7 @@ function dispatch(payload) {
 
 function redis_pub(msg){
   msg["from"] = my_uuid
-  msg["id"] = uuid.v4()
+  msg["id"] = msg["id"] || uuid.v4()
   var json = JSON.stringify(msg)
   redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {
