@@ -70,7 +70,9 @@ func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]in
   msg["id"] = IdGenerate()
   msg["from"] = comm.uuid
   if callback != nil {
-    rpcq.q.Set(msg["id"].(string), callback)
+    id := msg["id"].(string)
+    rpcq.q.Set(id, callback)
+    fmt.Println("pubsub.send'ing id %s. callback q size %d", id, rpcq.q.Count())
   }
   line, _ := json.Marshal(msg)
   err := comm.client.Publish("gluon", string(line)).Err()
