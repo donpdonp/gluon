@@ -53,9 +53,11 @@ func (comm *Pubsub) Loop() {
         // drop my own msgs
       } else {
         if pkt["id"] != nil {
-          callback, ok := rpcq.q.Get(pkt["id"].(string))
+          id := pkt["id"].(string)
+          callback, ok := rpcq.q.Get(id)
           if ok {
             rpcq.q.Remove(pkt["id"].(string))
+            fmt.Println("pubsub.recv'ing id %s found callback. callback q size now %d", id, rpcq.q.Count())
             callback.(func(map[string]interface{}))(pkt)
           }
         }
