@@ -57,7 +57,6 @@ func (comm *Pubsub) Loop() {
           callback, ok := rpcq.q.Get(id)
           if ok {
             rpcq.q.Remove(pkt["id"].(string))
-            fmt.Println("pubsub.recv'ing id %s found callback. callback q size now %d", id, rpcq.q.Count())
             callback.(func(map[string]interface{}))(pkt)
           }
         }
@@ -74,7 +73,6 @@ func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]in
   if callback != nil {
     id := msg["id"].(string)
     rpcq.q.Set(id, callback)
-    fmt.Println("pubsub.send'ing id %s. callback q size %d", id, rpcq.q.Count())
   }
   line, _ := json.Marshal(msg)
   err := comm.client.Publish("gluon", string(line)).Err()
