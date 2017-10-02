@@ -120,7 +120,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
   vm.Js.Set("bot", map[string]interface{}{
     "say":func(call otto.FunctionCall) otto.Value {
-      fmt.Printf("say(%s %s %s)\n", call.Argument(0).String(), call.Argument(1).String(), call.Argument(2).String())
+      fmt.Printf("gluon say %s %+v\n", call.Argument(0).String(), call.Argument(1).String())
       resp := map[string]interface{}{"method":"irc.privmsg"}
       resp["params"] = map[string]interface{}{"channel":call.Argument(0).String(),
                                               "message": call.Argument(1).String()}
