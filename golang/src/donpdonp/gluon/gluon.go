@@ -47,7 +47,13 @@ func main() {
       case pkt := <-vm_list.Backchan:
         if pkt["callback"] != nil {
           callback := pkt["callback"].(otto.Value)
-          callback.Call(callback, pkt["result"])
+          _, err := callback.Call(callback, pkt["result"])
+          if err != nil {
+            fmt.Println("backchan callback err: "+err.Error())
+            fmt.Printf("backchan callback pkt: %+v\n", pkt)
+            //sayback := "["+vm.Name+"] "+err.Error()
+            //bus.Send(irc_reply(pkt["msg"], sayback), nil)
+          }
         }
       case tick := <- bigben:
         dispatch(tick, bus)
