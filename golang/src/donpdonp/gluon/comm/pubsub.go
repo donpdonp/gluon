@@ -49,7 +49,7 @@ func (comm *Pubsub) Loop() {
       var pkt map[string]interface{}
       json.Unmarshal([]byte(msg.Payload), &pkt)
 
-      if pkt["from"].(string) == comm.uuid {
+      if pkt["from"] != nil && pkt["from"].(string) == comm.uuid {
         // drop my own msgs
       } else {
         if pkt["id"] != nil {
