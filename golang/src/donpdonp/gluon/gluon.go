@@ -180,6 +180,10 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp := map[string]interface{}{"method": "db.set"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
 			bus.Send(resp, func(pkt map[string]interface{}) {
+  			if call.Argument(2).IsDefined() {
+					pkt["callback"] = call.Argument(2)
+					vm_list.Backchan <- pkt
+  			}
 			})
 			return otto.Value{}
 		}})
