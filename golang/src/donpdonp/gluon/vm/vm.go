@@ -1,9 +1,5 @@
 package vm
 
-// void owl();
-//#cgo LDFLAGS: ${SRCDIR}/../../../../owl.o
-import "C"
-
 import "fmt"
 import "github.com/robertkrimen/otto"
 
@@ -15,7 +11,6 @@ type VM struct {
 }
 
 func Factory(owner string) *VM {
-//	C.owl()
 	new_vm := VM{Owner: owner,
 		Js: otto.New()}
 	return &new_vm
