@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strings"
 	"time"
 
@@ -139,21 +137,19 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
 			fmt.Printf("get(%s)\n", call.Argument(0).String())
-			resp, err := http.Get(call.Argument(0).String())
+			body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
 			if err != nil {
 				fmt.Println("http get err")
 				ottoStr, _ = otto.ToValue("")
 			} else {
-				defer resp.Body.Close()
-				body, _ := ioutil.ReadAll(resp.Body)
-				ottoStr, _ = otto.ToValue(string(body))
+				ottoStr, _ = otto.ToValue(body)
 			}
 			return ottoStr
 		},
 		"post": func(call otto.FunctionCall) otto.Value {
 			fmt.Printf("post(%s, %s)\n", call.Argument(0).String(), call.Argument(1).String())
-			resp, err := http.Post(call.Argument(0).String(),
+			body, err := comm.HttpPost(call.Argument(0).String(),
 				"application/json",
 				strings.NewReader(call.Argument(1).String()))
 			var ottoStr otto.Value
@@ -161,9 +157,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 				fmt.Println("http post err")
 				ottoStr, _ = otto.ToValue("")
 			} else {
-				defer resp.Body.Close()
-				body, _ := ioutil.ReadAll(resp.Body)
-				ottoStr, _ = otto.ToValue(string(body))
+				ottoStr, _ = otto.ToValue(body)
 			}
 			return ottoStr
 		}})
