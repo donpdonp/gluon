@@ -53,7 +53,7 @@ function dispatch(payload) {
   }
   if(cmd == 'set') {
     var value = redisPub.hset(payload.params.group, payload.params.key, payload.params.value, function(err, value) {
-      console.log('SET', payload.params.key, params.payload.value, '->', err || value)
+      console.log('SET', payload.params.key, payload.params.value, '->', err || value)
       redis_pub({id: payload.id, result: true})
     })
   }
