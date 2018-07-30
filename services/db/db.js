@@ -31,7 +31,7 @@ function redis_pub(msg){
   msg["from"] = my_uuid
   msg["id"] = msg["id"] || uuid.v4()
   var json = JSON.stringify(msg)
-  console.log('->', json)
+  //console.log('->', json)
   redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {
     var session = sessions.get(msg.params.irc_session_id)
