@@ -31,7 +31,7 @@ function redis_pub(msg){
   msg["from"] = my_uuid
   msg["id"] = msg["id"] || uuid.v4()
   var json = JSON.stringify(msg)
-  console.log('redis>', json)
+  console.log('->', json)
   redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {
     var session = sessions.get(msg.params.irc_session_id)
@@ -43,19 +43,23 @@ function redis_pub(msg){
 }
 
 function dispatch(payload) {
+  console.log('<-', payload)
   var cmd = payload.method.split('.')[1]
   if(cmd == 'get') {
     var value = redisPub.hget(payload.params.group, payload.params.key, function(err, value) {
+      console.log('GET', payload.params.key, '->', err || value)
       redis_pub({id: payload.id, result: value})
     })
   }
   if(cmd == 'set') {
     var value = redisPub.hset(payload.params.group, payload.params.key, payload.params.value, function(err, value) {
+      console.log('SET', payload.params.key, params.payload.value, '->', err || value)
       redis_pub({id: payload.id, result: true})
     })
   }
   if(cmd == 'delete') {
     var value = redisPub.hdel(payload.params.group, payload.params.key, function(err, value) {
+      console.log('GET', payload.params.key, '->', err || value)
       redis_pub({id: payload.id, result: value})
     })
   }
