@@ -46,19 +46,19 @@ function dispatch(payload) {
   var cmd = payload.method.split('.')[1]
   if(cmd == 'get') {
     var value = redisPub.hget(payload.params.group, payload.params.key, function(err, value) {
-      console.log('['+payload.params.group+']', 'GET', payload.params.key, '->', err || value)
+      console.log('HGET', payload.params.group, payload.params.key, '->', err || value)
       redis_pub({id: payload.id, result: value})
     })
   }
   if(cmd == 'set') {
     var value = redisPub.hset(payload.params.group, payload.params.key, payload.params.value, function(err, value) {
-      console.log('['+payload.params.group+']', 'SET', payload.params.key, payload.params.value, '->', err || value)
+      console.log('HSET', payload.params.group, payload.params.key, payload.params.value, '->', err || value)
       redis_pub({id: payload.id, result: true})
     })
   }
   if(cmd == 'delete') {
     var value = redisPub.hdel(payload.params.group, payload.params.key, function(err, value) {
-      console.log('['+payload.params.group+']', 'GET', payload.params.key, '->', err || value)
+      console.log('HDEL', payload.params.group, payload.params.key, '->', err || value)
       redis_pub({id: payload.id, result: value})
     })
   }
