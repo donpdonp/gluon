@@ -44,6 +44,7 @@ func main() {
 				fmt.Println(msg)
 			}
 		case pkt := <-vm_list.Backchan:
+  		fmt.Println("(Backchan queue size ", len(vm_list.Backchan), ")")
 			if pkt["callback"] != nil {
 				callback := pkt["callback"].(otto.Value)
 				_, err := callback.Call(callback, pkt["result"])
@@ -133,6 +134,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		},
 		"owner":   vm.Owner,
+		"admin_channel": util.Settings.AdminChannel,
 		"host_id": util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {

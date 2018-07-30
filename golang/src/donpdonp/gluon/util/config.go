@@ -9,6 +9,7 @@ import (
 type settings struct {
   Id   string
   Key  string
+  AdminChannel string
 }
 
 var (
