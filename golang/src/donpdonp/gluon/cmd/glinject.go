@@ -20,11 +20,13 @@ func main() {
     msg["params"] = argsParse(os.Args)
     go bus.Loop()
     bus.Send(msg, func(pkt map[string]interface{}) {
-      json, err := json.Marshal(pkt["result"])
+      _json, err := json.Marshal(pkt["result"])
       if err != nil {
-        fmt.Printf("cmd <- %+v\n", json)
+        fmt.Printf("%+v\n", _json)
       } else {
-        fmt.Printf("cmd <- unknown response %+v\n", err)
+        errMsg := map[string]interface{}{"error":err.Error()}
+        errJson, _ := json.Marshal(errMsg)
+        fmt.Printf("%+v\n", errJson)
       }
     })
     <- bus.Pipe
