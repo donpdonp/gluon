@@ -24,9 +24,9 @@ func main() {
       if err != nil {
         errMsg := map[string]interface{}{"error":err.Error()}
         errJson, _ := json.Marshal(errMsg)
-        fmt.Printf("%+v\n", errJson)
+        fmt.Printf("%+v\n", string(errJson))
       } else {
-        fmt.Printf("%+v\n", _json)
+        fmt.Printf("%+v\n", string(_json))
       }
     })
     <- bus.Pipe
