@@ -20,7 +20,7 @@ func main() {
     msg["params"] = argsParse(os.Args)
     go bus.Loop()
     bus.Send(msg, func(pkt map[string]interface{}) {
-      fmt.Println(reflect.TypeOf(pkt["result"]))
+      fmt.Printf("cmd <- %+v\n", reflect.TypeOf(pkt["result"]))
     })
     <- bus.Pipe
   } else {
