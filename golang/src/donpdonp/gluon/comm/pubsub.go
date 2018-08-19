@@ -67,19 +67,19 @@ func (comm *Pubsub) Loop() {
   }
 }
 
-func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]interface{})) {
+func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]interface{})) string {
   msg["id"] = IdGenerate()
   msg["from"] = comm.uuid
   if callback != nil {
     id := msg["id"].(string)
     rpcq.q.Set(id, callback)
   }
-  line, _ := json.Marshal(msg)
-  err := comm.client.Publish("gluon", string(line)).Err()
+  bytes, _ := json.Marshal(msg)
+  line := string(bytes)
+  err := comm.client.Publish("gluon", line).Err()
   if err != nil {
     fmt.Println("Send err", err)
-  } else{
-    fmt.Println("->"+string(line))
   }
+  return line
 }
 

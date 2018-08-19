@@ -19,16 +19,17 @@ func main() {
     msg := map[string]interface{}{"method":os.Args[1], "key":os.Getenv("GLUON_KEY")}
     msg["params"] = argsParse(os.Args)
     go bus.Loop()
-    bus.Send(msg, func(pkt map[string]interface{}) {
+    line := bus.Send(msg, func(pkt map[string]interface{}) {
       _json, err := json.Marshal(pkt["result"])
       if err != nil {
         errMsg := map[string]interface{}{"error":err.Error()}
         errJson, _ := json.Marshal(errMsg)
-        fmt.Printf("%+v\n", string(errJson))
+        fmt.Printf("%+s\n", string(errJson))
       } else {
-        fmt.Printf("%+v\n", string(_json))
+        fmt.Printf("%+s\n", string(_json))
       }
     })
+    fmt.Printf("%+s\n", line)
     <- bus.Pipe
   } else {
     fmt.Println("usage: ", os.Args[0], "<method name> --param_name=value")
