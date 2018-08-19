@@ -22,11 +22,11 @@ func main() {
     bus.Send(msg, func(pkt map[string]interface{}) {
       _json, err := json.Marshal(pkt["result"])
       if err != nil {
-        fmt.Printf("%+v\n", _json)
-      } else {
         errMsg := map[string]interface{}{"error":err.Error()}
         errJson, _ := json.Marshal(errMsg)
         fmt.Printf("%+v\n", errJson)
+      } else {
+        fmt.Printf("%+v\n", _json)
       }
     })
     <- bus.Pipe
