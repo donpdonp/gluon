@@ -4,7 +4,7 @@ import (
   "os"
   "fmt"
   "strings"
-  "reflect"
+  "encoding/json"
 
   "donpdonp/gluon/comm"
   "donpdonp/gluon/util"
@@ -20,7 +20,12 @@ func main() {
     msg["params"] = argsParse(os.Args)
     go bus.Loop()
     bus.Send(msg, func(pkt map[string]interface{}) {
-      fmt.Printf("cmd <- %+v %+v\n", reflect.TypeOf(pkt["result"]), pkt["result"])
+      json, err := json.Marshal(pkt["result"])
+      if err != nil {
+        fmt.Printf("cmd <- %+v\n", json)
+      } else {
+        fmt.Printf("cmd <- unknown response %+v\n", err)
+      }
     })
     <- bus.Pipe
   } else {
