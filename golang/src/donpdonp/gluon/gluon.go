@@ -23,7 +23,9 @@ func main() {
 	util.LoadSettings()
 
 	bus := comm.PubsubFactory(util.Settings.Id)
-	bus.Start("localhost:6379")
+	busAddr := "localhost:6379"
+	fmt.Printf("redis connect %s\n", busAddr)
+	bus.Start(busAddr)
 	go bus.Loop()
 
 	fmt.Println("gluon started. key " + util.Settings.Key)
@@ -43,7 +45,7 @@ func main() {
 				fmt.Println(msg)
 			}
 		case pkt := <-vm_list.Backchan:
-  		fmt.Println("(Backchan queue size ", len(vm_list.Backchan), ")")
+			fmt.Println("(Backchan queue size ", len(vm_list.Backchan), ")")
 			if pkt["callback"] != nil {
 				callback := pkt["callback"].(otto.Value)
 				_, err := callback.Call(callback, pkt["result"])
@@ -132,9 +134,9 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			bus.Send(resp, nil)
 			return otto.Value{}
 		},
-		"owner":   vm.Owner,
+		"owner":         vm.Owner,
 		"admin_channel": util.Settings.AdminChannel,
-		"host_id": util.Settings.Id})
+		"host_id":       util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
 			fmt.Printf("get(%s)\n", call.Argument(0).String())
@@ -181,10 +183,10 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp := map[string]interface{}{"method": "db.set"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
 			bus.Send(resp, func(pkt map[string]interface{}) {
-  			if call.Argument(2).IsDefined() {
+				if call.Argument(2).IsDefined() {
 					pkt["callback"] = call.Argument(2)
 					vm_list.Backchan <- pkt
-  			}
+				}
 			})
 			return otto.Value{}
 		}})
