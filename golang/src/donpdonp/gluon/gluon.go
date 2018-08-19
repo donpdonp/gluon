@@ -34,10 +34,9 @@ func main() {
 		case msg := <-bus.Pipe:
 			if comm.Msg_check(msg) {
 				json, _ := json.Marshal(msg)
-				fmt.Println("<-", string(json))
+				fmt.Println("gluon <-", string(json))
 				if msg["method"] != nil {
 					method := msg["method"].(string)
-					fmt.Println("method: " + method)
 					rpc_dispatch(bus, method, msg)
 				}
 			} else {
@@ -272,7 +271,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	for vm := range vm_list.Range() {
 		pprm, _ := json.Marshal(msg)
 		call_js := "go(" + string(pprm) + ")"
-		fmt.Println("**VM", vm.Owner, "/", vm.Name, ": ", call_js)
+		fmt.Println("** %s/%s %s\n", vm.Owner, vm.Name, call_js)
 		value, err := vm.Js.Run(call_js)
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
