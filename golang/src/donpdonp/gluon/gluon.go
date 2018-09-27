@@ -191,9 +191,8 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 		},
 		"len": func(call otto.FunctionCall) otto.Value {
 			resp := map[string]interface{}{"method": "db.len"}
-			key := call.Argument(0).String()
-			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
-			if call.Argument(1).IsDefined() {
+			resp["params"] = map[string]interface{}{"group": vm.Owner}
+			if call.Argument(0).IsDefined() {
 				bus.Send(resp, func(pkt map[string]interface{}) {
 					pkt["callback"] = call.Argument(1)
 					vm_list.Backchan <- pkt
@@ -215,14 +214,13 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		},
 		"scan": func(call otto.FunctionCall) otto.Value {
-			key := call.Argument(0).String()
-			value := call.Argument(1).String()
-			match := call.Argument(2).String()
-			count := call.Argument(3).String()
+			cursor := call.Argument(0).String()
+			match := call.Argument(1).String()
+			count := call.Argument(2).String()
 			resp := map[string]interface{}{"method": "db.scan"}
-			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value, "match": match, "count": count}
+			resp["params"] = map[string]interface{}{"group": vm.Owner, "cursor": cursor, "match": match, "count": count}
 			bus.Send(resp, func(pkt map[string]interface{}) {
-				if call.Argument(4).IsDefined() {
+				if call.Argument(3).IsDefined() {
 					pkt["callback"] = call.Argument(4)
 					vm_list.Backchan <- pkt
 				}
