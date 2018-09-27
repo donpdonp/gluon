@@ -1,12 +1,13 @@
-{ "name" : "gluon-service-ircd",
-  "version" : "0.0.2",
-  "dependencies" : {
-                     "irc-socket": "*",
-                     "redis": "*",
-                     "node-uuid": "*"
-                   },
-  "repository" :{
-    "type" : "git",
-    "url" : "http://github.com/donpdonp/gluon.git"
+{
+  "name": "gluon-service-ircd",
+  "version": "0.0.2",
+  "dependencies": {
+    "irc-socket": "*",
+    "node-uuid": "*",
+    "redis": "^2.8.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/donpdonp/gluon.git"
   }
 }

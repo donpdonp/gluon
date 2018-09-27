@@ -62,5 +62,19 @@ function dispatch(payload) {
       redis_pub({id: payload.id, result: value})
     })
   }
+  if(cmd == 'len') {
+    var value = redisPub.hlen(payload.params.group, function(err, value) {
+      console.log('HLEN', payload.params.group, '->', err || value)
+      redis_pub({id: payload.id, result: value})
+    })
+  }
+  if(cmd == 'scan') {
+    var value = redisPub.hscan(payload.params.group, payload.params.cursor,
+                               payload.params.match,  payload.params.count, function(err, value) {
+      console.log('HSCAN', payload.params.group, payload.params.cursor,
+                  payload.params.match, payload.params.count, '->', err || value)
+      redis_pub({id: payload.id, result: value})
+    })
+  }
 }
 
