@@ -194,7 +194,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner}
 			if call.Argument(0).IsDefined() {
 				bus.Send(resp, func(pkt map[string]interface{}) {
-					pkt["callback"] = call.Argument(1)
+					pkt["callback"] = call.Argument(0)
 					vm_list.Backchan <- pkt
 				})
 			}
@@ -221,7 +221,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "cursor": cursor, "match": match, "count": count}
 			bus.Send(resp, func(pkt map[string]interface{}) {
 				if call.Argument(3).IsDefined() {
-					pkt["callback"] = call.Argument(4)
+					pkt["callback"] = call.Argument(3)
 					vm_list.Backchan <- pkt
 				}
 			})
