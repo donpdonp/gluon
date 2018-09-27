@@ -177,6 +177,30 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			}
 			return otto.Value{}
 		},
+		"del": func(call otto.FunctionCall) otto.Value {
+			resp := map[string]interface{}{"method": "db.del"}
+			key := call.Argument(0).String()
+			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
+			if call.Argument(1).IsDefined() {
+				bus.Send(resp, func(pkt map[string]interface{}) {
+					pkt["callback"] = call.Argument(1)
+					vm_list.Backchan <- pkt
+				})
+			}
+			return otto.Value{}
+		},
+		"len": func(call otto.FunctionCall) otto.Value {
+			resp := map[string]interface{}{"method": "db.len"}
+			key := call.Argument(0).String()
+			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
+			if call.Argument(1).IsDefined() {
+				bus.Send(resp, func(pkt map[string]interface{}) {
+					pkt["callback"] = call.Argument(1)
+					vm_list.Backchan <- pkt
+				})
+			}
+			return otto.Value{}
+		},
 		"set": func(call otto.FunctionCall) otto.Value {
 			key := call.Argument(0).String()
 			value := call.Argument(1).String()
