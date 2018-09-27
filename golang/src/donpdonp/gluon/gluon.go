@@ -213,6 +213,21 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 				}
 			})
 			return otto.Value{}
+		},
+		"scan": func(call otto.FunctionCall) otto.Value {
+			key := call.Argument(0).String()
+			value := call.Argument(1).String()
+			match := call.Argument(2).String()
+			count := call.Argument(3).String()
+			resp := map[string]interface{}{"method": "db.scan"}
+			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value, "match": match, "count": count}
+			bus.Send(resp, func(pkt map[string]interface{}) {
+				if call.Argument(4).IsDefined() {
+					pkt["callback"] = call.Argument(4)
+					vm_list.Backchan <- pkt
+				}
+			})
+			return otto.Value{}
 		}})
 	vm.Js.Set("vm", map[string]interface{}{
 		"add": func(call otto.FunctionCall) otto.Value {
