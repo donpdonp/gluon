@@ -70,9 +70,10 @@ function dispatch(payload) {
   }
   if(cmd == 'scan') {
     var value = redisPub.hscan(payload.params.group, payload.params.cursor,
-                               payload.params.match,  payload.params.count, function(err, value) {
+                               'MATCH', payload.params.match,  'COUNT', payload.params.count,
+                               function(err, value) {
       console.log('HSCAN', payload.params.group, payload.params.cursor,
-                  payload.params.match, payload.params.count, '->', err || value)
+                  'MATCH', payload.params.match, 'COUNT', payload.params.count, '->', err || value)
       redis_pub({id: payload.id, result: value})
     })
   }
