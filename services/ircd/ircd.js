@@ -10,7 +10,7 @@ var redisLib = require("redis"),
 
 var pubsub_channel = 'gluon'
 var my_uuid = uuid.v4().substr(0,8)
-var config = JSON.parse(fs.readFileSync("../../golang/config.json"))
+var config = JSON.parse(fs.readFileSync("golang/config.json"))
 
 // local
 var sessions = require('./lib/sessions')
