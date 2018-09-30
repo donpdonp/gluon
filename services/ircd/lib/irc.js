@@ -5,7 +5,7 @@ var IrcSocket = require('irc-socket')
 
 // irc regex
 var IrcMsgRegex = /^:([^ ]+) ([^ ]+) :?([^ ]+)( :?(.*))?/
-var IrcExtraRegex = /(.*)\s+:?([^:]+)$/
+var IrcExtraRegex = /(\S*)(\s+:?([^:]+))?$/
 
 module.exports = function(publish){
   var o = {}
@@ -201,6 +201,7 @@ module.exports = function(publish){
         break
 
 //:Loqi!Loqi@2600:3c01::f03c:91ff:fef1:a349 MODE #pdxtech +v zz99
+//:zrobo MODE zrobo :+Ri
       case "MODE":
         var user_parts = ircmsg[1].split('!')
         var extra = ircmsg[5].match(IrcExtraRegex)
