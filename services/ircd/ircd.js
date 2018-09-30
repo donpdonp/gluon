@@ -1,6 +1,7 @@
 // node
 var net = require("net")
 var uuid = require('node-uuid')
+var fs = require("fs")
 
 // npm
 var redisLib = require("redis"),
@@ -9,6 +10,7 @@ var redisLib = require("redis"),
 
 var pubsub_channel = 'gluon'
 var my_uuid = uuid.v4().substr(0,8)
+var config = JSON.parse(fs.readFileSync("../../golang/config.json"))
 
 // local
 var sessions = require('./lib/sessions')
@@ -82,6 +84,7 @@ function dispatch(payload) {
 function redis_pub(msg){
   msg["from"] = my_uuid
   msg["id"] = msg["id"] || uuid.v4()
+  msg["key"] = config.Key
   var json = JSON.stringify(msg)
   redisPub.publish(pubsub_channel, json)
   if(msg.method === 'irc.connected') {

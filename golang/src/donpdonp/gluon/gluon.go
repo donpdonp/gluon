@@ -98,7 +98,7 @@ func key_check(params map[string]interface{}) bool {
 		}
 	}
 	if ok == false {
-		fmt.Println("key check failed!")
+		fmt.Println("msg.key check failed!")
 	}
 	return ok
 }
@@ -310,7 +310,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	for vm := range vm_list.Range() {
 		pprm, _ := json.Marshal(msg)
 		call_js := "go(" + string(pprm) + ")"
-		fmt.Println("** %s/%s %s\n", vm.Owner, vm.Name, call_js)
+		fmt.Printf("** %s/%s %s\n", vm.Owner, vm.Name, call_js)
 		value, err := vm.Js.Run(call_js)
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
