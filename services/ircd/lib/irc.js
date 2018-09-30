@@ -3,6 +3,10 @@ var fs = require('fs')
 // npm
 var IrcSocket = require('irc-socket')
 
+// irc regex
+var IrcMsgRegex = /^:([^ ]+) ([^ ]+) :?([^ ]+)( :?(.*))?/
+var IrcExtraRegex = /(.*)\s+:?([^:]+)$/
+
 module.exports = function(publish){
   var o = {}
   var channels = {}
@@ -27,7 +31,7 @@ module.exports = function(publish){
 
     irc.on('data', function (message) {
       //log(session, [new Date().toISOString(), message])
-      var ircmsg = /^:([^ ]+) ([^ ]+) :?([^ ]+)( :?(.*))?/.exec(message)
+      var ircmsg = IrcMsgRegex.exec(message)
       if(ircmsg) {
         handle_irc_msg(session, ircmsg)
       }
@@ -120,7 +124,7 @@ module.exports = function(publish){
         break
 
       case "005":
-        var capstr = ircmsg[5].match(/(.*)\s+:[^:]+$/)
+        var capstr = ircmsg[5].match(IrcExtraRegex)
         var capabilities = split005(session.server.caps, capstr[1])
         break
 
@@ -137,6 +141,7 @@ module.exports = function(publish){
         publish(reply)
         break
 
+//:daamien15!~daamien@116.104.86.89 JOIN #pdxtech
       case "JOIN":
         var reply = {id: session.msg_id,
                      result: {
@@ -149,7 +154,27 @@ module.exports = function(publish){
           session.channels.push(ircmsg[3])
         }
         publish(reply)
+        var user_parts = ircmsg[1].split('!')
+        var ircbus = {method: "irc.join",
+                      params: {irc_session_id: session.id,
+                               user: {nick: user_parts[0], host: user_parts[1]},
+                               channel: ircmsg[3]}}
+        publish(ircbus)
         log(session, ['/join', ircmsg[3], "!#!"])
+        break
+
+//:Loqi!Loqi@2600:3c01::f03c:91ff:fef1:a349 KICK #pdxtech daamien15 :1116
+      case "KICK":
+        var user_parts = ircmsg[1].split('!')
+        var channel = ircmsg[3]
+        var extra = ircmsg[5].match(IrcExtraRegex)
+        var ircbus = {method: "irc.kick",
+                      params: {irc_session_id: session.id,
+                               user: {nick: user_parts[0], host: user_parts[1]},
+                               nick: extra[1],
+                               reason: extra[2],
+                               channel: ircmsg[3]}}
+        publish(ircbus)
         break
 
       case "PART":
@@ -159,20 +184,37 @@ module.exports = function(publish){
         log(session, ['/part', ircmsg[3], "!#!"])
         break
 
+//:bkero!~bkero@osuosl/staff/bkero PRIVMSG #pdxtech :Only can be copied with a $38 device on Aliexpress.
       case "PRIVMSG":
         var from_nick = ircmsg[1].split('!')[0]
         log(session, [ircmsg])
         if(from_nick != session.nick) {
-          var reply = {method:'irc.privmsg',
-                       params: {
-                         irc_session_id: session.id,
-                         nick: from_nick,
-                         channel: ircmsg[3],
-                         message: ircmsg[5] }
-                      }
-          publish(reply)
+          var ircbus = {method:'irc.privmsg',
+                        params: {
+                          irc_session_id: session.id,
+                          nick: from_nick,
+                          channel: ircmsg[3],
+                          message: ircmsg[5] }
+                       }
+          publish(ircbus)
         }
         break
+
+//:Loqi!Loqi@2600:3c01::f03c:91ff:fef1:a349 MODE #pdxtech +v zz99
+      case "MODE":
+        var user_parts = ircmsg[1].split('!')
+        var extra = ircmsg[5].match(IrcExtraRegex)
+        var ircbus = {method: "irc.mode",
+                      params: {irc_session_id: session.id,
+                               user: {nick: user_parts[0], host: user_parts[1]},
+                               channel: ircmsg[3],
+                               mode: extra[1],
+                               nick: extra[2]
+                             }}
+        publish(ircbus)
+          break
+
+//:Guest21917!~Khisanth@sju13-4-88-161-81-249.fbx.proxad.net QUIT :Remote host closed the connection
     }
   }
 
