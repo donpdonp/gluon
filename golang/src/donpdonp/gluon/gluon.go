@@ -45,13 +45,16 @@ func main() {
 				fmt.Println(msg)
 			}
 		case pkt := <-vm_list.Backchan:
-			fmt.Println("(Backchan queue size ", len(vm_list.Backchan), ")")
+			backchan_size := len(vm_list.Backchan)
+			if backchan_size > 0 {
+  			fmt.Println("backchan queue size ", backchan_size)
+  		}
 			if pkt["callback"] != nil {
 				callback := pkt["callback"].(otto.Value)
+  			fmt.Printf("backchan callback pkt: %+v\n", pkt)
 				_, err := callback.Call(callback, pkt["result"])
 				if err != nil {
 					fmt.Println("backchan callback err: " + err.Error())
-					fmt.Printf("backchan callback pkt: %+v\n", pkt)
 					//sayback := "["+vm.Name+"] "+err.Error()
 					//bus.Send(irc_reply(pkt["msg"], sayback), nil)
 				}

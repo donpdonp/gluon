@@ -172,7 +172,7 @@ module.exports = function(publish){
                       params: {irc_session_id: session.id,
                                user: {nick: user_parts[0], host: user_parts[1]},
                                nick: extra[1],
-                               reason: extra[2],
+                               reason: extra[3],
                                channel: ircmsg[3]}}
         publish(ircbus)
         break
@@ -210,7 +210,7 @@ module.exports = function(publish){
                                user: {nick: user_parts[0], host: user_parts[1]},
                                channel: ircmsg[3],
                                mode: extra[1],
-                               nick: extra[2]
+                               nick: extra[3]
                              }}
         publish(ircbus)
           break
