@@ -50,13 +50,13 @@ func main() {
   			fmt.Println("backchan queue size ", backchan_size)
   		}
 			if pkt["callback"] != nil {
-				callback := pkt["callback"].(otto.Value)
-  			fmt.Printf("backchan callback pkt: %+v\n", pkt)
+				callback := pkt["callback"].(otto.Value) //otto.FunctionCall
 				_, err := callback.Call(callback, pkt["result"])
 				if err != nil {
 					fmt.Println("backchan callback err: " + err.Error())
-					//sayback := "["+vm.Name+"] "+err.Error()
-					//bus.Send(irc_reply(pkt["msg"], sayback), nil)
+					sayback := "[callbackQ] "+err.Error()
+					fakemsg := map[string]interface{}{"params": map[string]interface{}{"channel":util.Settings.AdminChannel}}
+					bus.Send(irc_reply(fakemsg, sayback), nil)
 				}
 			}
 		case tick := <-bigben:
