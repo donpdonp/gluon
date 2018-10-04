@@ -47,7 +47,7 @@ func main() {
 		case pkt := <-vm_list.Backchan:
 			backchan_size := len(vm_list.Backchan)
 			if backchan_size > 0 {
-  			fmt.Println("backchan queue size ", backchan_size)
+  			fmt.Println("VM callback queue size ", backchan_size)
   		}
 			if pkt["callback"] != nil {
 				callback := pkt["callback"].(otto.Value) //otto.FunctionCall
@@ -56,7 +56,7 @@ func main() {
 					fmt.Println("backchan callback err: " + err.Error())
 					sayback := "[callbackQ] "+err.Error()
 					fakemsg := map[string]interface{}{"params": map[string]interface{}{"channel":util.Settings.AdminChannel}}
-					bus.Send(irc_reply(fakemsg, sayback), nil)
+					bus.Send(irc_reply(fakemsg, sayback, pkt["vm"].(string)), nil)
 				}
 			}
 		case tick := <-bigben:
@@ -104,6 +104,11 @@ func key_check(params map[string]interface{}) bool {
 		fmt.Println("msg.key check failed!")
 	}
 	return ok
+}
+
+func make_callback(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
+  pkt["callback"] = cb
+  pkt["vm"] = vm.Owner+"/"+vm.Name
 }
 
 func vm_add(owner string, url string, bus comm.Pubsub) error {
@@ -174,7 +179,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
 			if call.Argument(1).IsDefined() {
 				bus.Send(resp, func(pkt map[string]interface{}) {
-					pkt["callback"] = call.Argument(1)
+					make_callback(pkt, call.Argument(1), vm)
 					vm_list.Backchan <- pkt
 				})
 			}
@@ -186,7 +191,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
 			if call.Argument(1).IsDefined() {
 				bus.Send(resp, func(pkt map[string]interface{}) {
-					pkt["callback"] = call.Argument(1)
+					make_callback(pkt, call.Argument(1), vm)
 					vm_list.Backchan <- pkt
 				})
 			}
@@ -197,7 +202,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner}
 			if call.Argument(0).IsDefined() {
 				bus.Send(resp, func(pkt map[string]interface{}) {
-					pkt["callback"] = call.Argument(0)
+					make_callback(pkt, call.Argument(0), vm)
 					vm_list.Backchan <- pkt
 				})
 			}
@@ -210,7 +215,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
 			bus.Send(resp, func(pkt map[string]interface{}) {
 				if call.Argument(2).IsDefined() {
-					pkt["callback"] = call.Argument(2)
+					make_callback(pkt, call.Argument(2), vm)
 					vm_list.Backchan <- pkt
 				}
 			})
@@ -224,7 +229,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "cursor": cursor, "match": match, "count": count}
 			bus.Send(resp, func(pkt map[string]interface{}) {
 				if call.Argument(3).IsDefined() {
-					pkt["callback"] = call.Argument(3)
+					make_callback(pkt, call.Argument(3), vm)
 					vm_list.Backchan <- pkt
 				}
 			})
@@ -325,13 +330,13 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 				}
 			}
 			if len(sayback) > 0 {
-				bus.Send(irc_reply(msg, sayback), nil)
+				bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
 			}
 		}
 	}
 }
 
-func irc_reply(msg map[string]interface{}, value string) map[string]interface{} {
+func irc_reply(msg map[string]interface{}, value string, vm_name string) map[string]interface{} {
 	params := msg["params"].(map[string]interface{})
 	resp := map[string]interface{}{"method": "irc.privmsg"}
 
