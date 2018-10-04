@@ -53,8 +53,8 @@ func main() {
 				callback := pkt["callback"].(otto.Value) //otto.FunctionCall
 				_, err := callback.Call(callback, pkt["result"])
 				if err != nil {
-					fmt.Println("backchan callback err: " + err.Error())
-					sayback := "[callbackQ] "+err.Error()
+					fmt.Println("backchan callback err: " + pkt["vm"].(string)+" "+err.Error())
+					sayback := err.Error()
 					fakemsg := map[string]interface{}{"params": map[string]interface{}{"channel":util.Settings.AdminChannel}}
 					bus.Send(irc_reply(fakemsg, sayback, pkt["vm"].(string)), nil)
 				}
@@ -109,27 +109,6 @@ func key_check(params map[string]interface{}) bool {
 func make_callback(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
   pkt["callback"] = cb
   pkt["vm"] = vm.Owner+"/"+vm.Name
-}
-
-func vm_add(owner string, url string, bus comm.Pubsub) error {
-	new_vm := vm.Factory(owner)
-
-	vm_enhance_standard(new_vm, bus)
-
-	new_vm.Url = url
-	code, err := comm.HttpGet(url)
-	if err == nil {
-		fmt.Println("vm_add eval")
-		err := new_vm.Eval(code)
-
-		if err == nil {
-			vm_list.Add(*new_vm)
-			fmt.Println("VM " + new_vm.Owner + "/" + new_vm.Name + " added!")
-			return nil
-		}
-		return err
-	}
-	return err
 }
 
 func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
@@ -278,6 +257,27 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 		}})
 }
 
+func vm_add(owner string, url string, bus comm.Pubsub) error {
+	new_vm := vm.Factory(owner)
+
+	vm_enhance_standard(new_vm, bus)
+
+	new_vm.Url = url
+	code, err := comm.HttpGet(url)
+	if err == nil {
+		fmt.Println("vm_add eval")
+		err := new_vm.Eval(code)
+
+		if err == nil {
+			vm_list.Add(*new_vm)
+			fmt.Println("VM " + new_vm.Owner + "/" + new_vm.Name + " added!")
+			return nil
+		}
+		return err
+	}
+	return err
+}
+
 func vm_reload(name string, bus comm.Pubsub) error {
 	idx := vm_list.IndexOf(name)
 	if idx > -1 {
@@ -345,6 +345,7 @@ func irc_reply(msg map[string]interface{}, value string, vm_name string) map[str
 		out = params["nick"].(string)
 	}
 
+  fmt.Printf("%s %s irc.privmsg: %s\n", vm_name, out, value)
 	resp["params"] = map[string]interface{}{"irc_session_id": params["irc_session_id"],
 		"channel": out,
 		"message": value}
