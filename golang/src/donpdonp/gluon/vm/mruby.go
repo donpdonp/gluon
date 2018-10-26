@@ -4,6 +4,11 @@ package vm
 #cgo CFLAGS: -I../../../../../mruby/include
 #cgo LDFLAGS: -L../../../../../mruby/build/host/lib -lmruby -lm
 #include "mruby.h"
+#include "mruby/compile.h"
+#include "mruby/string.h"
+#include "mruby/hash.h"
+#include "mruby/array.h"
+#include "mruby/variable.h"
 
 extern mrb_value Emit(mrb_state*, mrb_value);
 //MRB_API void mrb_define_class_method(mrb_state *, struct RClass *, const char *, mrb_func_t, mrb_aspec);
@@ -18,6 +23,7 @@ static mrb_aspec args_req(int n) { return ((n)&0x1f) << 18; }
 import "C"
 
 import "fmt"
+import "errors"
 
 type RubyVM struct {
   state *C.mrb_state
@@ -41,3 +47,19 @@ func rubyfactory() *RubyVM {
 func Emit(state *C.mrb_state, value C.mrb_value) C.mrb_value {
   return C.mrb_value{}
 }
+
+func (vm *VM) EvalRuby(code string) error {
+  context := C.mrbc_context_new(vm.Ruby.state);
+  parser_state := C.mrb_parse_string(vm.Ruby.state, C.CString(code), context);
+  if parser_state == nil {
+    return errors.New("parse err")
+  }
+  proc := C.mrb_generate_code(vm.Ruby.state, parser_state);
+  C.mrb_parser_free(parser_state);
+  root_object := C.mrb_top_self(vm.Ruby.state);
+  result := C.mrb_run(vm.Ruby.state, proc, root_object);
+  if result.tt == C.MRB_TT_EXCEPTION {
+  }
+  return nil
+}
+

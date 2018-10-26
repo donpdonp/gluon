@@ -48,6 +48,3 @@ func (vm *VM) Eval(js_code string) error {
 	}
 }
 
-func (vm *VM) EvalRuby(code string) error {
-	return nil
-}
