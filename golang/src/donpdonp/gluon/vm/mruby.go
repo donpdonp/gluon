@@ -3,6 +3,7 @@ package vm
 /*
 #cgo CFLAGS: -I../../../../../mruby/include
 #cgo LDFLAGS: -L../../../../../mruby/build/host/lib -lmruby -lm
+#include "stdlib.h"
 #include "mruby.h"
 #include "mruby/compile.h"
 #include "mruby/string.h"
@@ -27,6 +28,7 @@ static const char* go_mrb_funcall(mrb_state* state, mrb_value* result) {
 static mrb_aspec args_req(int n) { return ((n)&0x1f) << 18; }
 */
 import "C"
+import "unsafe"
 
 import "fmt"
 import "errors"
@@ -55,24 +57,23 @@ func Emit(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 }
 
 func (vm *VM) EvalRuby(code string) error {
-  context := C.mrbc_context_new(vm.Ruby.state);
-  parser_state := C.mrb_parse_string(vm.Ruby.state, C.CString(code), context);
+  context := C.mrbc_context_new(vm.Ruby.state)
+  code_cstr := C.CString(code)
+  parser_state := C.mrb_parse_string(vm.Ruby.state, code_cstr, context);
   if parser_state == nil {
     return errors.New("parse err")
   }
   proc := C.mrb_generate_code(vm.Ruby.state, parser_state);
   C.mrb_parser_free(parser_state);
+  C.free(unsafe.Pointer(code_cstr))
   root_object := C.mrb_top_self(vm.Ruby.state);
   result := C.mrb_run(vm.Ruby.state, proc, root_object);
   if result.tt == C.MRB_TT_EXCEPTION {
     fmt.Println("ruby func setup eval fail")
     return errors.New("setup err")
   }
-  fmt.Println("ruby func setup eval good")
-  // mrb_value str = mrb_funcall(vm.state, mrb_obj_value(clazz), "generate", 1, val);
+  fmt.Println("ruby func setup eval good %v", result.tt)
   rstr := C.go_mrb_funcall(vm.Ruby.state, &result)
-  // return mrb_string_value_cstr(vm.state, &str);
   fmt.Printf("eval out: %v\n", C.GoString(rstr))
   return nil
 }
-
