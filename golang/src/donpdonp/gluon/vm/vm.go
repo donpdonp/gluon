@@ -8,11 +8,13 @@ type VM struct {
 	Name  string
 	Url   string
 	Js    *otto.Otto
+	Ruby  *RubyVM
 }
 
 func Factory(owner string) *VM {
 	new_vm := VM{Owner: owner,
-		Js: otto.New()}
+		Js: otto.New(),
+	  Ruby: rubyfactory()}
 	return &new_vm
 }
 
@@ -44,4 +46,8 @@ func (vm *VM) Eval(js_code string) error {
 			}
 		}
 	}
+}
+
+func (vm *VM) EvalRuby(code string) error {
+	return nil
 }

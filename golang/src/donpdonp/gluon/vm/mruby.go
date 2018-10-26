@@ -19,7 +19,11 @@ import "C"
 
 import "fmt"
 
-func rubyfactory() {
+type RubyVM struct {
+  state *C.mrb_state
+}
+
+func rubyfactory() *RubyVM {
   state := C.mrb_open()
   fmt.Printf("%v\n", state.top_self)
   ruby_class := C.mrb_define_module(state, C.CString("Gluon"));
@@ -30,6 +34,7 @@ func rubyfactory() {
     C.CString("emit"),
     0,
     C.args_req(1))
+  return &RubyVM{state: state}
 }
 
 //export Emit
