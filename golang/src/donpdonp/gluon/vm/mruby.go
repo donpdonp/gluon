@@ -16,6 +16,12 @@ static void go_mrb_define_class_method(mrb_state *a, struct RClass *b, const cha
   mrb_define_class_method(a,b,c,Emit,e);
 }
 
+static const char* go_mrb_funcall(mrb_state* state, mrb_value* result) {
+  struct RClass* clazz = mrb_module_get(state, "JSON");
+  mrb_value str = mrb_funcall(state, mrb_obj_value(clazz), "generate", 1, result);
+  return mrb_string_value_cstr(state, &str);
+}
+
 // cgo doesnt like this define
 //#define MRB_ARGS_REQ(n)     ((mrb_aspec)((n)&0x1f) << 18)
 static mrb_aspec args_req(int n) { return ((n)&0x1f) << 18; }
@@ -59,7 +65,14 @@ func (vm *VM) EvalRuby(code string) error {
   root_object := C.mrb_top_self(vm.Ruby.state);
   result := C.mrb_run(vm.Ruby.state, proc, root_object);
   if result.tt == C.MRB_TT_EXCEPTION {
+    fmt.Println("ruby func setup eval fail")
+    return errors.New("setup err")
   }
+  fmt.Println("ruby func setup eval good")
+  // mrb_value str = mrb_funcall(vm.state, mrb_obj_value(clazz), "generate", 1, val);
+  rstr := C.go_mrb_funcall(vm.Ruby.state, &result)
+  // return mrb_string_value_cstr(vm.state, &str);
+  fmt.Printf("eval out: %v\n", C.GoString(rstr))
   return nil
 }
 
