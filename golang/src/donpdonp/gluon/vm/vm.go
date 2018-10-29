@@ -14,9 +14,11 @@ type VM struct {
 func Factory(owner string, lang string) *VM {
 	new_vm := VM{Owner: owner}
 	if lang == "ruby" {
-	  new_vm.Ruby = rubyfactory()
+		fmt.Printf("vm ruby go\n")
+		new_vm.Ruby = rubyfactory()
 	}
 	if lang == "javascript" {
+		fmt.Printf("vm js go\n")
 		new_vm.Js = otto.New()
 	}
 	return &new_vm
@@ -69,4 +71,3 @@ func (vm *VM) EvalJs(js_code string) error {
 		}
 	}
 }
-

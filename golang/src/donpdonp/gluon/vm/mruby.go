@@ -34,46 +34,45 @@ import "fmt"
 import "errors"
 
 type RubyVM struct {
-  state *C.mrb_state
+	state *C.mrb_state
 }
 
 func rubyfactory() *RubyVM {
-  state := C.mrb_open()
-  fmt.Printf("%v\n", state.top_self)
-  ruby_class := C.mrb_define_module(state, C.CString("Gluon"));
+	state := C.mrb_open()
+	ruby_class := C.mrb_define_module(state, C.CString("Gluon"))
 
-  C.go_mrb_define_class_method(
-    state,
-    ruby_class,
-    C.CString("emit"),
-    0,
-    C.args_req(1))
-  return &RubyVM{state: state}
+	C.go_mrb_define_class_method(
+		state,
+		ruby_class,
+		C.CString("emit"),
+		0,
+		C.args_req(1))
+	return &RubyVM{state: state}
 }
 
 //export Emit
 func Emit(state *C.mrb_state, value C.mrb_value) C.mrb_value {
-  return C.mrb_value{}
+	return C.mrb_value{}
 }
 
 func (vm *VM) EvalRuby(code string) error {
-  context := C.mrbc_context_new(vm.Ruby.state)
-  code_cstr := C.CString(code)
-  parser_state := C.mrb_parse_string(vm.Ruby.state, code_cstr, context);
-  if parser_state == nil {
-    return errors.New("parse err")
-  }
-  proc := C.mrb_generate_code(vm.Ruby.state, parser_state);
-  C.mrb_parser_free(parser_state);
-  C.free(unsafe.Pointer(code_cstr))
-  root_object := C.mrb_top_self(vm.Ruby.state);
-  result := C.mrb_run(vm.Ruby.state, proc, root_object);
-  if result.tt == C.MRB_TT_EXCEPTION {
-    fmt.Println("ruby func setup eval fail")
-    return errors.New("setup err")
-  }
-  fmt.Println("ruby func setup eval good %v", result.tt)
-  rstr := C.go_mrb_funcall(vm.Ruby.state, &result)
-  fmt.Printf("eval out: %v\n", C.GoString(rstr))
-  return nil
+	context := C.mrbc_context_new(vm.Ruby.state)
+	code_cstr := C.CString(code)
+	parser_state := C.mrb_parse_string(vm.Ruby.state, code_cstr, context)
+	if parser_state == nil {
+		return errors.New("parse err")
+	}
+	proc := C.mrb_generate_code(vm.Ruby.state, parser_state)
+	C.mrb_parser_free(parser_state)
+	C.free(unsafe.Pointer(code_cstr))
+	root_object := C.mrb_top_self(vm.Ruby.state)
+	result := C.mrb_run(vm.Ruby.state, proc, root_object)
+	if result.tt == C.MRB_TT_EXCEPTION {
+		fmt.Println("ruby func setup eval fail")
+		return errors.New("setup err")
+	}
+	fmt.Println("ruby func setup eval good %v", result.tt)
+	rstr := C.go_mrb_funcall(vm.Ruby.state, &result)
+	fmt.Printf("eval out: %v\n", C.GoString(rstr))
+	return nil
 }

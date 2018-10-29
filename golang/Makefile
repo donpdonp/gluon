@@ -14,6 +14,9 @@ cmd: src/donpdonp/gluon/**/*.go
 test:
 	GOPATH=`pwd` go test donpdonp/gluon
 
+format:
+	gofmt -w src/donpdonp/gluon
+
 gov8:
 	go get github.com/augustoroman/v8
 	#git clone https://github.com/augustoroman/v8
