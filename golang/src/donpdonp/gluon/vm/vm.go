@@ -22,6 +22,16 @@ func Factory(owner string, lang string) *VM {
 	return &new_vm
 }
 
+func (vm *VM) Lang() string {
+	if vm.Js != nil {
+		return "javascript"
+	}
+	if vm.Ruby != nil {
+		return "ruby"
+	}
+	return "unknown"
+}
+
 func (vm *VM) Eval(code string) error {
 	var err error
 	if vm.Js != nil {

@@ -270,7 +270,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 
 		if err == nil {
 			vm_list.Add(*new_vm)
-			fmt.Println("VM " + new_vm.Owner + "/" + new_vm.Name + " added!")
+			fmt.Printf("VM %s/%s (%s) added!\n", new_vm.Owner, new_vm.Name, new_vm.Lang())
 			return nil
 		}
 		return err
