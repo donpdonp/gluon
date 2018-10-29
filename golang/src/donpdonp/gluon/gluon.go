@@ -128,7 +128,7 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
 			fmt.Printf("get(%s)\n", call.Argument(0).String())
-			body, err := comm.HttpGet(call.Argument(0).String())
+			_, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
 			if err != nil {
 				fmt.Println("http get err")
@@ -259,15 +259,14 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 }
 
 func vm_add(owner string, url string, bus comm.Pubsub) error {
-	new_vm := vm.Factory(owner)
-
+	new_vm := vm.Factory(owner, "javascript")
 	vm_enhance_standard(new_vm, bus)
 
 	new_vm.Url = url
-	code, err := comm.HttpGet(url)
+	_, code, err := comm.HttpGet(url)
 	if err == nil {
 		fmt.Println("vm_add eval")
-		err := new_vm.Eval(code)
+		err := new_vm.EvalJs(code)
 
 		if err == nil {
 			vm_list.Add(*new_vm)
@@ -284,7 +283,7 @@ func vm_reload(name string, bus comm.Pubsub) error {
 	if idx > -1 {
 		vm := vm_list.At(idx)
 		fmt.Println(name + " found. reloading " + vm.Url)
-		code, err := comm.HttpGet(vm.Url)
+		_, code, err := comm.HttpGet(vm.Url)
 		if err != nil {
 			err := vm.Eval(code)
 			return err

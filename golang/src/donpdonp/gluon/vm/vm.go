@@ -11,14 +11,29 @@ type VM struct {
 	Ruby  *RubyVM
 }
 
-func Factory(owner string) *VM {
-	new_vm := VM{Owner: owner,
-		Js: otto.New(),
-	  Ruby: rubyfactory()}
+func Factory(owner string, lang string) *VM {
+	new_vm := VM{Owner: owner}
+	if lang == "ruby" {
+	  new_vm.Ruby = rubyfactory()
+	}
+	if lang == "javascript" {
+		new_vm.Js = otto.New()
+	}
 	return &new_vm
 }
 
-func (vm *VM) Eval(js_code string) error {
+func (vm *VM) Eval(code string) error {
+	var err error
+	if vm.Js != nil {
+		err = vm.EvalJs(code)
+	}
+	if vm.Ruby != nil {
+		err = vm.EvalRuby(code)
+	}
+	return err
+}
+
+func (vm *VM) EvalJs(js_code string) error {
 	fmt.Println(string(js_code)[0:15])
 	fmt.Println("--eval begins--")
 
