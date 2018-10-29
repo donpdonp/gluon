@@ -1,3 +1,5 @@
+.PHONY: all test 
+
 all: build
 
 build: gluon cmd
@@ -8,6 +10,9 @@ gluon: src/donpdonp/gluon/*.go src/donpdonp/gluon/**/*.go
 
 cmd: src/donpdonp/gluon/**/*.go
 	GOPATH=`pwd` go build donpdonp/gluon/cmd
+
+test:
+	GOPATH=`pwd` go test donpdonp/gluon
 
 gov8:
 	go get github.com/augustoroman/v8
