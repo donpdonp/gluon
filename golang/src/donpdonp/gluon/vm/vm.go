@@ -44,16 +44,13 @@ func (vm *VM) Eval(code string) error {
 }
 
 func (vm *VM) EvalJs(js_code string) error {
-	fmt.Println(string(js_code)[0:15])
-	fmt.Println("--eval begins--")
-
 	src, err := vm.Js.Compile("", js_code)
 
 	if err != nil {
-		fmt.Println("compile failed!", err)
+		fmt.Println("js compile failed!", err)
 		return err
 	} else {
-		fmt.Println("compile good!")
+		fmt.Println("js compile good!")
 		setup, err := vm.Js.Run(src)
 		if err != nil {
 			fmt.Println("eval failed", err, vm.Js.Context().Stacktrace)

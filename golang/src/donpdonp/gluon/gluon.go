@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"strconv"
 
 	"donpdonp/gluon/comm"
 	"donpdonp/gluon/util"
@@ -259,14 +260,15 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 }
 
 func vm_add(owner string, url string, bus comm.Pubsub) error {
-	new_vm := vm.Factory(owner, "javascript")
-	vm_enhance_standard(new_vm, bus)
-
-	new_vm.Url = url
-	_, code, err := comm.HttpGet(url)
+	resp, code, err := comm.HttpGet(url)
 	if err == nil {
-		fmt.Println("vm_add eval")
-		err := new_vm.EvalJs(code)
+		len, _ := strconv.Atoi(resp.Header["Content-Length"][0])
+		fmt.Printf("vm_add http %s %d bytes\n", resp.Header["Content-Type"], len)
+		lang := pickLang(url, resp.Header["Content-Type"][0])
+   	new_vm := vm.Factory(owner, lang)
+  	new_vm.Url = url
+  	vm_enhance_standard(new_vm, bus)
+    err := new_vm.EvalJs(code)
 
 		if err == nil {
 			vm_list.Add(*new_vm)
@@ -276,6 +278,10 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 		return err
 	}
 	return err
+}
+
+func pickLang(url string, contentType string) string {
+	return "javascript"
 }
 
 func vm_reload(name string, bus comm.Pubsub) error {
