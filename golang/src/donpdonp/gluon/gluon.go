@@ -129,11 +129,11 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 		"host_id":       util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("get(%s)\n", call.Argument(0).String())
+			fmt.Printf("http.get %s\n", call.Argument(0).String())
 			_, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
 			if err != nil {
-				fmt.Println("http get err")
+				fmt.Printf("http get err %v", err)
 				ottoStr, _ = otto.ToValue("")
 			} else {
 				ottoStr, _ = otto.ToValue(body)
