@@ -359,11 +359,14 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 			if err != nil {
 				sayback = "[" + vm.Name + "] " + err.Error()
 			} else {
-   	 	  fmt.Printf("** %s/%s %s %v\n", vm.Owner, vm.Name, call_js, value)
+   	 	  fmt.Printf("** %s/%s %v\n", vm.Owner, vm.Name, value)
 				var said interface{}
 				err := json.Unmarshal([]byte(value), &said)
+   	 	  fmt.Printf("** %s/%s %v\n", vm.Owner, vm.Name, said)
 				if err != nil {
-  			  sayback = said.(string)
+					if said != nil {
+  			    sayback = said.(string)
+  			  }
   			}
 			}
 			if len(sayback) > 0 {
