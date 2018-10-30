@@ -56,7 +56,7 @@ func (vm *VM) EvalJs(js_code string) (string, error) {
 		fmt.Println("evaljs Run failed", err, vm.Js.Context().Stacktrace, js_code)
 		return "", err
 	} else {
-		fmt.Printf("evaljs JSON.stringify %v\n", result)
+		fmt.Printf("evaljs JSON.stringify %#v\n", result)
 		otto_json, err := vm.Js.Call("JSON.stringify", nil, result)
 		json := ""
 		if err == nil {
@@ -64,7 +64,7 @@ func (vm *VM) EvalJs(js_code string) (string, error) {
 		} else {
 			thing, _ := otto_json.Export()
 			json = thing.(string)
-  		fmt.Printf("evaljs JSON.stringify good: %v\n", json)
+  		fmt.Printf("evaljs JSON.stringify good: %#v\n", json)
 		}
 		return json, nil //descriptor_value json
 	}
