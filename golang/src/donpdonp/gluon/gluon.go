@@ -353,16 +353,16 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		pprm, _ := json.Marshal(msg)
 		call_js := "go(" + string(pprm) + ")"
 		fmt.Printf("** %s/%s %s\n", vm.Owner, vm.Name, call_js)
-		value, err := vm.Eval(call_js)
+		json_str, err := vm.Eval(call_js)
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
 			if err != nil {
 				sayback = "[" + vm.Name + "] " + err.Error()
 			} else {
-   	 	  fmt.Printf("** %s/%s %v\n", vm.Owner, vm.Name, value)
+   	 	  fmt.Printf("** %s/%s return json: %v\n", vm.Owner, vm.Name, json_str)
 				var said interface{}
-				err := json.Unmarshal([]byte(value), &said)
-   	 	  fmt.Printf("** %s/%s %v\n", vm.Owner, vm.Name, said)
+				err := json.Unmarshal([]byte(json_str), &said)
+   	 	  fmt.Printf("** %s/%s parsed json: %v\n", vm.Owner, vm.Name, said)
 				if err != nil {
 					if said != nil {
   			    sayback = said.(string)
