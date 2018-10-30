@@ -268,10 +268,13 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], len)
 		vm := vm.Factory(owner, lang)
 		vm.Url = url
+		var setup_json string
 		if vm.Lang() == "javascript" {
 			vm_enhance_standard(vm, bus)
+			setup_json, err = vm.FirstEvalJs(code)
+		} else {
+		  setup_json, err = vm.Eval(code)
 		}
-		setup_json, err := vm.Eval(code)
 		if err == nil {
 			var setup map[string]interface{}
 			json.Unmarshal([]byte(setup_json), &setup)
@@ -350,15 +353,18 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		pprm, _ := json.Marshal(msg)
 		call_js := "go(" + string(pprm) + ")"
 		fmt.Printf("** %s/%s %s\n", vm.Owner, vm.Name, call_js)
-		value, err := vm.Js.Run(call_js)
+		value, err := vm.Eval(call_js)
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
 			if err != nil {
 				sayback = "[" + vm.Name + "] " + err.Error()
 			} else {
-				if value.IsDefined() {
-					sayback = value.String()
-				}
+   	 	  fmt.Printf("** %s/%s %s %v\n", vm.Owner, vm.Name, call_js, value)
+				var said interface{}
+				err := json.Unmarshal([]byte(value), &said)
+				if err != nil {
+  			  sayback = said.(string)
+  			}
 			}
 			if len(sayback) > 0 {
 				bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
