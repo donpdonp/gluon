@@ -262,7 +262,9 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 
 func vm_add(owner string, url string, bus comm.Pubsub) error {
 	resp, code, err := comm.HttpGet(url)
-	if err == nil {
+	if err != nil {
+		fmt.Printf("vm_add http err %v\n", err)
+	} else {
 		len, _ := strconv.Atoi(resp.Header["Content-Length"][0])
 		lang := pickLang(url, resp.Header["Content-Type"][0])
 		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], len)
