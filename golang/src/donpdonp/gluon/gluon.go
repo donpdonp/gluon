@@ -268,8 +268,14 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 		fmt.Printf("vm_add http err %v\n", err)
 	} else {
 		fmt.Printf("vm_add http ok\n")
-		len, _ := strconv.Atoi(resp.Header["Content-Length"][0])
-		lang := pickLang(url, resp.Header["Content-Type"][0])
+		len := 0
+		if resp.Header["Content-Length"] != nil {
+			len, _ = strconv.Atoi(resp.Header["Content-Length"][0])
+		}
+		lang := ""
+    if resp.Header["Content-Type"] != nil {
+  		lang = pickLang(url, resp.Header["Content-Type"][0])
+  	}
 		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], len)
 		vm := vm.Factory(owner, lang)
 		vm.Url = url
