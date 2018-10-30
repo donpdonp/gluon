@@ -133,9 +133,10 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 			_, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
 			if err != nil {
-				fmt.Printf("http get err %v", err)
+				fmt.Printf("http.get err %v\n", err)
 				ottoStr, _ = otto.ToValue("")
 			} else {
+				fmt.Printf("http.get OK %d bytes\n", len(body))
 				ottoStr, _ = otto.ToValue(body)
 			}
 			return ottoStr
