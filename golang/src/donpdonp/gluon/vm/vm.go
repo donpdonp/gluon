@@ -59,12 +59,12 @@ func (vm *VM) EvalJs(js_code string) (string, error) {
 		fmt.Printf("evaljs JSON.stringify %v\n", result)
 		otto_json, err := vm.Js.Call("JSON.stringify", nil, result)
 		json := ""
-		fmt.Printf("evaljs JSON.stringify out: %v err: %v\n", otto_json, err)
 		if err == nil {
 			fmt.Printf("evaljs JSON.stringify err: %v\n", err)
 		} else {
 			thing, _ := otto_json.Export()
 			json = thing.(string)
+  		fmt.Printf("evaljs JSON.stringify good: %v\n", json)
 		}
 		return json, nil //descriptor_value json
 	}

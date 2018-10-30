@@ -357,9 +357,10 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
 			if err != nil {
+				fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 				sayback = "[" + vm.Name + "] " + err.Error()
 			} else {
-				fmt.Printf("** %s/%s return json: %v\n", vm.Owner, vm.Name, json_str)
+				fmt.Printf("** %s/%s dispatch call return json: %v\n", vm.Owner, vm.Name, json_str)
 				var said interface{}
 				err := json.Unmarshal([]byte(json_str), &said)
 				fmt.Printf("** %s/%s parsed json: %v\n", vm.Owner, vm.Name, said)
