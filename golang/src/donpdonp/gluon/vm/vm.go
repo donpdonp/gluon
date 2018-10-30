@@ -63,8 +63,10 @@ func (vm *VM) EvalJs(js_code string) (string, error) {
 			fmt.Printf("evaljs JSON.stringify err: %#v\n", err)
 		} else {
 			thing, _ := otto_json.Export()
-			json = thing.(string)
-  		fmt.Printf("evaljs JSON.stringify good: %#v\n", json)
+			if thing != nil {
+				json = thing.(string)
+	  		fmt.Printf("evaljs JSON.stringify good: %#v\n", json)
+	  	}
 		}
 		return json, nil //descriptor_value json
 	}
