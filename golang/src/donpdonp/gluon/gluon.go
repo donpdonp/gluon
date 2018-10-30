@@ -275,7 +275,9 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 		} else {
 			setup_json, err = vm.Eval(code)
 		}
-		if err == nil {
+		if err != nil {
+			fmt.Printf("vm_add vm.Eval(js) err: %v\n", err)
+		} else {
 			var setup map[string]interface{}
 			json.Unmarshal([]byte(setup_json), &setup)
 			fmt.Printf("setup_json %s %v\n", setup_json, setup)
