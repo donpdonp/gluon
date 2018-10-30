@@ -273,7 +273,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 			vm_enhance_standard(vm, bus)
 			setup_json, err = vm.FirstEvalJs(code)
 		} else {
-		  setup_json, err = vm.Eval(code)
+			setup_json, err = vm.Eval(code)
 		}
 		if err == nil {
 			var setup map[string]interface{}
@@ -359,15 +359,15 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 			if err != nil {
 				sayback = "[" + vm.Name + "] " + err.Error()
 			} else {
-   	 	  fmt.Printf("** %s/%s return json: %v\n", vm.Owner, vm.Name, json_str)
+				fmt.Printf("** %s/%s return json: %v\n", vm.Owner, vm.Name, json_str)
 				var said interface{}
 				err := json.Unmarshal([]byte(json_str), &said)
-   	 	  fmt.Printf("** %s/%s parsed json: %v\n", vm.Owner, vm.Name, said)
+				fmt.Printf("** %s/%s parsed json: %v\n", vm.Owner, vm.Name, said)
 				if err != nil {
 					if said != nil {
-  			    sayback = said.(string)
-  			  }
-  			}
+						sayback = said.(string)
+					}
+				}
 			}
 			if len(sayback) > 0 {
 				bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)

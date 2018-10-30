@@ -59,7 +59,7 @@ func Emit(state *C.mrb_state, value C.mrb_value) C.mrb_value {
 
 func (vm *VM) EvalRuby(code string) (string, error) {
 	context := C.mrbc_context_new(vm.Ruby.state)
-  code_cstr := C.CString(code)
+	code_cstr := C.CString(code)
 	parser_state := C.mrb_parse_string(vm.Ruby.state, code_cstr, context)
 	if parser_state == nil {
 		return "", errors.New("parse err")

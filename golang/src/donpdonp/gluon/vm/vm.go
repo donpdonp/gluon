@@ -53,15 +53,19 @@ func (vm *VM) Eval(code string) (string, error) {
 func (vm *VM) EvalJs(js_code string) (string, error) {
 	result, err := vm.Js.Run(js_code)
 	if err != nil {
-		fmt.Println("eval failed", err, vm.Js.Context().Stacktrace)
+		fmt.Println("evaljs Run failed", err, vm.Js.Context().Stacktrace)
 		return "", err
 	} else {
+		fmt.Printf("evaljs JSON.stringify %v\n", result)
 		otto_json, err := vm.Js.Call("JSON.stringify", nil, result)
 		json := ""
-		if err != nil {
-  		thing, _ := otto_json.Export()
-  		json = thing.(string)
-  	}
+		fmt.Printf("evaljs JSON.stringify out: %v err: %v\n", otto_json, err)
+		if err == nil {
+			fmt.Printf("evaljs JSON.stringify err: %v\n", err)
+		} else {
+			thing, _ := otto_json.Export()
+			json = thing.(string)
+		}
 		return json, nil //descriptor_value json
 	}
 }
