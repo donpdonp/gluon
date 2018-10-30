@@ -1,6 +1,7 @@
 package vm
 
 import "fmt"
+import "errors"
 import "github.com/robertkrimen/otto"
 
 type VM struct {
@@ -21,6 +22,10 @@ func Factory(owner string, lang string) *VM {
 		fmt.Printf("vm js go\n")
 		new_vm.Js = otto.New()
 	}
+	if lang == "webassembly" {
+		fmt.Printf("vm webasm go\n")
+		wasmfactory()
+	}
 	return &new_vm
 }
 
@@ -31,42 +36,41 @@ func (vm *VM) Lang() string {
 	if vm.Ruby != nil {
 		return "ruby"
 	}
-	return "unknown"
+	return "unknown language"
 }
 
-func (vm *VM) Eval(code string) error {
-	var err error
-	if vm.Js != nil {
-		err = vm.EvalJs(code)
+func (vm *VM) Eval(code string) (string, error) {
+	lang := vm.Lang()
+	if lang == "javascript" {
+		return vm.EvalJs(code)
 	}
-	if vm.Ruby != nil {
-		err = vm.EvalRuby(code)
+	if lang == "ruby" {
+		return vm.EvalRuby(code)
 	}
-	return err
+	return "", errors.New(lang)
 }
 
-func (vm *VM) EvalJs(js_code string) error {
+func (vm *VM) EvalJs(js_code string) (string, error) {
 	src, err := vm.Js.Compile("", js_code)
 
 	if err != nil {
 		fmt.Println("js compile failed!", err)
-		return err
+		return "", err
 	} else {
 		fmt.Println("js compile good!")
 		setup, err := vm.Js.Run(src)
 		if err != nil {
 			fmt.Println("eval failed", err, vm.Js.Context().Stacktrace)
-			return err
+			return "", err
 		} else {
 			descriptor_value, err := setup.Call(setup)
 			if err != nil {
 				fmt.Println("js func setup eval fail")
-				return err
+				return "", err
 			} else {
-				descriptor_map, _ := descriptor_value.Export()
-				descriptor := descriptor_map.(map[string]interface{})
-				vm.Name = descriptor["name"].(string)
-				return nil
+				otto_json, _ := vm.Js.Call("JSON.stringify", nil, descriptor_value)
+				json, _ := otto_json.Export()
+				return json.(string), nil //descriptor_value json
 			}
 		}
 	}

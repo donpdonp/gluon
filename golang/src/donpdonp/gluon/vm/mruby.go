@@ -17,10 +17,11 @@ static void go_mrb_define_class_method(mrb_state *a, struct RClass *b, const cha
   mrb_define_class_method(a,b,c,Emit,e);
 }
 
-static const char* go_mrb_funcall(mrb_state* state, mrb_value* result) {
-  struct RClass* clazz = mrb_module_get(state, "JSON");
-  mrb_value str = mrb_funcall(state, mrb_obj_value(clazz), "generate", 1, result);
-  return mrb_string_value_cstr(state, &str);
+static const char*
+mruby_stringify_json_cstr(mrb_state* vm, mrb_value val) {
+  struct RClass* clazz = mrb_module_get(vm, "JSON");
+  mrb_value str = mrb_funcall(vm, mrb_obj_value(clazz), "generate", 1, val);
+  return mrb_string_value_cstr(vm, &str);
 }
 
 // cgo doesnt like this define
@@ -52,15 +53,16 @@ func rubyfactory() *RubyVM {
 
 //export Emit
 func Emit(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+	fmt.Printf("go ruby emit callback ok\n")
 	return C.mrb_value{}
 }
 
-func (vm *VM) EvalRuby(code string) error {
+func (vm *VM) EvalRuby(code string) (string, error) {
 	context := C.mrbc_context_new(vm.Ruby.state)
-	code_cstr := C.CString(code)
+  code_cstr := C.CString(code)
 	parser_state := C.mrb_parse_string(vm.Ruby.state, code_cstr, context)
 	if parser_state == nil {
-		return errors.New("parse err")
+		return "", errors.New("parse err")
 	}
 	proc := C.mrb_generate_code(vm.Ruby.state, parser_state)
 	C.mrb_parser_free(parser_state)
@@ -69,10 +71,9 @@ func (vm *VM) EvalRuby(code string) error {
 	result := C.mrb_run(vm.Ruby.state, proc, root_object)
 	if result.tt == C.MRB_TT_EXCEPTION {
 		fmt.Println("ruby func setup eval fail")
-		return errors.New("setup err")
+		return "", errors.New("setup err")
 	}
-	fmt.Println("ruby func setup eval good %v", result.tt)
-	rstr := C.go_mrb_funcall(vm.Ruby.state, &result)
-	fmt.Printf("eval out: %v\n", C.GoString(rstr))
-	return nil
+	fmt.Printf("ruby func setup eval good, return ruby type: %v\n", result.tt)
+	json := C.mruby_stringify_json_cstr(vm.Ruby.state, result)
+	return C.GoString(json), nil
 }

@@ -266,16 +266,19 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 		len, _ := strconv.Atoi(resp.Header["Content-Length"][0])
 		lang := pickLang(url, resp.Header["Content-Type"][0])
 		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], len)
-		new_vm := vm.Factory(owner, lang)
-		new_vm.Url = url
-		if new_vm.Lang() == "javascript" {
-			vm_enhance_standard(new_vm, bus)
+		vm := vm.Factory(owner, lang)
+		vm.Url = url
+		if vm.Lang() == "javascript" {
+			vm_enhance_standard(vm, bus)
 		}
-		err := new_vm.Eval(code)
-
+		setup_json, err := vm.Eval(code)
 		if err == nil {
-			vm_list.Add(*new_vm)
-			fmt.Printf("VM %s/%s (%s) added!\n", new_vm.Owner, new_vm.Name, new_vm.Lang())
+			var setup map[string]interface{}
+			json.Unmarshal([]byte(setup_json), &setup)
+			fmt.Printf("setup_json %s %v\n", setup_json, setup)
+			vm.Name = setup["name"].(string)
+			vm_list.Add(*vm)
+			fmt.Printf("VM %s/%s (%s) added!\n", vm.Owner, vm.Name, vm.Lang())
 			return nil
 		}
 		return err
@@ -299,6 +302,8 @@ func pickLang(urlStr string, contentType string) string {
 			lang = "javascript"
 		} else if extension == "rb" {
 			lang = "ruby"
+		} else if extension == "wast" {
+			lang = "webassembly"
 		}
 	}
 	return lang
@@ -311,7 +316,7 @@ func vm_reload(name string, bus comm.Pubsub) error {
 		fmt.Println(name + " found. reloading " + vm.Url)
 		_, code, err := comm.HttpGet(vm.Url)
 		if err != nil {
-			err := vm.Eval(code)
+			_, err := vm.Eval(code)
 			return err
 		}
 	}
