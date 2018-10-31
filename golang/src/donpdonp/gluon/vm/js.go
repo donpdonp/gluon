@@ -8,7 +8,6 @@ func (vm *VM) EvalJs(js_code string) (string, error) {
     fmt.Println("evaljs Run failed", err, vm.Js.Context().Stacktrace, js_code)
     return "", err
   } else {
-    fmt.Printf("evaljs JSON.stringify %#v\n", result)
     otto_json, err := vm.Js.Call("JSON.stringify", nil, result)
     json := ""
     if err != nil {
