@@ -114,7 +114,7 @@ func make_callback(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
 	pkt["vm"] = vm.Owner + "/" + vm.Name
 }
 
-func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
+func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("bot", map[string]interface{}{
 		"say": func(call otto.FunctionCall) otto.Value {
 			fmt.Printf("gluon say %s %+v\n", call.Argument(0).String(), call.Argument(1).String())
@@ -261,6 +261,10 @@ func vm_enhance_standard(vm *vm.VM, bus comm.Pubsub) {
 		}})
 }
 
+func vm_enhance_ruby_standard(vmm *vm.VM, bus comm.Pubsub) {
+	vm.RubyStdCallbacks(vmm, func(){})
+}
+
 func vm_add(owner string, url string, bus comm.Pubsub) error {
   fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
 	resp, code, err := comm.HttpGet(url)
@@ -281,9 +285,10 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 		vm.Url = url
 		var setup_json string
 		if vm.Lang() == "javascript" {
-			vm_enhance_standard(vm, bus)
+			vm_enhance_js_standard(vm, bus)
 			setup_json, err = vm.FirstEvalJs(code)
 		} else {
+			vm_enhance_ruby_standard(vm, bus)
 			setup_json, err = vm.Eval(code)
 		}
 		if err != nil {
@@ -374,8 +379,8 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 			params_double_json := string(params_double_jbytes)
 		  call = "go(JSON.parse(" + params_double_json + "))"
 	  }
-		fmt.Printf("** %s/%s %s\n", vm.Owner, vm.Name, call)
 		json_str, err := vm.Eval(call)
+		fmt.Printf("** %s/%s %#v\n", vm.Owner, vm.Name, json_str)
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
 			if err != nil {

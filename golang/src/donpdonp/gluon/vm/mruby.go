@@ -11,10 +11,13 @@ package vm
 #include "mruby/array.h"
 #include "mruby/variable.h"
 
-extern mrb_value Emit(mrb_state*, mrb_value);
+extern mrb_value gluon_ruby_bot_say(mrb_state*, mrb_value);
+
 //MRB_API void mrb_define_class_method(mrb_state *, struct RClass *, const char *, mrb_func_t, mrb_aspec);
 static void go_mrb_define_class_method(mrb_state *a, struct RClass *b, const char *c, int d, mrb_aspec e) {
-  mrb_define_class_method(a,b,c,Emit,e);
+	mrb_func_t rfunc;
+	if(d ==1)	rfunc = gluon_ruby_bot_say;
+  mrb_define_class_method(a,b,c,rfunc,e);
 }
 
 static const char*
@@ -40,20 +43,22 @@ type RubyVM struct {
 
 func rubyfactory() *RubyVM {
 	state := C.mrb_open()
-	ruby_class := C.mrb_define_module(state, C.CString("Gluon"))
-
-	C.go_mrb_define_class_method(
-		state,
-		ruby_class,
-		C.CString("emit"),
-		0,
-		C.args_req(1))
 	return &RubyVM{state: state}
 }
 
-//export Emit
-func Emit(state *C.mrb_state, value C.mrb_value) C.mrb_value {
-	fmt.Printf("go ruby emit callback ok\n")
+func RubyStdCallbacks(vm *VM, bot_say func()) {
+	ruby_class := C.mrb_define_module(vm.Ruby.state, C.CString("Gluon"))
+	C.go_mrb_define_class_method(
+		vm.Ruby.state,
+		ruby_class,
+		C.CString("bot_say"),
+		1,
+		C.args_req(1))
+}
+
+//export gluon_ruby_bot_say
+func gluon_ruby_bot_say(state *C.mrb_state, value C.mrb_value) C.mrb_value {
+	fmt.Printf("go ruby bot say %#v\n", value)
 	return C.mrb_value{}
 }
 
@@ -73,7 +78,7 @@ func (vm *VM) EvalRuby(code string) (string, error) {
 		fmt.Printf("ruby func eval exception")
 		return "", errors.New("setup err")
 	}
-	fmt.Printf("ruby func setup eval good, return ruby type: %v\n", result.tt)
+	//fmt.Printf("ruby func setup eval good, return ruby type: %v\n", result.tt)
 	json := C.mruby_stringify_json_cstr(vm.Ruby.state, result)
 	return C.GoString(json), nil
 }
