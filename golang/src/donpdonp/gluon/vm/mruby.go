@@ -70,7 +70,7 @@ func (vm *VM) EvalRuby(code string) (string, error) {
 	root_object := C.mrb_top_self(vm.Ruby.state)
 	result := C.mrb_run(vm.Ruby.state, proc, root_object)
 	if result.tt == C.MRB_TT_EXCEPTION {
-		fmt.Println("ruby func setup eval fail")
+		fmt.Printf("ruby func eval exception")
 		return "", errors.New("setup err")
 	}
 	fmt.Printf("ruby func setup eval good, return ruby type: %v\n", result.tt)

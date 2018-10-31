@@ -363,10 +363,19 @@ func do_vm_list(bus comm.Pubsub) {
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	for vm := range vm_list.Range() {
-		pprm, _ := json.Marshal(msg)
-		call_js := "go(" + string(pprm) + ")"
-		fmt.Printf("** %s/%s %s\n", vm.Owner, vm.Name, call_js)
-		json_str, err := vm.Eval(call_js)
+		params_jbytes, _ := json.Marshal(msg)
+		params_json := string(params_jbytes)
+		var call string
+		if vm.Lang() == "javascript" {
+		  call = "go(" + params_json + ")"
+	  }
+		if vm.Lang() == "ruby" {
+			params_double_jbytes, _ := json.Marshal(params_json)
+			params_double_json := string(params_double_jbytes)
+		  call = "go(JSON.parse(" + params_double_json + "))"
+	  }
+		fmt.Printf("** %s/%s %s\n", vm.Owner, vm.Name, call)
+		json_str, err := vm.Eval(call)
 		if msg["method"] == "irc.privmsg" {
 			var sayback string
 			if err != nil {
