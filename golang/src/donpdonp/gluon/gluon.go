@@ -262,7 +262,13 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 }
 
 func vm_enhance_ruby_standard(vmm *vm.VM, bus comm.Pubsub) {
-	vm.RubyStdCallbacks(vmm, func(){})
+	vm.RubyStdCallbacks(vmm, func(channel string, say string){
+		fmt.Printf("gluon ruby say %#v %#v\n", channel, say)
+		resp := map[string]interface{}{"method": "irc.privmsg"}
+		resp["params"] = map[string]interface{}{"channel": channel,
+			"message": say}
+		bus.Send(resp, nil)
+	})
 }
 
 func vm_add(owner string, url string, bus comm.Pubsub) error {

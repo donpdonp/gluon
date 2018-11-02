@@ -20,6 +20,11 @@ static void go_mrb_define_class_method(mrb_state *a, struct RClass *b, const cha
   mrb_define_class_method(a,b,c,rfunc,e);
 }
 
+//MRB_API mrb_int mrb_get_args(mrb_state *mrb, mrb_args_format format, ...);
+static void go_mrb_get_args_2(mrb_state *mrb, mrb_args_format format, mrb_value *p1, mrb_value *p2) {
+	mrb_get_args(mrb, format, p1), p2;
+}
+
 static const char*
 mruby_stringify_json_cstr(mrb_state* vm, mrb_value val) {
   struct RClass* clazz = mrb_module_get(vm, "JSON");
@@ -46,7 +51,10 @@ func rubyfactory() *RubyVM {
 	return &RubyVM{state: state}
 }
 
-func RubyStdCallbacks(vm *VM, bot_say func()) {
+var sayback func(channel string, say string)
+
+func RubyStdCallbacks(vm *VM, bot_say func(channel string, say string)) {
+	sayback = bot_say
 	ruby_class := C.mrb_define_module(vm.Ruby.state, C.CString("Gluon"))
 	C.go_mrb_define_class_method(
 		vm.Ruby.state,
@@ -57,8 +65,16 @@ func RubyStdCallbacks(vm *VM, bot_say func()) {
 }
 
 //export gluon_ruby_bot_say
-func gluon_ruby_bot_say(state *C.mrb_state, value C.mrb_value) C.mrb_value {
-	fmt.Printf("go ruby bot say %#v\n", value)
+func gluon_ruby_bot_say(state *C.mrb_state, self C.mrb_value) C.mrb_value {
+  var rchan C.mrb_value;
+  var rsay C.mrb_value;
+  format_cstr := C.CString("S")
+  C.go_mrb_get_args_2(state, format_cstr, &rchan, &rsay);
+	C.free(unsafe.Pointer(format_cstr))
+	channel := C.GoString(C.mrb_string_value_cstr(state, &rchan))
+	say := C.GoString(C.mrb_string_value_cstr(state, &rsay))
+	fmt.Printf("gluon_ruby_bot_say %#v %#v\n", channel, say)
+	//sayback(channel, say)
 	return C.mrb_value{}
 }
 
