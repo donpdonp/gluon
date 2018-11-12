@@ -221,9 +221,10 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("vm", map[string]interface{}{
 		"add": func(call otto.FunctionCall) otto.Value {
 			url := call.Argument(0).String()
-			err := vm_add(vm.Owner, url, bus)
+			descriptor, err := vm_add(vm.Owner, url, bus)
 			if err == nil {
-				return otto.Value{}
+				ottoDescriptor, _ := otto.ToValue(descriptor)
+   			return ottoDescriptor
 			} else {
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
@@ -271,7 +272,7 @@ func vm_enhance_ruby_standard(vmm *vm.VM, bus comm.Pubsub) {
 	})
 }
 
-func vm_add(owner string, url string, bus comm.Pubsub) error {
+func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, error) {
   fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
 	resp, code, err := comm.HttpGet(url)
 	if err != nil {
@@ -306,11 +307,11 @@ func vm_add(owner string, url string, bus comm.Pubsub) error {
 			vm.Name = setup["name"].(string)
 			vm_list.Add(*vm)
 			fmt.Printf("VM %s/%s (%s) added!\n", vm.Owner, vm.Name, vm.Lang())
-			return nil
+			return setup, nil
 		}
-		return err
+		return nil, err
 	}
-	return err
+	return nil, err
 }
 
 func pickLang(urlStr string, contentType string) string {
