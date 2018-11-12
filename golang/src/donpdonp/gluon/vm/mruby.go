@@ -22,7 +22,7 @@ static void go_mrb_define_class_method(mrb_state *a, struct RClass *b, const cha
 
 //MRB_API mrb_int mrb_get_args(mrb_state *mrb, mrb_args_format format, ...);
 static void go_mrb_get_args_2(mrb_state *mrb, mrb_args_format format, mrb_value *p1, mrb_value *p2) {
-	mrb_get_args(mrb, format, p1), p2;
+	mrb_get_args(mrb, format, p1, p2);
 }
 
 static const char*
