@@ -295,8 +295,9 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			vm_enhance_js_standard(vm, bus)
 			setup_json, err = vm.FirstEvalJs(code)
 		} else {
-			vm_enhance_ruby_standard(vm, bus)
-			setup_json, err = vm.Eval(code)
+			//vm_enhance_ruby_standard(vm, bus)
+			//setup_json, err = vm.Eval(code)
+			err = errors.New("no ruby today")
 		}
 		if err != nil {
 			fmt.Printf("vm_add vm.Eval(js) err: %v\n", err)
