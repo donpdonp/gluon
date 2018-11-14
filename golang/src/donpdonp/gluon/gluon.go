@@ -397,7 +397,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 			//fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
 			var said interface{}
 			err := json.Unmarshal([]byte(json_str), &said)
-			fmt.Printf("** %s/%s parsed json: err: %#v out: %#v\n", vm.Owner, vm.Name, said)
+			fmt.Printf("** %s/%s parsed json: err: %#v out: %#v\n", vm.Owner, vm.Name, err, said)
 			if err == nil {
 				if said != nil {
 					sayback = said.(string)
