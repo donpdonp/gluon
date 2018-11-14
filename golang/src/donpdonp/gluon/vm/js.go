@@ -5,7 +5,7 @@ import "fmt"
 func (vm *VM) EvalJs(js_code string) (string, error) {
   result, err := vm.Js.Run(js_code)
   if err != nil {
-    fmt.Println("evaljs Run failed", err, vm.Js.Context().Stacktrace, js_code)
+    fmt.Println("vm.EvalJs failed", err, vm.Js.Context().Stacktrace, js_code)
     return "", err
   } else {
     otto_json, err := vm.Js.Call("JSON.stringify", nil, result)

@@ -388,25 +388,26 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	  }
 		json_str, err := vm.Eval(call)
 		fmt.Printf("** %s/%s %#v\n", vm.Owner, vm.Name, json_str)
-		if msg["method"] == "irc.privmsg" {
-			var sayback string
-			if err != nil {
-				fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
-				sayback = "[" + vm.Name + "] " + err.Error()
-			} else {
-				fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
-				var said interface{}
-				err := json.Unmarshal([]byte(json_str), &said)
-				fmt.Printf("** %s/%s parsed json: err: %#v out: %#v\n", vm.Owner, vm.Name, said)
-				if err == nil {
-					if said != nil {
-						sayback = said.(string)
-					}
+		var sayback string
+		if err != nil {
+			fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
+			sayback = "[" + vm.Name + "] " + err.Error()
+		} else {
+			//fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
+			var said interface{}
+			err := json.Unmarshal([]byte(json_str), &said)
+			fmt.Printf("** %s/%s parsed json: err: %#v out: %#v\n", vm.Owner, vm.Name, said)
+			if err == nil {
+				if said != nil {
+					sayback = said.(string)
 				}
 			}
-			if len(sayback) > 0 {
-				bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
+		}
+		if len(sayback) > 0 {
+			if msg["method"] != "irc.privmsg" {
+				msg["channel"] = util.Settings.AdminChannel
 			}
+			bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
 		}
 	}
 }
