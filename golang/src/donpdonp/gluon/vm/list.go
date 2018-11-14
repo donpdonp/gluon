@@ -59,3 +59,7 @@ func (list *List) Range() <-chan VM {
 func (list *List) At(idx int) VM {
 	return list.entries[idx]
 }
+
+func (list *List) Size() int {
+	return len(list.entries)
+}

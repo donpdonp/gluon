@@ -375,6 +375,7 @@ func do_vm_list(bus comm.Pubsub) {
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
+	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size)
 	for vm := range vm_list.Range() {
 		params_jbytes, _ := json.Marshal(msg)
 		params_json := string(params_jbytes)
