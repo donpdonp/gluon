@@ -406,6 +406,9 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		}
 		if len(sayback) > 0 {
 			if msg["method"] != "irc.privmsg" {
+				if (msg["params"] == nil) {
+					msg["params"] = map[string]interface{}{}
+				}
 				msg["params"].(map[string]interface{})["channel"] = util.Settings.AdminChannel
 			}
 			bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
