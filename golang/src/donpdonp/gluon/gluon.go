@@ -48,7 +48,7 @@ func main() {
 					rpc_dispatch(bus, method, msg)
 				}
 			} else {
-				fmt.Println(msg)
+				fmt.Printf("msg not understood: %#v\n", msg)
 			}
 		case pkt := <-vm_list.Backchan:
 			backchan_size := len(vm_list.Backchan)
@@ -381,6 +381,7 @@ func do_vm_list(bus comm.Pubsub) {
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size)
 	for vm := range vm_list.Range() {
+		start := time.Now()
 		params_jbytes, _ := json.Marshal(msg)
 		params_json := string(params_jbytes)
 		var call string
@@ -393,6 +394,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		  call = "go(JSON.parse(" + params_double_json + "))"
 	  }
 		json_str, err := vm.Eval(call)
+		elapsed := time.Now().Sub(start)
 		var sayback string
 		if err != nil {
 			fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
@@ -401,7 +403,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 			//fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
 			var said interface{}
 			err := json.Unmarshal([]byte(json_str), &said)
-			fmt.Printf("** %s/%s %#v\n", vm.Owner, vm.Name, said)
+			fmt.Printf("** %s/%s %#v [%d sec]\n", vm.Owner, vm.Name, said, elapsed)
 			if err == nil {
 				if said != nil {
 					sayback = said.(string)
