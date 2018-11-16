@@ -38,7 +38,7 @@ func main() {
 		case msg := <-bus.Pipe:
 			pipe_size := len(bus.Pipe)
 			if pipe_size > 0 {
-				fmt.Println("msg pipe queue ", pipe_size)
+				fmt.Printf("msg pipe backlog: %d\n", pipe_size)
 			}
 			if comm.Msg_check(msg) {
 				json, _ := json.Marshal(msg)
@@ -53,7 +53,7 @@ func main() {
 		case pkt := <-vm_list.Backchan:
 			backchan_size := len(vm_list.Backchan)
 			if backchan_size > 0 {
-				fmt.Println("VM callback queue size ", backchan_size)
+				fmt.Println("VM callback queue backlog ", backchan_size)
 			}
 			if pkt["callback"] != nil {
 				callback := pkt["callback"].(otto.Value) //otto.FunctionCall
@@ -379,7 +379,7 @@ func do_vm_list(bus comm.Pubsub) {
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
-	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size)
+	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size())
 	for vm := range vm_list.Range() {
 		start := time.Now()
 		params_jbytes, _ := json.Marshal(msg)
