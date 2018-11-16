@@ -36,6 +36,10 @@ func main() {
 	for {
 		select {
 		case msg := <-bus.Pipe:
+			pipe_size := len(bus.Pipe)
+			if pipe_size > 0 {
+				fmt.Println("msg pipe queue ", pipe_size)
+			}
 			if comm.Msg_check(msg) {
 				json, _ := json.Marshal(msg)
 				fmt.Println("gluon <-", string(json))
