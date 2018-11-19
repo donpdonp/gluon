@@ -287,7 +287,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 		if resp.Header["Content-Length"] != nil {
 			len, _ = strconv.Atoi(resp.Header["Content-Length"][0])
 		}
-		lang := ""
+		lang := "undefined"
     if resp.Header["Content-Type"] != nil {
   		lang = pickLang(url, resp.Header["Content-Type"][0])
   	}
@@ -298,13 +298,15 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 		if vm.Lang() == "javascript" {
 			vm_enhance_js_standard(vm, bus)
 			setup_json, err = vm.FirstEvalJs(code)
-		} else {
+		} else if vm.Lang() == "ruby" {
 			//vm_enhance_ruby_standard(vm, bus)
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby today")
+		} else {
+			err = errors.New("lang "+lang)
 		}
 		if err != nil {
-			fmt.Printf("vm_add vm.Eval(js) err: %v\n", err)
+			fmt.Printf("vm_add err: %v\n", err)
 		} else {
 			var setup map[string]interface{}
 			json.Unmarshal([]byte(setup_json), &setup)

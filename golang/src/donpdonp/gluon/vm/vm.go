@@ -36,7 +36,7 @@ func (vm *VM) Lang() string {
 	if vm.Ruby != nil {
 		return "ruby"
 	}
-	return "unknown language"
+	return "unknown"
 }
 
 func (vm *VM) Eval(code string) (string, error) {
