@@ -261,8 +261,13 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				vm_names = append(vm_names, vm.Owner+"/"+vm.Name)
 			}
 			callback := call.Argument(0)
-			callback.Call(callback, vm_names)
-			return otto.Value{}
+			_, err := callback.Call(callback, vm_names)
+			if err != nil {
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
+			} else {
+			  return otto.Value{}
+		  }
 		}})
 }
 
