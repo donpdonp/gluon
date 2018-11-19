@@ -263,7 +263,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			callback := call.Argument(0)
 			_, err := callback.Call(callback, vm_names)
 			if err != nil {
-				fmt.Printf("vm list callback err: %s %#v\n", err.Error(), ret)
+				fmt.Printf("vm list callback err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
 			} else {
