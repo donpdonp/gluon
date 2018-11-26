@@ -6,7 +6,7 @@ import "github.com/go-interpreter/wagon/wasm"
 import "log"
 import "strings"
 
-func wagonfactory()(*exec.VM, error) {
+func wasmfactory()(*exec.VM, error) {
   f := "wasm code"
   m, err := wasm.ReadModule(strings.NewReader(f), importer)
   if err != nil {
