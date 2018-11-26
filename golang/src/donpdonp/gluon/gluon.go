@@ -308,6 +308,8 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			//vm_enhance_ruby_standard(vm, bus)
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby today")
+		} else if vm.Lang() == "webassembly" {
+
 		} else {
 			err = errors.New("lang "+lang)
 		}

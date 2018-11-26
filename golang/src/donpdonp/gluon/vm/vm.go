@@ -3,6 +3,7 @@ package vm
 import "fmt"
 import "errors"
 import "github.com/robertkrimen/otto"
+import "github.com/go-interpreter/wagon/exec"
 
 type VM struct {
 	Owner string
@@ -10,6 +11,7 @@ type VM struct {
 	Url   string
 	Js    *otto.Otto
 	Ruby  *RubyVM
+	Wasm  *exec.VM
 }
 
 func Factory(owner string, lang string) *VM {

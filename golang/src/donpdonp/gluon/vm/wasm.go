@@ -1,18 +1,34 @@
 package vm
+import "github.com/go-interpreter/wagon/exec"
+import "github.com/go-interpreter/wagon/validate"
+import "github.com/go-interpreter/wagon/wasm"
 
-/*
-#cgo CFLAGS: -I../../../../../../webasm/WAVM/Include
-#cgo CFLAGS: -I../../../../../../webasm/WAVM
-#cgo LDFLAGS: -L../../../../../../webasm/WAVM/Lib/WASM -lWASM
-#cgo LDFLAGS: -L../../../../../../webasm/WAVM/ -lgobridge
-#include "gobridge.h"
-*/
-import "C"
+import "log"
+import "strings"
 
-import "fmt"
+func wagonfactory()(*exec.VM, error) {
+  f := "wasm code"
+  m, err := wasm.ReadModule(strings.NewReader(f), importer)
+  if err != nil {
+    log.Fatalf("could not read module: %v", err)
+  }
 
-func wasmfactory() {
-	ir := C.irModule{}
-	fmt.Printf("wasm irModule: %v\n", ir)
-	C.loadModule(C.CString("a"))
+  verify := true
+  if verify {
+    err = validate.VerifyModule(m)
+    if err != nil {
+      log.Fatalf("could not verify module: %v", err)
+    }
+  }
+
+  if m.Export == nil {
+    log.Fatalf("module has no export section")
+  }
+
+  return exec.NewVM(m)
+}
+
+func importer(name string) (*wasm.Module, error) {
+  log.Printf("importer: %s\n", name);
+  return nil, nil
 }
