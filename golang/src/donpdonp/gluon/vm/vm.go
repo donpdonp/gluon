@@ -26,7 +26,7 @@ func Factory(owner string, lang string) *VM {
 	}
 	if lang == "webassembly" {
 		fmt.Printf("vm webasm go\n")
-		wasmfactory()
+		new_vm.Wasm = wasmfactory()
 	}
 	return &new_vm
 }
@@ -37,6 +37,9 @@ func (vm *VM) Lang() string {
 	}
 	if vm.Ruby != nil {
 		return "ruby"
+	}
+	if vm.Wasm != nil {
+		return "webassembly"
 	}
 	return "unknown"
 }
@@ -49,6 +52,8 @@ func (vm *VM) Eval(code string) (string, error) {
 	if lang == "ruby" {
 		return vm.EvalRuby(code)
 	}
+	if lang == "webassembly" {
+		return vm.EvalWasm(code)
+	}
 	return "", errors.New(lang)
 }
-

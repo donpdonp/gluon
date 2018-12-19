@@ -66,10 +66,10 @@ func RubyStdCallbacks(vm *VM, bot_say func(channel string, say string)) {
 
 //export gluon_ruby_bot_say
 func gluon_ruby_bot_say(state *C.mrb_state, self C.mrb_value) C.mrb_value {
-  var rchan C.mrb_value;
-  var rsay C.mrb_value;
-  format_cstr := C.CString("SS")
-  C.go_mrb_get_args_2(state, format_cstr, &rchan, &rsay);
+	var rchan C.mrb_value
+	var rsay C.mrb_value
+	format_cstr := C.CString("SS")
+	C.go_mrb_get_args_2(state, format_cstr, &rchan, &rsay)
 	C.free(unsafe.Pointer(format_cstr))
 	channel := C.GoString(C.mrb_string_value_cstr(state, &rchan))
 	say := C.GoString(C.mrb_string_value_cstr(state, &rsay))

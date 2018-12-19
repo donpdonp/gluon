@@ -228,7 +228,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			descriptor, err := vm_add(vm.Owner, url, bus)
 			if err == nil {
 				ottoDescriptor, _ := otto.ToValue(descriptor)
-   			return ottoDescriptor
+				return ottoDescriptor
 			} else {
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
@@ -267,13 +267,13 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
 			} else {
-			  return otto.Value{}
-		  }
+				return otto.Value{}
+			}
 		}})
 }
 
 func vm_enhance_ruby_standard(vmm *vm.VM, bus comm.Pubsub) {
-	vm.RubyStdCallbacks(vmm, func(channel string, say string){
+	vm.RubyStdCallbacks(vmm, func(channel string, say string) {
 		fmt.Printf("gluon ruby say %#v %#v\n", channel, say)
 		resp := map[string]interface{}{"method": "irc.privmsg"}
 		resp["params"] = map[string]interface{}{"channel": channel,
@@ -283,7 +283,7 @@ func vm_enhance_ruby_standard(vmm *vm.VM, bus comm.Pubsub) {
 }
 
 func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, error) {
-  fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
+	fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
 	resp, code, err := comm.HttpGet(url)
 	if err != nil {
 		fmt.Printf("vm_add http err %v\n", err)
@@ -294,9 +294,9 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			len, _ = strconv.Atoi(resp.Header["Content-Length"][0])
 		}
 		lang := "undefined"
-    if resp.Header["Content-Type"] != nil {
-  		lang = pickLang(url, resp.Header["Content-Type"][0])
-  	}
+		if resp.Header["Content-Type"] != nil {
+			lang = pickLang(url, resp.Header["Content-Type"][0])
+		}
 		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], len)
 		vm := vm.Factory(owner, lang)
 		vm.Url = url
@@ -309,9 +309,9 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby today")
 		} else if vm.Lang() == "webassembly" {
-
+			setup_json = "{\"name\":\"webasm\"}"
 		} else {
-			err = errors.New("lang "+lang)
+			err = errors.New("lang " + lang)
 		}
 		if err != nil {
 			fmt.Printf("vm_add err: %v\n", err)
@@ -345,7 +345,7 @@ func pickLang(urlStr string, contentType string) string {
 			lang = "javascript"
 		} else if extension == "rb" {
 			lang = "ruby"
-		} else if extension == "wast" {
+		} else if extension == "wast" { //webasm source
 			lang = "webassembly"
 		}
 	}
@@ -396,13 +396,13 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		params_json := string(params_jbytes)
 		var call string
 		if vm.Lang() == "javascript" {
-		  call = "go(" + params_json + ")"
-	  }
+			call = "go(" + params_json + ")"
+		}
 		if vm.Lang() == "ruby" {
 			params_double_jbytes, _ := json.Marshal(params_json)
 			params_double_json := string(params_double_jbytes)
-		  call = "go(JSON.parse(" + params_double_json + "))"
-	  }
+			call = "go(JSON.parse(" + params_double_json + "))"
+		}
 		json_str, err := vm.Eval(call)
 		elapsed := time.Now().Sub(start)
 		var sayback string
@@ -422,7 +422,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		}
 		if len(sayback) > 0 {
 			if msg["method"] != "irc.privmsg" {
-				if (msg["params"] == nil) {
+				if msg["params"] == nil {
 					msg["params"] = map[string]interface{}{}
 				}
 				msg["params"].(map[string]interface{})["channel"] = util.Settings.AdminChannel
