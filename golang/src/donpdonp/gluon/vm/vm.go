@@ -47,7 +47,6 @@ func (vm *VM) Lang() string {
 func (vm *VM) Eval(code []byte) (string, error) {
 	lang := vm.Lang()
 	if lang == "javascript" {
-		fmt.Printf("evalJs %s\n", string(code))
 		return vm.EvalJs(string(code))
 	}
 	if lang == "ruby" {
