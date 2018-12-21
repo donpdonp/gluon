@@ -346,6 +346,8 @@ func pickLang(urlStr string, contentType string) string {
 			lang = "javascript"
 		} else if extension == "rb" {
 			lang = "ruby"
+		} else if extension == "wasm" {
+			lang = "webassembly"
 		} else if extension == "wast" { //webasm source
 			lang = "webassembly"
 		}
