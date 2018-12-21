@@ -61,7 +61,7 @@ func main() {
 				if err != nil {
 					vm_name := pkt["vm"].(string)
 					sayback := err.Error()
-					fmt.Println("backchan callback err: " + vm_name + " " + sayback)
+					fmt.Printf("backchan callback err: %s %#v\n", vm_name, err)
 					fakemsg := map[string]interface{}{"params": map[string]interface{}{"channel": util.Settings.AdminChannel}}
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
@@ -141,7 +141,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				ottoStr, _ = otto.ToValue("")
 			} else {
 				fmt.Printf("http.get OK %d bytes\n", len(body))
-				ottoStr, _ = otto.ToValue(body)
+				ottoStr, _ = otto.ToValue(string(body)) // scripts not ready for bytes
 			}
 			return ottoStr
 		},
@@ -284,7 +284,7 @@ func vm_enhance_ruby_standard(vmm *vm.VM, bus comm.Pubsub) {
 
 func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, error) {
 	fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
-	resp, code, err := comm.HttpGet(url)
+	resp, codeBytes, err := comm.HttpGet(url)
 	if err != nil {
 		fmt.Printf("vm_add http err %v\n", err)
 	} else {
@@ -303,12 +303,13 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 		var setup_json string
 		if vm.Lang() == "javascript" {
 			vm_enhance_js_standard(vm, bus)
-			setup_json, err = vm.FirstEvalJs(code)
+			setup_json, err = vm.FirstEvalJs(string(codeBytes))
 		} else if vm.Lang() == "ruby" {
 			//vm_enhance_ruby_standard(vm, bus)
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby today")
 		} else if vm.Lang() == "webassembly" {
+			_, _ = vm.Eval(codeBytes)
 			setup_json = "{\"name\":\"webasm\"}"
 		} else {
 			err = errors.New("lang " + lang)
@@ -357,9 +358,9 @@ func vm_reload(name string, bus comm.Pubsub) error {
 	if idx > -1 {
 		vm := vm_list.At(idx)
 		fmt.Println(name + " found. reloading " + vm.Url)
-		_, code, err := comm.HttpGet(vm.Url)
+		_, codeBytes, err := comm.HttpGet(vm.Url)
 		if err != nil {
-			_, err := vm.Eval(code)
+			_, err := vm.Eval(codeBytes)
 			return err
 		}
 	}
@@ -394,16 +395,16 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		start := time.Now()
 		params_jbytes, _ := json.Marshal(msg)
 		params_json := string(params_jbytes)
-		var call string
+		var callBytes []byte
 		if vm.Lang() == "javascript" {
-			call = "go(" + params_json + ")"
+			callBytes = []byte("go(" + params_json + ")")
 		}
 		if vm.Lang() == "ruby" {
 			params_double_jbytes, _ := json.Marshal(params_json)
 			params_double_json := string(params_double_jbytes)
-			call = "go(JSON.parse(" + params_double_json + "))"
+			callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
 		}
-		json_str, err := vm.Eval(call)
+		json_str, err := vm.Eval(callBytes)
 		elapsed := time.Now().Sub(start)
 		var sayback string
 		if err != nil {

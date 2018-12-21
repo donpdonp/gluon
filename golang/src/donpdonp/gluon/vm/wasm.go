@@ -18,44 +18,47 @@ func wasmfactory() *exec.VM {
 	return vm
 }
 
-func (vm *VM) EvalWasm(code string) (string, error) {
-	module, err := wasm.ReadModule(bytes.NewReader(boot_wasm), importer)
+func (vm *VM) EvalWasm(code []byte) (string, error) {
+	module, err := wasm.ReadModule(bytes.NewReader(code), importer)
 	if err != nil {
-		log.Fatalf("could not read module: %v", err)
-	}
+		log.Printf("could not read module: %v", err)
+	} else {
+  	verify := true
+  	if verify {
+  		err = validate.VerifyModule(module)
+  		if err != nil {
+  			log.Printf("could not verify module: %v", err)
+  		}
+  	}
 
-	verify := true
-	if verify {
-		err = validate.VerifyModule(module)
-		if err != nil {
-			log.Fatalf("could not verify module: %v", err)
-		}
-	}
+  	if module.Export == nil {
+  		log.Printf("module has no export section")
+  	}
 
-	if module.Export == nil {
-		log.Fatalf("module has no export section")
-	}
+  	wvm, err := exec.NewVM(module)
+    if err != nil {
+      log.Printf("exec.NewVM: %v", err)
+    } else {
+    	for name, e := range module.Export.Entries {
+    		log.Printf("EvalWasm Export entry: %#v %#v\n", e, name)
+    	}
 
-	wvm, err := exec.NewVM(module)
-	for name, e := range module.Export.Entries {
-		log.Printf("EvalWasm Export entry: %#v %#v\n", e, name)
-	}
+      log.Printf("Module Memory %#v\n", module.Memory);
+    	for name, e := range module.Export.Entries {
+    		i := int64(e.Index)
+    		fidx := module.Function.Types[int(i)]
+    		ftype := module.Types.Entries[int(fidx)]
+    		log.Printf("%s(%#v) %#v \n", name, ftype.ParamTypes, ftype.ReturnTypes)
 
-  log.Printf("Module Memory %#v\n", module.Memory);
-	for name, e := range module.Export.Entries {
-		i := int64(e.Index)
-		fidx := module.Function.Types[int(i)]
-		ftype := module.Types.Entries[int(fidx)]
-		log.Printf("%s(%#v) %#v \n", name, ftype.ParamTypes, ftype.ReturnTypes)
-
-		output, err := wvm.ExecCode(i)
-		if err != nil {
-			log.Printf("wasm err=%v", err)
-		}
-    memory := wvm.Memory()
-		log.Printf("wasm out: %d. %d bytes memory\n", output, len(memory))
-	}
-
+    		output, err := wvm.ExecCode(i)
+    		if err != nil {
+    			log.Printf("wasm err=%v", err)
+    		}
+        memory := wvm.Memory()
+    		log.Printf("wasm out: %d. %d bytes memory\n", output, len(memory))
+    	}
+    }
+  }
 	return "wasm-boss", nil
 }
 

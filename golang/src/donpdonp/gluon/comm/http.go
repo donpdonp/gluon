@@ -7,18 +7,18 @@ import (
 	"time"
 )
 
-func HttpGet(url string) (*http.Response, string, error) {
+func HttpGet(url string) (*http.Response, []byte, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, "", err
+		return nil, nil, err
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		return resp, string(bytes), err
+		return resp, bytes, err
 	}
 }
 

@@ -44,13 +44,14 @@ func (vm *VM) Lang() string {
 	return "unknown"
 }
 
-func (vm *VM) Eval(code string) (string, error) {
+func (vm *VM) Eval(code []byte) (string, error) {
 	lang := vm.Lang()
 	if lang == "javascript" {
-		return vm.EvalJs(code)
+		fmt.Printf("evalJs %s\n", string(code))
+		return vm.EvalJs(string(code))
 	}
 	if lang == "ruby" {
-		return vm.EvalRuby(code)
+		return vm.EvalRuby(string(code))
 	}
 	if lang == "webassembly" {
 		return vm.EvalWasm(code)
