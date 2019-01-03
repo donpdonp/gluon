@@ -288,7 +288,6 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 	if err != nil {
 		fmt.Printf("vm_add http err %v\n", err)
 	} else {
-		fmt.Printf("vm_add http ok\n")
 		len := 0
 		if resp.Header["Content-Length"] != nil {
 			len, _ = strconv.Atoi(resp.Header["Content-Length"][0])
@@ -309,8 +308,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby today")
 		} else if vm.Lang() == "webassembly" {
-			_, _ = vm.Eval(codeBytes)
-			setup_json = "{\"name\":\"webasm\"}"
+			setup_json, _ = vm.Eval(codeBytes)
 		} else {
 			err = errors.New("lang " + lang)
 		}
