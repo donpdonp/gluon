@@ -20,63 +20,63 @@ func wasmfactory() *exec.VM {
 }
 
 func (vm *VM) EvalWasm(code []byte) (string, error) {
-  result := ""
-  log.Printf("evalwasm module from %d bytes", len(code))
+	result := ""
+	log.Printf("evalwasm module from %d bytes", len(code))
 	module, err := wasm.ReadModule(bytes.NewReader(code), importer)
 	if err != nil {
 		log.Printf("could not read module from %d bytes %v", len(code), err)
 	} else {
-  	verify := true
-  	if verify {
-  		err = validate.VerifyModule(module)
-  		if err != nil {
-  			log.Printf("could not verify module: %v", err)
-  		}
-  	}
+		verify := true
+		if verify {
+			err = validate.VerifyModule(module)
+			if err != nil {
+				log.Printf("could not verify module: %v", err)
+			}
+		}
 
-  	if module.Export == nil {
-  		log.Printf("module has no export section")
-  	}
+		if module.Export == nil {
+			log.Printf("module has no export section")
+		}
 
-  	wvm, err := exec.NewVM(module)
-    if err != nil {
-      log.Printf("exec.NewVM: %v", err)
-    } else {
-      for idx, e := range module.Memory.Entries {
-        log.Printf("Module Memory #%d  %#v\n", idx, e.Limits);
-      }
+		wvm, err := exec.NewVM(module)
+		if err != nil {
+			log.Printf("exec.NewVM: %v", err)
+		} else {
+			for idx, e := range module.Memory.Entries {
+				log.Printf("Module Memory #%d  %#v\n", idx, e.Limits)
+			}
 
-    	for fname, e := range module.Export.Entries {
-    		log.Printf("Module Export: %s %#v\n", fname, e)
-    	}
+			for fname, e := range module.Export.Entries {
+				log.Printf("Module Export: %s %#v\n", fname, e)
+			}
 
-    	for fname, e := range module.Export.Entries {
-    		i := int64(e.Index)
-    		fidx := module.Function.Types[int(i)]
-    		ftype := module.Types.Entries[int(fidx)]
-    		log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
+			for fname, e := range module.Export.Entries {
+				i := int64(e.Index)
+				fidx := module.Function.Types[int(i)]
+				ftype := module.Types.Entries[int(fidx)]
+				log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
 
-    		output, err := wvm.ExecCode(i, 7, 8)
-    		if err != nil {
-    			log.Printf("wasm err=%v", err)
-    		} else {
-          _, _ = json.Marshal(output)
-          memory := wvm.Memory() // byte array
-          len := int(memory[0])
-          log.Printf("wasm out: memory[0] %#v \n", len)
-          start := 1
-          result = string(memory[start:start+len])
-        }
-    		log.Printf("wasm out: %d. %d bytes memory. %#v %#v\n", output, len(result), result )
-    	}
-    }
-  }
+				output, err := wvm.ExecCode(i, 7, 8)
+				if err != nil {
+					log.Printf("wasm err=%v", err)
+				} else {
+					_, _ = json.Marshal(output)
+					memory := wvm.Memory() // byte array
+					len := int(memory[0])
+					log.Printf("wasm out: memory[0] %#v \n", len)
+					start := 1
+					result = string(memory[start : start+len])
+				}
+				log.Printf("wasm out: %d. %d bytes memory. %#v %#v\n", output, len(result), result)
+			}
+		}
+	}
 	return result, err
 }
 
 func importer(name string) (*wasm.Module, error) {
 	log.Printf("webasm import: %s\n", name)
-  module:= wasm.NewModule()
-  log.Printf("webasm import returning bootmod\n", name)
+	module := wasm.NewModule()
+	log.Printf("webasm import returning bootmod\n", name)
 	return module, nil
 }

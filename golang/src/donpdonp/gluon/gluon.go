@@ -19,7 +19,7 @@ import (
 var (
 	vm_list = vm.ListFactory()
 	bigben  = make(chan map[string]interface{})
-  rpcq = comm.RpcqueueMake()
+	rpcq    = comm.RpcqueueMake()
 )
 
 func main() {
@@ -63,7 +63,7 @@ func main() {
 					sayback := err.Error()
 					fmt.Printf("backchan callback err: %s %#v\n", vm_name, err)
 					fakemsg := map[string]interface{}{"params": map[string]interface{}{
-						                "channel": util.Settings.AdminChannel}}
+						"channel": util.Settings.AdminChannel}}
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
 			}
@@ -114,16 +114,20 @@ func key_check(params map[string]interface{}) bool {
 	return ok
 }
 
-func make_callback(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
+func make_backchan(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
 	pkt["callback"] = cb
 	pkt["vm"] = vm.Owner + "/" + vm.Name
+}
+
+func make_callback(cb func(pkt map[string]interface{}), vm *vm.VM) *comm.Callback {
+	return &comm.Callback{Cb: cb, Name: vm.Owner + "/" + vm.Name}
 }
 
 func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("bot", map[string]interface{}{
 		"say": func(call otto.FunctionCall) otto.Value {
 			fmt.Printf("%s/%s irc.privmsg %s %+v\n", vm.Owner, vm.Name,
-				           call.Argument(0).String(), call.Argument(1).String())
+				call.Argument(0).String(), call.Argument(1).String())
 			resp := map[string]interface{}{"method": "irc.privmsg"}
 			resp["params"] = map[string]interface{}{"channel": call.Argument(0).String(),
 				"message": call.Argument(1).String()}
@@ -168,10 +172,10 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			key := call.Argument(0).String()
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
 			if call.Argument(1).IsDefined() {
-				bus.Send(resp, func(pkt map[string]interface{}) {
-					make_callback(pkt, call.Argument(1), vm)
+				bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
+					make_backchan(pkt, call.Argument(1), vm)
 					vm_list.Backchan <- pkt
-				})
+				}, vm))
 			}
 			return otto.Value{}
 		},
@@ -180,10 +184,10 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			key := call.Argument(0).String()
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
 			if call.Argument(1).IsDefined() {
-				bus.Send(resp, func(pkt map[string]interface{}) {
-					make_callback(pkt, call.Argument(1), vm)
+				bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
+					make_backchan(pkt, call.Argument(1), vm)
 					vm_list.Backchan <- pkt
-				})
+				}, vm))
 			}
 			return otto.Value{}
 		},
@@ -191,10 +195,10 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp := map[string]interface{}{"method": "db.len"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner}
 			if call.Argument(0).IsDefined() {
-				bus.Send(resp, func(pkt map[string]interface{}) {
-					make_callback(pkt, call.Argument(0), vm)
+				bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
+					make_backchan(pkt, call.Argument(0), vm)
 					vm_list.Backchan <- pkt
-				})
+				}, vm))
 			}
 			return otto.Value{}
 		},
@@ -204,12 +208,12 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			value := call.Argument(1).String()
 			resp := map[string]interface{}{"method": "db.set"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
-			bus.Send(resp, func(pkt map[string]interface{}) {
+			bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
 				if call.Argument(2).IsDefined() {
-					make_callback(pkt, call.Argument(2), vm)
+					make_backchan(pkt, call.Argument(2), vm)
 					vm_list.Backchan <- pkt
 				}
-			})
+			}, vm))
 			return otto.Value{}
 		},
 		"scan": func(call otto.FunctionCall) otto.Value {
@@ -218,12 +222,12 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			count := call.Argument(2).String()
 			resp := map[string]interface{}{"method": "db.scan"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "cursor": cursor, "match": match, "count": count}
-			bus.Send(resp, func(pkt map[string]interface{}) {
+			bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
 				if call.Argument(3).IsDefined() {
-					make_callback(pkt, call.Argument(3), vm)
+					make_backchan(pkt, call.Argument(3), vm)
 					vm_list.Backchan <- pkt
 				}
-			})
+			}, vm))
 			return otto.Value{}
 		}})
 	vm.Js.Set("vm", map[string]interface{}{

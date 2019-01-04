@@ -8,12 +8,9 @@ import (
 	"gopkg.in/redis.v3"
 )
 
-var (
-	rpcq Rpcqueue
-)
-
 type Pubsub struct {
 	uuid      string
+	rpcq      Rpcqueue
 	sclient   *redis.Client
 	client    *redis.Client
 	sock      *redis.PubSub
@@ -22,7 +19,7 @@ type Pubsub struct {
 }
 
 func PubsubFactory(uuid string, _rpcq Rpcqueue) Pubsub {
-	new_bus := Pubsub{uuid: uuid}
+	new_bus := Pubsub{uuid: uuid, rpcq: _rpcq}
 	new_bus.Pipe = make(chan map[string]interface{})
 	new_bus.Connected = make(chan bool)
 	return new_bus
@@ -52,32 +49,25 @@ func (comm *Pubsub) Loop() {
 			} else {
 				if pkt["id"] != nil {
 					id := pkt["id"].(string)
-					callback_obj, ok := rpcq.q.Get(id)
+					callback_obj, ok := comm.rpcq.q.Get(id)
 					if ok {
 						callback := callback_obj.(Callback)
-						rpcq.q.Remove(id)
+						comm.rpcq.q.Remove(id)
 						callback.Cb(pkt)
 					}
 				}
-
 				comm.Pipe <- pkt
 			}
 		}
 	}
 }
 
-type Callback struct {
-	Cb func(map[string]interface{})
-	Name string
-}
-
-func (comm *Pubsub) Send(msg map[string]interface{}, cb func(map[string]interface{})) string {
-	msg["id"] = IdGenerate()
+func (comm *Pubsub) Send(msg map[string]interface{}, callback *Callback) string {
+	id := IdGenerate()
+	msg["id"] = id
 	msg["from"] = comm.uuid
-	if cb != nil {
-		id := msg["id"].(string)
-		callback := Callback{Cb: cb, Name: "name"}
-		rpcq.q.Set(id, callback)
+	if callback != nil {
+		comm.rpcq.q.Set(id, *callback)
 	}
 	bytes, _ := json.Marshal(msg)
 	line := string(bytes)

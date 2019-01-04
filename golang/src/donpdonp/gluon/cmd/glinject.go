@@ -12,7 +12,7 @@ import (
 
 func main() {
 	my_uuid := util.Snowflake()
-  rpcq := comm.RpcqueueMake()
+	rpcq := comm.RpcqueueMake()
 	bus := comm.PubsubFactory(my_uuid, rpcq)
 
 	bus.Start("localhost:6379")
@@ -20,7 +20,7 @@ func main() {
 		msg := map[string]interface{}{"method": os.Args[1], "key": os.Getenv("GLUON_KEY")}
 		msg["params"] = argsParse(os.Args)
 		go bus.Loop()
-		line := bus.Send(msg, func(pkt map[string]interface{}) {
+		callback := comm.Callback{Name: "cli/glinject", Cb: func(pkt map[string]interface{}) {
 			_json, err := json.Marshal(pkt["result"])
 			if err != nil {
 				errMsg := map[string]interface{}{"error": err.Error()}
@@ -29,7 +29,8 @@ func main() {
 			} else {
 				fmt.Printf("%+s\n", string(_json))
 			}
-		})
+		}}
+		line := bus.Send(msg, &callback)
 		fmt.Printf("%+s\n", line)
 		<-bus.Pipe
 	} else {
