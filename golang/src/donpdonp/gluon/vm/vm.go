@@ -17,15 +17,12 @@ type VM struct {
 func Factory(owner string, lang string) *VM {
 	new_vm := VM{Owner: owner}
 	if lang == "ruby" {
-		fmt.Printf("vm ruby go\n")
 		new_vm.Ruby = rubyfactory()
 	}
 	if lang == "javascript" {
-		fmt.Printf("vm js go\n")
 		new_vm.Js = otto.New()
 	}
 	if lang == "webassembly" {
-		fmt.Printf("vm webasm go\n")
 		new_vm.Wasm = wasmfactory()
 	}
 	return &new_vm

@@ -21,6 +21,7 @@ func wasmfactory() *exec.VM {
 
 func (vm *VM) EvalWasm(code []byte) (string, error) {
   result := ""
+  log.Printf("evalwasm module from %d bytes", len(code))
 	module, err := wasm.ReadModule(bytes.NewReader(code), importer)
 	if err != nil {
 		log.Printf("could not read module from %d bytes %v", len(code), err)
@@ -74,6 +75,8 @@ func (vm *VM) EvalWasm(code []byte) (string, error) {
 }
 
 func importer(name string) (*wasm.Module, error) {
-	log.Printf("webasm importer: %s\n", name)
-	return nil, nil
+	log.Printf("webasm import: %s\n", name)
+  module:= wasm.NewModule()
+  log.Printf("webasm import returning bootmod\n", name)
+	return module, nil
 }

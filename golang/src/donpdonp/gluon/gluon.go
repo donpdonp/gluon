@@ -306,18 +306,19 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 		} else if vm.Lang() == "ruby" {
 			//vm_enhance_ruby_standard(vm, bus)
 			//setup_json, err = vm.Eval(code)
-			err = errors.New("no ruby today")
+			err = errors.New("no ruby support.")
 		} else if vm.Lang() == "webassembly" {
 			setup_json, _ = vm.Eval(codeBytes)
 		} else {
-			err = errors.New("lang " + lang)
+			err = errors.New("unknown lang " + lang)
 		}
 		if err != nil {
 			fmt.Printf("vm_add err: %v\n", err)
 		} else {
 			var setup map[string]interface{}
 			json.Unmarshal([]byte(setup_json), &setup)
-			fmt.Printf("setup_json %s %v\n", setup_json, setup)
+			json_str, _ := json.Marshal(setup)
+			fmt.Printf("setup_json %s\n", json_str)
 			vm.Name = setup["name"].(string)
 			vm_list.Add(*vm)
 			fmt.Printf("VM %s/%s (%s) added!\n", vm.Owner, vm.Name, vm.Lang())
