@@ -19,12 +19,12 @@ import (
 var (
 	vm_list = vm.ListFactory()
 	bigben  = make(chan map[string]interface{})
+  rpcq = comm.RpcqueueMake()
 )
 
 func main() {
 	util.LoadSettings()
-
-	bus := comm.PubsubFactory(util.Settings.Id)
+	bus := comm.PubsubFactory(util.Settings.Id, rpcq)
 	busAddr := "localhost:6379"
 	fmt.Printf("redis connect %s\n", busAddr)
 	bus.Start(busAddr)

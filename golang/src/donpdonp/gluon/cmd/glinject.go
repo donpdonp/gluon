@@ -12,7 +12,8 @@ import (
 
 func main() {
 	my_uuid := util.Snowflake()
-	bus := comm.PubsubFactory(my_uuid)
+  rpcq := comm.RpcqueueMake()
+	bus := comm.PubsubFactory(my_uuid, rpcq)
 
 	bus.Start("localhost:6379")
 	if len(os.Args) > 1 {

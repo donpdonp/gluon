@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	rpcq = RpcqueueMake()
+	rpcq Rpcqueue
 )
 
 type Pubsub struct {
@@ -21,7 +21,7 @@ type Pubsub struct {
 	Connected chan bool
 }
 
-func PubsubFactory(uuid string) Pubsub {
+func PubsubFactory(uuid string, _rpcq Rpcqueue) Pubsub {
 	new_bus := Pubsub{uuid: uuid}
 	new_bus.Pipe = make(chan map[string]interface{})
 	new_bus.Connected = make(chan bool)
@@ -52,10 +52,11 @@ func (comm *Pubsub) Loop() {
 			} else {
 				if pkt["id"] != nil {
 					id := pkt["id"].(string)
-					callback, ok := rpcq.q.Get(id)
+					callback_obj, ok := rpcq.q.Get(id)
 					if ok {
-						rpcq.q.Remove(pkt["id"].(string))
-						callback.(func(map[string]interface{}))(pkt)
+						callback := callback_obj.(Callback)
+						rpcq.q.Remove(id)
+						callback.Cb(pkt)
 					}
 				}
 
@@ -65,11 +66,17 @@ func (comm *Pubsub) Loop() {
 	}
 }
 
-func (comm *Pubsub) Send(msg map[string]interface{}, callback func(map[string]interface{})) string {
+type Callback struct {
+	Cb func(map[string]interface{})
+	Name string
+}
+
+func (comm *Pubsub) Send(msg map[string]interface{}, cb func(map[string]interface{})) string {
 	msg["id"] = IdGenerate()
 	msg["from"] = comm.uuid
-	if callback != nil {
+	if cb != nil {
 		id := msg["id"].(string)
+		callback := Callback{Cb: cb, Name: "name"}
 		rpcq.q.Set(id, callback)
 	}
 	bytes, _ := json.Marshal(msg)

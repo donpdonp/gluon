@@ -11,3 +11,13 @@ type Rpcqueue struct {
 func RpcqueueMake() Rpcqueue {
 	return Rpcqueue{q: cmap.New()}
 }
+
+func (rpcq *Rpcqueue) callbacksWaiting(name string)([]interface{}) {
+  winners := []interface{}{}
+  for obj := range rpcq.q.IterBuffered() {
+    if name == obj.Key {
+      winners = append(winners, obj.Val)
+    }
+  }
+  return winners
+}
