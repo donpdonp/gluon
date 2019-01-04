@@ -122,7 +122,8 @@ func make_callback(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
 func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("bot", map[string]interface{}{
 		"say": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("irc.privmsg %s %+v\n", call.Argument(0).String(), call.Argument(1).String())
+			fmt.Printf("%s/%s irc.privmsg %s %+v\n", vm.Owner, vm.Name,
+				           call.Argument(0).String(), call.Argument(1).String())
 			resp := map[string]interface{}{"method": "irc.privmsg"}
 			resp["params"] = map[string]interface{}{"channel": call.Argument(0).String(),
 				"message": call.Argument(1).String()}
@@ -134,7 +135,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		"host_id":       util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("http.get %s\n", call.Argument(0).String())
+			fmt.Printf("%s/%s http.get %s\n", vm.Owner, vm.Name, call.Argument(0).String())
 			_, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
 			if err != nil {
@@ -162,7 +163,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		}})
 	vm.Js.Set("db", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("db.get %s\n", call.Argument(0).String())
+			fmt.Printf("%s/%s db.get %s\n", vm.Owner, vm.Name, call.Argument(0).String())
 			resp := map[string]interface{}{"method": "db.get"}
 			key := call.Argument(0).String()
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
@@ -198,7 +199,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		},
 		"set": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("db.set %s\n", call.Argument(0).String())
+			fmt.Printf("%s/%s db.set %s\n", vm.Owner, vm.Name, call.Argument(0).String())
 			key := call.Argument(0).String()
 			value := call.Argument(1).String()
 			resp := map[string]interface{}{"method": "db.set"}
