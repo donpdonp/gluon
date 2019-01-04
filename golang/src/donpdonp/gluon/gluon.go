@@ -400,6 +400,9 @@ func do_vm_list(bus comm.Pubsub) {
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size())
+	if bus.Rpcq.Count() > 0 {
+		fmt.Printf("rpcq %#v\n", bus.Rpcq.Callbacks())
+	}
 	for vm := range vm_list.Range() {
 		start := time.Now()
 		params_jbytes, _ := json.Marshal(msg)
@@ -415,8 +418,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		}
 		json_str, err := vm.Eval(callBytes)
 		elapsed := time.Now().Sub(start)
-		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner+"/"+vm.Name)
-  	fmt.Printf("** %s/%s finished with callbacks %#v\n", vm.Owner, vm.Name, callbacks)
+		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
 		var sayback string
 		if err != nil {
 			fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
@@ -425,7 +427,8 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 			//fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
 			var said interface{}
 			err := json.Unmarshal([]byte(json_str), &said)
-			fmt.Printf("** %s/%s %#v [%.4f sec]\n", vm.Owner, vm.Name, said, elapsed.Seconds())
+			fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
+				said, elapsed.Seconds(), len(callbacks))
 			if err == nil {
 				if said != nil {
 					sayback = said.(string)
