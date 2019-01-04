@@ -1,6 +1,5 @@
 package vm
 
-import "fmt"
 import "errors"
 import "github.com/robertkrimen/otto"
 import "github.com/go-interpreter/wagon/exec"
