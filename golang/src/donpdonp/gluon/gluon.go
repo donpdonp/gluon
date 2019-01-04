@@ -62,7 +62,8 @@ func main() {
 					vm_name := pkt["vm"].(string)
 					sayback := err.Error()
 					fmt.Printf("backchan callback err: %s %#v\n", vm_name, err)
-					fakemsg := map[string]interface{}{"params": map[string]interface{}{"channel": util.Settings.AdminChannel}}
+					fakemsg := map[string]interface{}{"params": map[string]interface{}{
+						                "channel": util.Settings.AdminChannel}}
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
 			}
@@ -121,7 +122,7 @@ func make_callback(pkt map[string]interface{}, cb otto.Value, vm *vm.VM) {
 func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("bot", map[string]interface{}{
 		"say": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("gluon say %s %+v\n", call.Argument(0).String(), call.Argument(1).String())
+			fmt.Printf("irc.privmsg %s %+v\n", call.Argument(0).String(), call.Argument(1).String())
 			resp := map[string]interface{}{"method": "irc.privmsg"}
 			resp["params"] = map[string]interface{}{"channel": call.Argument(0).String(),
 				"message": call.Argument(1).String()}
@@ -161,6 +162,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		}})
 	vm.Js.Set("db", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
+			fmt.Printf("db.get %s\n", call.Argument(0).String())
 			resp := map[string]interface{}{"method": "db.get"}
 			key := call.Argument(0).String()
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
@@ -196,6 +198,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		},
 		"set": func(call otto.FunctionCall) otto.Value {
+			fmt.Printf("db.set %s\n", call.Argument(0).String())
 			key := call.Argument(0).String()
 			value := call.Argument(1).String()
 			resp := map[string]interface{}{"method": "db.set"}
