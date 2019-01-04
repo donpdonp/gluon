@@ -10,7 +10,7 @@ import (
 
 type Pubsub struct {
 	uuid      string
-	rpcq      Rpcqueue
+	Rpcq      Rpcqueue
 	sclient   *redis.Client
 	client    *redis.Client
 	sock      *redis.PubSub
@@ -18,8 +18,8 @@ type Pubsub struct {
 	Connected chan bool
 }
 
-func PubsubFactory(uuid string, _rpcq Rpcqueue) Pubsub {
-	new_bus := Pubsub{uuid: uuid, rpcq: _rpcq}
+func PubsubFactory(uuid string, rpcq Rpcqueue) Pubsub {
+	new_bus := Pubsub{uuid: uuid, Rpcq: rpcq}
 	new_bus.Pipe = make(chan map[string]interface{})
 	new_bus.Connected = make(chan bool)
 	return new_bus
@@ -49,10 +49,10 @@ func (comm *Pubsub) Loop() {
 			} else {
 				if pkt["id"] != nil {
 					id := pkt["id"].(string)
-					callback_obj, ok := comm.rpcq.q.Get(id)
+					callback_obj, ok := comm.Rpcq.q.Get(id)
 					if ok {
 						callback := callback_obj.(Callback)
-						comm.rpcq.q.Remove(id)
+						comm.Rpcq.q.Remove(id)
 						callback.Cb(pkt)
 					}
 				}
@@ -67,7 +67,7 @@ func (comm *Pubsub) Send(msg map[string]interface{}, callback *Callback) string 
 	msg["id"] = id
 	msg["from"] = comm.uuid
 	if callback != nil {
-		comm.rpcq.q.Set(id, *callback)
+		comm.Rpcq.q.Set(id, *callback)
 	}
 	bytes, _ := json.Marshal(msg)
 	line := string(bytes)

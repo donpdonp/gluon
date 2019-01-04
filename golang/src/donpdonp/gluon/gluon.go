@@ -415,6 +415,8 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 		}
 		json_str, err := vm.Eval(callBytes)
 		elapsed := time.Now().Sub(start)
+		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner+"/"+vm.Name)
+  	fmt.Printf("** %s/%s finished with callbacks %#v\n", vm.Owner, vm.Name, callbacks)
 		var sayback string
 		if err != nil {
 			fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)

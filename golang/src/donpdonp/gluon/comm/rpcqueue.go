@@ -17,7 +17,7 @@ func RpcqueueMake() Rpcqueue {
 	return Rpcqueue{q: cmap.New()}
 }
 
-func (rpcq *Rpcqueue) callbacksWaiting(name string) []Callback {
+func (rpcq *Rpcqueue) CallbacksWaiting(name string) []Callback {
 	winners := []Callback{}
 	for obj := range rpcq.q.IterBuffered() {
 		if name == obj.Key {
