@@ -19,12 +19,11 @@ import (
 var (
 	vm_list = vm.ListFactory()
 	bigben  = make(chan map[string]interface{})
-	rpcq    = comm.RpcqueueMake()
 )
 
 func main() {
 	util.LoadSettings()
-	bus := comm.PubsubFactory(util.Settings.Id, rpcq)
+	bus := comm.PubsubFactory(util.Settings.Id, comm.RpcqueueMake())
 	busAddr := "localhost:6379"
 	fmt.Printf("redis connect %s\n", busAddr)
 	bus.Start(busAddr)
@@ -400,9 +399,10 @@ func do_vm_list(bus comm.Pubsub) {
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size())
-	if bus.Rpcq.Count() > 0 {
-		fmt.Printf("rpcq %#v\n", bus.Rpcq.Callbacks())
-	}
+  if bus.Rpcq.Count() > 0 {
+    fmt.Printf("[* warning: %#v callbacks waiting\n", bus.Rpcq.Count())
+  }
+
 	for vm := range vm_list.Range() {
 		start := time.Now()
 		params_jbytes, _ := json.Marshal(msg)

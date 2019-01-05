@@ -1,8 +1,6 @@
 package comm
 
-import (
-	"gopkg.in/streamrail/concurrent-map.v0"
-)
+import "gopkg.in/streamrail/concurrent-map.v0"
 
 type Rpcqueue struct {
 	q cmap.ConcurrentMap
@@ -20,8 +18,9 @@ func RpcqueueMake() Rpcqueue {
 func (rpcq *Rpcqueue) CallbacksWaiting(name string) []Callback {
 	winners := []Callback{}
 	for obj := range rpcq.q.IterBuffered() {
-		if name == obj.Key {
-			winners = append(winners, obj.Val.(Callback))
+		val := obj.Val.(Callback)
+		if name == val.Name {
+			winners = append(winners, val)
 		}
 	}
 	return winners
