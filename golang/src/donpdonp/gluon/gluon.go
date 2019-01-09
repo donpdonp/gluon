@@ -117,24 +117,30 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	if bus.Rpcq.Count() > 0 {
 		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
 	}
-	for vm := range vm_list.Range() {
-		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
-		if len(callbacks) > 0 {
-			fmt.Printf("** %s/%s HOLD due to %d callbacks\n", vm.Owner, vm.Name, len(callbacks))
-			if len(vm.Q) < cap(vm.Q) {
-				vm.Q <- msg
-				fmt.Printf("** %s/%s HOLD queue now %d msgs\n", vm.Owner, vm.Name, len(vm.Q))
+	if msg["method"] == "queuedrain" {
+		vm_name := msg["params"].(map[string]interface{})["name"].(string)
+		idx := vm_list.IndexOf(vm_name)
+		if idx >= 0 {
+			vm := vm_list.At(idx)
+			if len(vm.Q) > 0 {
+				fmt.Printf("** %s/%s HOLD queue %d msgs. Pulling top msg.\n", vm.Owner, vm.Name, len(vm.Q))
+			  old_msg := <-vm.Q
+			  dispatchVM(bus, vm, old_msg)
+		  }
+		}
+	} else {
+		for vm := range vm_list.Range() {
+			callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
+			if len(callbacks) > 0 {
+				fmt.Printf("** %s/%s HOLD due to %d callbacks\n", vm.Owner, vm.Name, len(callbacks))
+				if len(vm.Q) < cap(vm.Q) {
+					vm.Q <- msg
+					fmt.Printf("** %s/%s HOLD queue now %d msgs\n", vm.Owner, vm.Name, len(vm.Q))
+				} else {
+					fmt.Printf("** %s/%s HOLD queue ABORT due full Q %d\n", vm.Owner, vm.Name, len(vm.Q))
+				}
 			} else {
-				fmt.Printf("** %s/%s HOLD queue ABORT due full Q %d\n", vm.Owner, vm.Name, len(vm.Q))
-			}
-		} else {
-			if msg["method"] == "queuedrain" {
-				if len(vm.Q) > 0 {
-				  old_msg := <-vm.Q
-  			  dispatchVM(bus, vm, old_msg)
-			  }
-			} else {
-			  dispatchVM(bus, vm, msg)
+	  	  dispatchVM(bus, vm, msg)
 			}
 		}
 	}
