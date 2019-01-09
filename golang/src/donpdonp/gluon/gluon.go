@@ -70,9 +70,9 @@ func main() {
 				if callback_count == 0 { // queue now empty.
 					go func() {
 						msg := map[string]interface{}{"id": util.Snowflake(),
-						                              "from": util.Settings.Id,
-						                              "method": "vm.queuedrained"}
-        		msg["params"] = map[string]interface{}{"name": vm_name}
+							"from":   util.Settings.Id,
+							"method": "vm.queuedrained"}
+						msg["params"] = map[string]interface{}{"name": vm_name}
 						bus.Pipe <- msg
 					}()
 				}
@@ -120,9 +120,9 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 		vm := vm_list.At(idx)
 		if len(vm.Q) > 0 {
 			fmt.Printf("** %s/%s rpc queue DRAINED. processing top of %d old msgs\n", vm.Owner, vm.Name, len(vm.Q))
-		  old_msg := <-vm.Q
-		  dispatchVM(bus, vm, old_msg)
-	  }
+			old_msg := <-vm.Q
+			dispatchVM(bus, vm, old_msg)
+		}
 	}
 }
 
@@ -142,7 +142,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 				fmt.Printf("** %s/%s HOLD queue ABORT due full Q %d\n", vm.Owner, vm.Name, len(vm.Q))
 			}
 		} else {
-  	  dispatchVM(bus, vm, msg)
+			dispatchVM(bus, vm, msg)
 		}
 	}
 }
@@ -150,23 +150,22 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 	start := time.Now()
 	msg_bytes, _ := json.Marshal(msg)
-	json_str, err := vm.EvalGo(msg_bytes)
+	response_str, err := vm.EvalGo(msg_bytes)
 	elapsed := time.Now().Sub(start)
-  callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
+	callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
 	var sayback string
 	if err != nil {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
+		sayback = response_str
 		var said interface{}
-		err := json.Unmarshal([]byte(json_str), &said)
+		err := json.Unmarshal([]byte(response_str), &said)
 		if err != nil {
-			if said != nil {
-				sayback = said.(string)
-			}
-		  fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
-  		  said, elapsed.Seconds(), len(callbacks))
+			// reponse might be json
 		}
+		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
+			said, elapsed.Seconds(), len(callbacks))
 	}
 	if len(sayback) > 0 {
 		if msg["method"] != "irc.privmsg" {
