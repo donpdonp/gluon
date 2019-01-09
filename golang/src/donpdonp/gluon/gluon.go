@@ -105,7 +105,6 @@ func rpc_dispatch(bus comm.Pubsub, method string, msg map[string]interface{}) {
 		queueDrained(msg, bus)
 	default:
 	case "irc.privmsg":
-		dispatch(msg, bus)
 		if key_check(msg) {
 			delete(msg, "key")
 			dispatch(msg, bus)
