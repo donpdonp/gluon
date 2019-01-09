@@ -1,6 +1,7 @@
 package vm
 
 import "errors"
+import "encoding/json"
 
 import "github.com/robertkrimen/otto"
 import "github.com/go-interpreter/wagon/exec"
@@ -44,6 +45,20 @@ func (vm *VM) Lang() string {
 		return "webassembly"
 	}
 	return "unknown"
+}
+
+func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
+	params_json := string(params_jbytes)
+	var callBytes []byte
+	if vm.Lang() == "javascript" {
+		callBytes = []byte("go(" + params_json + ")")
+	}
+	if vm.Lang() == "ruby" {
+		params_double_jbytes, _ := json.Marshal(params_json)
+		params_double_json := string(params_double_jbytes)
+		callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
+	}
+	return vm.Eval(callBytes)
 }
 
 func (vm *VM) Eval(code []byte) (string, error) {
