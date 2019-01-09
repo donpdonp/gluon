@@ -65,8 +65,9 @@ func main() {
 						"channel": util.Settings.AdminChannel}}
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
-				fmt.Printf("%s backchan callback done. remaining Q: %s %#v\n", vm_name, err)
-				if len(bus.Rpcq.CallbacksWaiting(vm_name)) == 0 {
+				callback_count := len(bus.Rpcq.CallbacksWaiting(vm_name))
+				fmt.Printf("%s backchan callback done. remaining Q: %d\n", vm_name, callback_count)
+				if callback_count == 0 { // queue now empty.
 					go func() {
 						msg := map[string]interface{}{"id": util.Snowflake(),
 						                              "from": util.Settings.Id,
