@@ -26,15 +26,27 @@ func (rpcq *Rpcqueue) CallbacksWaiting(name string) []Callback {
 	return winners
 }
 
-func (rpcq *Rpcqueue) Callbacks() []string {
+func (rpcq *Rpcqueue) CallbackNames() []string {
 	winners := []string{}
 	for obj := range rpcq.q.IterBuffered() {
 		callback := obj.Val.(Callback)
 		winners = append(winners, callback.Name)
 	}
-	return winners
+	return unique(winners)
 }
 
 func (rpcq *Rpcqueue) Count() int {
 	return rpcq.q.Count()
+}
+
+func unique(sslice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range sslice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }

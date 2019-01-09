@@ -56,14 +56,25 @@ func main() {
 			}
 			if pkt["callback"] != nil {
 				callback := pkt["callback"].(otto.Value) //otto.FunctionCall
+				vm_name := pkt["vm"].(string)
 				_, err := callback.Call(callback, pkt["result"])
 				if err != nil {
-					vm_name := pkt["vm"].(string)
 					sayback := err.Error()
 					fmt.Printf("backchan callback err: %s %#v\n", vm_name, err)
 					fakemsg := map[string]interface{}{"params": map[string]interface{}{
 						"channel": util.Settings.AdminChannel}}
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
+				}
+				fmt.Printf("%s backchan callback done. remaining Q: %s %#v\n", vm_name, err)
+				if len(bus.Rpcq.CallbacksWaiting(vm_name)) == 0 {
+					go func() {
+						msg := map[string]interface{}{"id": util.Snowflake(),
+						                              "from": util.Settings.Id,
+						                              "key": util.Settings.Key,
+						                              "method": "queuedrain"}
+        		msg["params"] = map[string]interface{}{"name": vm_name}
+						bus.Pipe <- msg
+					}()
 				}
 			}
 		case tick := <-bigben:
@@ -319,6 +330,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 		} else {
 			err = errors.New("unknown lang " + lang)
 		}
+
 		if err != nil {
 			fmt.Printf("vm_add err: %v\n", err)
 		} else {
@@ -399,50 +411,59 @@ func do_vm_list(bus comm.Pubsub) {
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size())
-  if bus.Rpcq.Count() > 0 {
-    fmt.Printf("[* warning: %#v callbacks waiting\n", bus.Rpcq.Count())
-  }
-
+	if bus.Rpcq.Count() > 0 {
+		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
+	}
 	for vm := range vm_list.Range() {
-		start := time.Now()
-		params_jbytes, _ := json.Marshal(msg)
-		params_json := string(params_jbytes)
-		var callBytes []byte
-		if vm.Lang() == "javascript" {
-			callBytes = []byte("go(" + params_json + ")")
-		}
-		if vm.Lang() == "ruby" {
-			params_double_jbytes, _ := json.Marshal(params_json)
-			params_double_json := string(params_double_jbytes)
-			callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
-		}
-		json_str, err := vm.Eval(callBytes)
-		elapsed := time.Now().Sub(start)
 		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
-		var sayback string
-		if err != nil {
-			fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
-			sayback = "[" + vm.Name + "] " + err.Error()
+		if len(callbacks) > 0 {
+			fmt.Printf("** %s/%s HOLD due to %d callbacks\n", vm.Owner, vm.Name, len(callbacks))
+			if len(vm.Q) < cap(vm.Q) {
+				vm.Q <- msg
+				fmt.Printf("** %s/%s HOLD queue now %d msgs\n", vm.Owner, vm.Name, len(vm.Q))
+			} else {
+				fmt.Printf("** %s/%s HOLD queue ABORT due full Q %d\n", vm.Owner, vm.Name, len(vm.Q))
+			}
 		} else {
-			//fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
-			var said interface{}
-			err := json.Unmarshal([]byte(json_str), &said)
-			fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
-				said, elapsed.Seconds(), len(callbacks))
-			if err == nil {
-				if said != nil {
-					sayback = said.(string)
+			start := time.Now()
+			params_jbytes, _ := json.Marshal(msg)
+			params_json := string(params_jbytes)
+			var callBytes []byte
+			if vm.Lang() == "javascript" {
+				callBytes = []byte("go(" + params_json + ")")
+			}
+			if vm.Lang() == "ruby" {
+				params_double_jbytes, _ := json.Marshal(params_json)
+				params_double_json := string(params_double_jbytes)
+				callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
+			}
+			json_str, err := vm.Eval(callBytes)
+			elapsed := time.Now().Sub(start)
+			var sayback string
+			if err != nil {
+				fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
+				sayback = "[" + vm.Name + "] " + err.Error()
+			} else {
+				//fmt.Printf("** %s/%s dispatch call return json: %#v\n", vm.Owner, vm.Name, json_str)
+				var said interface{}
+				err := json.Unmarshal([]byte(json_str), &said)
+				fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
+					said, elapsed.Seconds(), len(callbacks))
+				if err == nil {
+					if said != nil {
+						sayback = said.(string)
+					}
 				}
 			}
-		}
-		if len(sayback) > 0 {
-			if msg["method"] != "irc.privmsg" {
-				if msg["params"] == nil {
-					msg["params"] = map[string]interface{}{}
+			if len(sayback) > 0 {
+				if msg["method"] != "irc.privmsg" {
+					if msg["params"] == nil {
+						msg["params"] = map[string]interface{}{}
+					}
+					msg["params"].(map[string]interface{})["channel"] = util.Settings.AdminChannel
 				}
-				msg["params"].(map[string]interface{})["channel"] = util.Settings.AdminChannel
+				bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
 			}
-			bus.Send(irc_reply(msg, sayback, vm.Owner+"/"+vm.Name), nil)
 		}
 	}
 }

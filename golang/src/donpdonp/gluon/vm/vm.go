@@ -1,10 +1,15 @@
 package vm
 
 import "errors"
+
 import "github.com/robertkrimen/otto"
 import "github.com/go-interpreter/wagon/exec"
 
+import "donpdonp/gluon/util"
+
 type VM struct {
+	Id    string
+	Q     chan map[string]interface{}
 	Owner string
 	Name  string
 	Url   string
@@ -14,7 +19,8 @@ type VM struct {
 }
 
 func Factory(owner string, lang string) *VM {
-	new_vm := VM{Owner: owner}
+	new_vm := VM{Id: util.Snowflake(), Owner: owner}
+	new_vm.Q = make(chan map[string]interface{}, 1000)
 	if lang == "ruby" {
 		new_vm.Ruby = rubyfactory()
 	}
