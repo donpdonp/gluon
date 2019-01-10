@@ -63,12 +63,8 @@ func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 
 			if module.Export != nil {
 				for fname, e := range module.Export.Entries {
-					log.Printf("Module Export: %s %#v\n", fname, e)
-				}
-
-				for fname, e := range module.Export.Entries {
 					i := int64(e.Index)
-  				log.Printf("module.Export entry: %#v %#v\n", i, e.Kind.String())
+  				log.Printf("module.Export #%d %#v %#v\n", i, fname, e.Kind.String())
   				if e.Kind == wasm.ExternalFunction {
 						fidx := module.Function.Types[int(i)]
 						ftype := module.Types.Entries[int(fidx)]
@@ -84,8 +80,8 @@ func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 							log.Printf("wasm out: memory[0] %#v \n", len)
 							start := 1
 							result = string(memory[start : start+len])
+  						log.Printf("wasm returned %d. memory[0] = %d. str[0:len]= %#v\n", output, len, result)
 						}
-						log.Printf("wasm out: %d. %d bytes memory. %#v %#v\n", output, len(result), result)
 					}
 				}
 			} else {
@@ -101,7 +97,7 @@ func importer(dependencies map[string][]byte, name string) (*wasm.Module, error)
 	var module *wasm.Module
 	if dependencies[name] != nil {
 		module, err = wasm.ReadModule(bytes.NewReader(dependencies[name]), importerDummy)
-  	log.Printf("webasm import: %s %d bytes\n", name, len(dependencies[name]))
+  	log.Printf("webasm import: %s %d bytes %#v\n", name, len(dependencies[name]), err)
 	} else {
 		err = errors.New(name+" not found")
   	log.Printf("webasm import: %s not found\n", name)
@@ -110,6 +106,7 @@ func importer(dependencies map[string][]byte, name string) (*wasm.Module, error)
 }
 
 func importerDummy(name string)(*wasm.Module,error){
+	log.Printf("webasm importDummy ignoring module %s\n", name)
 	return nil, nil
 }
 

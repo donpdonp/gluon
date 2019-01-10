@@ -397,9 +397,9 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
   		for name := range dependencies {
   			if name != "main" {
 	  			url := "http://localhost/"+name+".wasm"
-	      	_, codeBytes, err := comm.HttpGet(url)
-	      	if err != nil {
-	      		fmt.Printf("vm_add dependencies load error %#v\n", url)
+	      	resp, codeBytes, err := comm.HttpGet(url)
+	      	if resp.StatusCode != 200 || err != nil {
+	      		fmt.Printf("vm_add dependencies load error %s %#v %#v\n", url, resp.Status, err)
 	      	} else {
 	       		fmt.Printf("vm_add dependencies loaded %#v %d bytes\n", url, len(codeBytes))
 	      	  dependencies[name] = codeBytes
