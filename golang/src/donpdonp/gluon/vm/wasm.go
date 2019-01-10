@@ -34,40 +34,57 @@ func (vm *VM) EvalWasm(code []byte) (string, error) {
 			}
 		}
 
+		if module.Memory == nil {
+			log.Printf("module has no memory section")
+		}
 		if module.Export == nil {
 			log.Printf("module has no export section")
+		}
+		if module.Function == nil {
+			log.Printf("module has no function section")
 		}
 
 		wvm, err := exec.NewVM(module)
 		if err != nil {
 			log.Printf("exec.NewVM: %v", err)
 		} else {
-			for idx, e := range module.Memory.Entries {
-				log.Printf("Module Memory #%d  %#v\n", idx, e.Limits)
-			}
-
-			for fname, e := range module.Export.Entries {
-				log.Printf("Module Export: %s %#v\n", fname, e)
-			}
-
-			for fname, e := range module.Export.Entries {
-				i := int64(e.Index)
-				fidx := module.Function.Types[int(i)]
-				ftype := module.Types.Entries[int(fidx)]
-				log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
-
-				output, err := wvm.ExecCode(i, 7, 8)
-				if err != nil {
-					log.Printf("wasm err=%v", err)
-				} else {
-					_, _ = json.Marshal(output)
-					memory := wvm.Memory() // byte array
-					len := int(memory[0])
-					log.Printf("wasm out: memory[0] %#v \n", len)
-					start := 1
-					result = string(memory[start : start+len])
+			if module.Export == nil {
+				for idx, e := range module.Memory.Entries {
+					log.Printf("module.Memory #%d  %#v\n", idx, e.Limits)
 				}
-				log.Printf("wasm out: %d. %d bytes memory. %#v %#v\n", output, len(result), result)
+			} else {
+  			log.Printf("module.Memory is nil\n")
+			}
+
+			if module.Export != nil {
+				for fname, e := range module.Export.Entries {
+					log.Printf("Module Export: %s %#v\n", fname, e)
+				}
+
+				for fname, e := range module.Export.Entries {
+					i := int64(e.Index)
+  				log.Printf("module.Export entry: %#v %#v\n", i, e.Kind.String())
+  				if e.Kind == wasm.ExternalFunction {
+						fidx := module.Function.Types[int(i)]
+						ftype := module.Types.Entries[int(fidx)]
+						log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
+
+						output, err := wvm.ExecCode(i, 7, 8)
+						if err != nil {
+							log.Printf("wasm err=%v", err)
+						} else {
+							_, _ = json.Marshal(output)
+							memory := wvm.Memory() // byte array
+							len := int(memory[0])
+							log.Printf("wasm out: memory[0] %#v \n", len)
+							start := 1
+							result = string(memory[start : start+len])
+						}
+						log.Printf("wasm out: %d. %d bytes memory. %#v %#v\n", output, len(result), result)
+					}
+				}
+			} else {
+  			log.Printf("module.Export is nil\n")
 			}
 		}
 	}
