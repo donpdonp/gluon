@@ -58,10 +58,21 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 		params_double_json := string(params_double_jbytes)
 		callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
 	}
-	return vm.Eval(callBytes)
+	return vm.Eval(vm.EvalDependencies(callBytes))
 }
 
-func (vm *VM) Eval(code []byte) (string, error) {
+func (vm *VM) EvalDependencies(code []byte) map[string][]byte {
+	dependencies := map[string][]byte{}
+	lang := vm.Lang()
+	if lang == "webassembly" {
+		dependencies = vm.EvalDependencyWasm(code)
+	}
+	dependencies["main"] = code
+	return dependencies
+}
+
+func (vm *VM) Eval(dependencies map[string][]byte) (string, error) {
+	code := dependencies["main"]
 	lang := vm.Lang()
 	if lang == "javascript" {
 		return vm.EvalJs(string(code))
@@ -70,7 +81,7 @@ func (vm *VM) Eval(code []byte) (string, error) {
 		return vm.EvalRuby(string(code))
 	}
 	if lang == "webassembly" {
-		return vm.EvalWasm(code)
+		return vm.EvalWasm(dependencies)
 	}
 	return "", errors.New(lang)
 }

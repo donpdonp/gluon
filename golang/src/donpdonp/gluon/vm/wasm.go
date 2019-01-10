@@ -6,6 +6,7 @@ import "github.com/go-interpreter/wagon/wasm"
 
 import "log"
 import "bytes"
+import "errors"
 import "encoding/json"
 
 var boot_wasm []byte
@@ -14,15 +15,19 @@ func wasmfactory() *exec.VM {
 	// placeholder
 	//module := wasm.NewModule()
 	boot_wasm = []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x05, 0x01, 0x60, 0x00, 0x01, 0x7f, 0x03, 0x02, 0x01, 0x00, 0x07, 0x08, 0x01, 0x04, 0x6d, 0x61, 0x69, 0x6e, 0x00, 0x00, 0x0a, 0x07, 0x01, 0x05, 0x00, 0x41, 0x2a, 0x0f, 0x0b}
-	module, _ := wasm.ReadModule(bytes.NewReader(boot_wasm), importer)
+	module, _ := wasm.ReadModule(bytes.NewReader(boot_wasm), importerDummy)
 	vm, _ := exec.NewVM(module)
 	return vm
 }
 
-func (vm *VM) EvalWasm(code []byte) (string, error) {
+func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 	result := ""
+	code := dependencies["main"]
 	log.Printf("evalwasm module from %d bytes", len(code))
-	module, err := wasm.ReadModule(bytes.NewReader(code), importer)
+	module, err := wasm.ReadModule(bytes.NewReader(code),
+		func(name string)(*wasm.Module,error){
+			return importer(dependencies, name)
+		})
 	if err != nil {
 		log.Printf("could not read module from %d bytes %v", len(code), err)
 	} else {
@@ -91,9 +96,28 @@ func (vm *VM) EvalWasm(code []byte) (string, error) {
 	return result, err
 }
 
-func importer(name string) (*wasm.Module, error) {
-	log.Printf("webasm import: %s\n", name)
-	module := wasm.NewModule()
-	log.Printf("webasm import returning bootmod\n", name)
-	return module, nil
+func importer(dependencies map[string][]byte, name string) (*wasm.Module, error) {
+	var err error
+	var module *wasm.Module
+	if dependencies[name] != nil {
+		module, err = wasm.ReadModule(bytes.NewReader(dependencies[name]), importerDummy)
+  	log.Printf("webasm import: %s %d bytes\n", name, len(dependencies[name]))
+	} else {
+		err = errors.New(name+" not found")
+  	log.Printf("webasm import: %s not found\n", name)
+	}
+	return module, err
+}
+
+func importerDummy(name string)(*wasm.Module,error){
+	return nil, nil
+}
+
+func (vm *VM) EvalDependencyWasm(code []byte) map[string][]byte {
+	dependencies := map[string][]byte{}
+	wasm.ReadModule(bytes.NewReader(code), func(name string)(*wasm.Module,error){
+			dependencies[name] = nil
+			return wasm.NewModule(), nil
+		})
+	return dependencies
 }

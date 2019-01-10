@@ -373,15 +373,15 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 	if err != nil {
 		fmt.Printf("vm_add http err %v\n", err)
 	} else {
-		len := 0
+		codeLen := 0
 		if resp.Header["Content-Length"] != nil {
-			len, _ = strconv.Atoi(resp.Header["Content-Length"][0])
+			codeLen, _ = strconv.Atoi(resp.Header["Content-Length"][0])
 		}
 		lang := "undefined"
 		if resp.Header["Content-Type"] != nil {
 			lang = pickLang(url, resp.Header["Content-Type"][0])
 		}
-		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], len)
+		fmt.Printf("vm_add %s http %s %d bytes\n", lang, resp.Header["Content-Type"], codeLen)
 		vm := vm.Factory(owner, lang)
 		vm.Url = url
 		var setup_json string
@@ -393,7 +393,20 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby support.")
 		} else if vm.Lang() == "webassembly" {
-			setup_json, _ = vm.Eval(codeBytes)
+			dependencies := vm.EvalDependencies(codeBytes)
+  		for name := range dependencies {
+  			if name != "main" {
+	  			url := "http://localhost/"+name+".wasm"
+	      	_, codeBytes, err := comm.HttpGet(url)
+	      	if err != nil {
+	      		fmt.Printf("vm_add dependencies load error %#v\n", url)
+	      	} else {
+	       		fmt.Printf("vm_add dependencies loaded %#v %d bytes\n", url, len(codeBytes))
+	      	  dependencies[name] = codeBytes
+	      	}
+	      }
+  		}
+			setup_json, _ = vm.Eval(dependencies)
 		} else {
 			err = errors.New("unknown lang " + lang)
 		}
@@ -452,7 +465,7 @@ func vm_reload(name string, bus comm.Pubsub) error {
 		fmt.Println(name + " found. reloading " + vm.Url)
 		_, codeBytes, err := comm.HttpGet(vm.Url)
 		if err != nil {
-			_, err := vm.Eval(codeBytes)
+			_, err := vm.Eval(vm.EvalDependencies(codeBytes))
 			return err
 		}
 	}
