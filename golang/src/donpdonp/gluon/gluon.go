@@ -405,10 +405,15 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			json.Unmarshal([]byte(setup_json), &setup)
 			json_str, _ := json.Marshal(setup)
 			fmt.Printf("setup_json %s\n", json_str)
-			vm.Name = setup["name"].(string)
-			vm_list.Add(*vm)
-			fmt.Printf("VM %s/%s (%s) added!\n", vm.Owner, vm.Name, vm.Lang())
-			return setup, nil
+			if setup["name"] != nil {
+				vm.Name = setup["name"].(string)
+				vm_list.Add(*vm)
+				fmt.Printf("VM %s/%s (%s) added!\n", vm.Owner, vm.Name, vm.Lang())
+				return setup, nil
+			} else {
+				fmt.Printf("VM %s/%s bad setup json!\n", vm.Owner, vm.Name)
+				return nil, errors.New("bad setup json")
+			}
 		}
 		return nil, err
 	}
