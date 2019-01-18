@@ -85,10 +85,6 @@ func main() {
 
 func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
 	method := msg["method"].(string)
-	fmt.Printf("[* #%s# to %d VMs\n", method, vm_list.Size())
-	if bus.Rpcq.Count() > 0 {
-		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
-	}
 	switch method {
 	case "vm.add":
 		params := msg["params"].(map[string]interface{})
@@ -122,8 +118,8 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	idx := vm_list.IndexOf(vm_name)
 	if idx >= 0 {
 		vm := vm_list.At(idx)
+		fmt.Printf("** %s/%s rpc queue DRAINED. %d waiting msgs\n", vm.Owner, vm.Name, len(vm.Q))
 		if len(vm.Q) > 0 {
-			fmt.Printf("** %s/%s rpc queue DRAINED. processing top of %d old msgs\n", vm.Owner, vm.Name, len(vm.Q))
 			old_msg := <-vm.Q
 			dispatchVM(bus, vm, old_msg)
 		}
@@ -131,6 +127,10 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
+	fmt.Printf("[* #%s# to %d VMs\n", method, vm_list.Size())
+	if bus.Rpcq.Count() > 0 {
+		fmt.Printf("[* warning: %#v rpc callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
+	}
 	for vm := range vm_list.Range() {
 		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
 		if len(callbacks) > 0 {
