@@ -43,8 +43,7 @@ func main() {
 				json, _ := json.Marshal(msg)
 				fmt.Println("gluon <-", string(json))
 				if msg["method"] != nil {
-					method := msg["method"].(string)
-					rpc_dispatch(bus, method, msg)
+					rpc_dispatch(bus, msg)
 				}
 			} else {
 				fmt.Printf("msg not understood: %#v\n", msg)
@@ -84,7 +83,12 @@ func main() {
 
 }
 
-func rpc_dispatch(bus comm.Pubsub, method string, msg map[string]interface{}) {
+func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
+	fmt.Printf("[* dispatch %s to %d VMs\n", , vm_list.Size())
+	if bus.Rpcq.Count() > 0 {
+		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
+	}
+	method := msg["method"].(string)
 	switch method {
 	case "vm.add":
 		params := msg["params"].(map[string]interface{})
@@ -127,10 +131,6 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
-	fmt.Printf("[* dispatch %s to %d VMs\n", msg["method"], vm_list.Size())
-	if bus.Rpcq.Count() > 0 {
-		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
-	}
 	for vm := range vm_list.Range() {
 		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
 		if len(callbacks) > 0 {
