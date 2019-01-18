@@ -84,11 +84,11 @@ func main() {
 }
 
 func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
-	fmt.Printf("[* dispatch %s to %d VMs\n", , vm_list.Size())
+	method := msg["method"].(string)
+	fmt.Printf("[* dispatch %s to %d VMs\n", method, vm_list.Size())
 	if bus.Rpcq.Count() > 0 {
 		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
 	}
-	method := msg["method"].(string)
 	switch method {
 	case "vm.add":
 		params := msg["params"].(map[string]interface{})
