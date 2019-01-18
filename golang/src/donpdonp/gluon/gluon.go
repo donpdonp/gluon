@@ -158,7 +158,6 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
-		sayback = response_str
 		var said interface{}
 		err := json.Unmarshal([]byte(response_str), &said)
 		if err != nil {
@@ -168,6 +167,8 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		switch stype := said.(type) {
 		case string:
   		sayback = said.(string)
+  	case nil:
+  		sayback = ""
   	default:
   		sayback = fmt.Sprintf("unknown return type %#v", stype)
 		}
