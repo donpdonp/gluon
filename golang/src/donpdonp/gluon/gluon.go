@@ -158,22 +158,22 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
+		sayback = ""
 		var said interface{}
 		err := json.Unmarshal([]byte(response_str), &said)
 		if err != nil {
 			// reponse might not be json
-  		fmt.Printf("** %s/%s %#v reponse json err \n", vm.Owner, vm.Name, err)
-		}
-		switch stype := said.(type) {
-		case string:
-  		sayback = said.(string)
-  	case nil:
-  		sayback = ""
-  	default:
-  		sayback = fmt.Sprintf("unknown return type %#v", stype)
+  		fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response_str, err)
+		} else {
+			switch stype := said.(type) {
+			case string:
+	  		sayback = said.(string)
+	  	default:
+	  		sayback = fmt.Sprintf("unknown json type %#v", stype)
+			}
 		}
 		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
-			said, elapsed.Seconds(), len(callbacks))
+		response_str, elapsed.Seconds(), len(callbacks))
 	}
 	if len(sayback) > 0 {
 		if msg["method"] != "irc.privmsg" {
