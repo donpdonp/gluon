@@ -160,16 +160,18 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 	} else {
 		sayback = ""
 		var said interface{}
-		err := json.Unmarshal([]byte(response_str), &said)
-		if err != nil {
-			// reponse might not be json
-			fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response_str, err)
-		} else {
-			switch stype := said.(type) {
-			case string:
-				sayback = said.(string)
-			default:
-				sayback = fmt.Sprintf("unknown json type %#v", stype)
+		if len(response_str) > 0 {
+			err := json.Unmarshal([]byte(response_str), &said)
+			if err != nil {
+				// reponse might not be json
+				fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response_str, err)
+			} else {
+				switch stype := said.(type) {
+				case string:
+					sayback = said.(string)
+				default:
+					sayback = fmt.Sprintf("unknown json type %#v", stype)
+				}
 			}
 		}
 		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
