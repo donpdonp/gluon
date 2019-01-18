@@ -85,7 +85,7 @@ func main() {
 
 func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
 	method := msg["method"].(string)
-	fmt.Printf("[* dispatch %s to %d VMs\n", method, vm_list.Size())
+	fmt.Printf("[* #%s# to %d VMs\n", method, vm_list.Size())
 	if bus.Rpcq.Count() > 0 {
 		fmt.Printf("[* warning: %#v callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
 	}
@@ -158,24 +158,9 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
-		sayback = ""
-		var said interface{}
-		if len(response_str) > 0 {
-			err := json.Unmarshal([]byte(response_str), &said)
-			if err != nil {
-				// reponse might not be json
-				fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response_str, err)
-			} else {
-				switch stype := said.(type) {
-				case string:
-					sayback = said.(string)
-				default:
-					sayback = fmt.Sprintf("unknown json type %#v", stype)
-				}
-			}
-		}
+		sayback = formatVmResponse(vm, response_str)
 		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
-			said, elapsed.Seconds(), len(callbacks))
+			sayback, elapsed.Seconds(), len(callbacks))
 	}
 	if len(sayback) > 0 {
 		if msg["method"] != "irc.privmsg" {
@@ -188,6 +173,26 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 	}
 }
 
+func formatVmResponse(vm vm.VM, response string) string {
+	sayback := ""
+	var said interface{}
+	// empty string is not json
+	if len(response) > 0 {
+		err := json.Unmarshal([]byte(response), &said)
+		if err != nil {
+			// reponse might not be json
+			fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response, err)
+		} else {
+			switch stype := said.(type) {
+			case string:
+				sayback = said.(string)
+			default:
+				sayback = fmt.Sprintf("unknown json type %#v", stype)
+			}
+		}
+	}
+	return sayback
+}
 func key_check(params map[string]interface{}) bool {
 	ok := false
 	if params["key"] != nil {
