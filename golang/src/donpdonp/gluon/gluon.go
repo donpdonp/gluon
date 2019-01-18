@@ -163,17 +163,17 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		err := json.Unmarshal([]byte(response_str), &said)
 		if err != nil {
 			// reponse might not be json
-  		fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response_str, err)
+			fmt.Printf("** %s/%s %#v reponse json err %#v\n", vm.Owner, vm.Name, response_str, err)
 		} else {
 			switch stype := said.(type) {
 			case string:
-	  		sayback = said.(string)
-	  	default:
-	  		sayback = fmt.Sprintf("unknown json type %#v", stype)
+				sayback = said.(string)
+			default:
+				sayback = fmt.Sprintf("unknown json type %#v", stype)
 			}
 		}
 		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
-		response_str, elapsed.Seconds(), len(callbacks))
+			said, elapsed.Seconds(), len(callbacks))
 	}
 	if len(sayback) > 0 {
 		if msg["method"] != "irc.privmsg" {
@@ -402,18 +402,18 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			err = errors.New("no ruby support.")
 		} else if vm.Lang() == "webassembly" {
 			dependencies := vm.EvalDependencies(codeBytes)
-  		for name := range dependencies {
-  			if name != "main" {
-	  			url := "http://localhost/"+name+".wasm"
-	      	resp, codeBytes, err := comm.HttpGet(url)
-	      	if resp.StatusCode != 200 || err != nil {
-	      		fmt.Printf("vm_add dependencies load error %s %#v %#v\n", url, resp.Status, err)
-	      	} else {
-	       		fmt.Printf("vm_add dependencies loaded %#v %d bytes\n", url, len(codeBytes))
-	      	  dependencies[name] = codeBytes
-	      	}
-	      }
-  		}
+			for name := range dependencies {
+				if name != "main" {
+					url := "http://localhost/" + name + ".wasm"
+					resp, codeBytes, err := comm.HttpGet(url)
+					if resp.StatusCode != 200 || err != nil {
+						fmt.Printf("vm_add dependencies load error %s %#v %#v\n", url, resp.Status, err)
+					} else {
+						fmt.Printf("vm_add dependencies loaded %#v %d bytes\n", url, len(codeBytes))
+						dependencies[name] = codeBytes
+					}
+				}
+			}
 			setup_json, _ = vm.Eval(dependencies)
 		} else {
 			err = errors.New("unknown lang " + lang)
