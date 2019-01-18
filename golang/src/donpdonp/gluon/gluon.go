@@ -127,7 +127,7 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
-	fmt.Printf("[* #%s# to %d VMs\n", method, vm_list.Size())
+	fmt.Printf("[* #%s# to %d VMs\n", msg["method"], vm_list.Size())
 	if bus.Rpcq.Count() > 0 {
 		fmt.Printf("[* warning: %#v rpc callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
 	}
