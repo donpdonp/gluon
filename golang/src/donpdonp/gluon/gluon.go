@@ -65,7 +65,7 @@ func main() {
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
 				callback_count := len(bus.Rpcq.CallbacksWaiting(vm_name))
-				fmt.Printf("%s backchan callback done. remaining Q: %d\n", vm_name, callback_count)
+				fmt.Printf("%s backchan callback done. remaining callback Q: %d\n", vm_name, callback_count)
 				if callback_count == 0 { // queue now empty.
 					go func() {
 						msg := map[string]interface{}{"id": util.Snowflake(),
@@ -115,6 +115,7 @@ func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
 
 func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	vm_name := msg["params"].(map[string]interface{})["name"].(string)
+	fmt.Printf("** %s rpc queue drained signal received\n", vm_name)
 	idx := vm_list.IndexOf(vm_name)
 	if idx >= 0 {
 		vm := vm_list.At(idx)
