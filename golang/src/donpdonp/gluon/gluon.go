@@ -159,8 +159,8 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
 		sayback = formatVmResponse(vm, response_str)
-		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks]\n", vm.Owner, vm.Name,
-			sayback, elapsed.Seconds(), len(callbacks))
+		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks] [%d queued msgs]\n", vm.Owner, vm.Name,
+			sayback, elapsed.Seconds(), len(callbacks), len(vm.Q))
 	}
 	if len(sayback) > 0 {
 		if msg["method"] != "irc.privmsg" {
