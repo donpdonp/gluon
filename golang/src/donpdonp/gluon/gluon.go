@@ -119,12 +119,12 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	name_parts := strings.Split(vm_name, "/")
 	idx := vm_list.IndexOf(name_parts[1])
 	if idx >= 0 {
-  	fmt.Printf("** %s rpc queue vm found #%d\n", idx)
 		vm := vm_list.At(idx)
   	fmt.Printf("** %s rpc queue vm rpc q %d\n", vm.Owner + "/" + vm.Name, len(bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)))
 		for len(bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)) == 0 && len(vm.Q) > 0 {
-  		fmt.Printf("** %s/%s rpc queue DRAINED. %d waiting msgs\n", vm.Owner, vm.Name, len(vm.Q))
+  		fmt.Printf("** %s/%s rpc queue empty. %d waiting msgs. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
 			old_msg := <-vm.Q
+    	fmt.Printf("[* %s to %s\n", old_msg["method"], vm_name)
 			dispatchVM(bus, vm, old_msg)
 		}
 	}
