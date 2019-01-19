@@ -51,13 +51,13 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 	var callBytes []byte
 	if vm.Lang() == "javascript" {
 		callBytes = []byte("go(" + params_json + ")")
-  	return vm.Eval(vm.EvalDependencies(callBytes))
+		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	if vm.Lang() == "ruby" {
 		params_double_jbytes, _ := json.Marshal(params_json)
 		params_double_json := string(params_double_jbytes)
 		callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
-  	return vm.Eval(vm.EvalDependencies(callBytes))
+		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	if vm.Lang() == "webassembly" {
 		return vm.EvalGoWasm("go")

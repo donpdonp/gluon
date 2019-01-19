@@ -187,12 +187,13 @@ func formatVmResponse(vm vm.VM, response string) string {
 			case string:
 				sayback = said.(string)
 			default:
-				sayback = fmt.Sprintf("unknown json type %#v", stype)
+				sayback = fmt.Sprintf("%s/%s unknown json type %#v", vm.Owner, vm.Name, stype)
 			}
 		}
 	}
 	return sayback
 }
+
 func key_check(params map[string]interface{}) bool {
 	ok := false
 	if params["key"] != nil {
