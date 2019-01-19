@@ -116,7 +116,8 @@ func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
 func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	vm_name := msg["params"].(map[string]interface{})["name"].(string)
 	fmt.Printf("** %s rpc queue drained signal received\n", vm_name)
-	idx := vm_list.IndexOf(vm_name)
+	name_parts := strings.Split(vm_name, "/")
+	idx := vm_list.IndexOf(name_parts[1])
 	if idx >= 0 {
   	fmt.Printf("** %s rpc queue vm found #%d\n", idx)
 		vm := vm_list.At(idx)
