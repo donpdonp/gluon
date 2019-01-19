@@ -96,48 +96,51 @@ func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 			vm.Wasm = wp
 		}
 	}
-	return vm.EvalGoWasm("setup")
+	return vm.WasmCall("setup", nil)
 }
 
-func (vm *VM) EvalGoWasm(ffname string) (string, error) {
+func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 	var err error
 	result := ""
 	module := vm.Wasm.GetModule()
-	log.Printf("--evalGoWasm %s\n", ffname)
+	log.Printf("--WasmCall %s %#v\n", ffname, params)
 	if module.Export != nil {
 		for fname, e := range module.Export.Entries {
-			i := int64(e.Index)
-			log.Printf("module.Export #%d %#v %#v\n", i, fname, e.Kind.String())
-			if e.Kind == wasm.ExternalFunction {
-				fidx := module.Function.Types[int(i)]
-				ftype := module.Types.Entries[int(fidx)]
-				log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
+  		log.Printf("module.Export %#v check %#v %#v\n", ffname, fname, e.Kind)
+			if fname == ffname {
+				i := int64(e.Index)
+				if e.Kind == wasm.ExternalFunction {
+					fidx := module.Function.Types[int(i)]
+					ftype := module.Types.Entries[int(fidx)]
+					log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
 
-				var output interface{}
-				switch len(ftype.ParamTypes) {
-				case 2:
-					log.Printf("Wagon.Exec %s w/ 2 params (7,8)", fname)
-					output, err = vm.Wasm.GetWagon().ExecCode(i, 7, 8)
-				case 1:
-					log.Printf("Wagon.Exec %s w/ 1 params (7)", fname)
-					output, err = vm.Wasm.GetWagon().ExecCode(i, 7)
-				default:
-					log.Printf("Wagon.Exec %s w/ 0 params", fname)
-					output, err = vm.Wasm.GetWagon().ExecCode(i)
-				}
-				if err != nil {
-					log.Printf("wasm err=%v", err)
-				} else {
-					_, _ = json.Marshal(output)
-					memory := vm.Wasm.GetWagon().Memory() // byte array
-					if memory != nil {
-						len := int(memory[0])
-						log.Printf("wasm out: memory[0] %#v \n", len)
-						start := 1
-						result = string(memory[start : start+len])
-						log.Printf("wasm returned %d. memory[0] = %d. str[0:len]= %#v\n", output, len, result)
+					var output interface{}
+					switch len(ftype.ParamTypes) {
+					case 2:
+						log.Printf("Wagon.Exec %s w/ 2 params (7,8)", fname)
+						output, err = vm.Wasm.GetWagon().ExecCode(i, 7, 8)
+					case 1:
+						log.Printf("Wagon.Exec %s w/ 1 params (7)", fname)
+						params_json, _ := json.Marshal(params)
+						output, err = vm.Wasm.GetWagon().ExecCode(i, uint64(len(params_json)))
+					default:
+						log.Printf("Wagon.Exec %s w/ 0 params", fname)
+						output, err = vm.Wasm.GetWagon().ExecCode(i)
+					}
+					if err != nil {
+						log.Printf("wasm err=%v", err)
 					} else {
-						log.Printf("wasm returned %d. no memory in this module.\n", output)
+						_, _ = json.Marshal(output)
+						memory := vm.Wasm.GetWagon().Memory() // byte array
+						if memory != nil {
+							len := int(memory[0])
+							log.Printf("wasm out: memory[0] %#v \n", len)
+							start := 1
+							result = string(memory[start : start+len])
+							log.Printf("wasm returned %d. memory[0] = %d. str[0:len]= %#v\n", output, len, result)
+						} else {
+							log.Printf("wasm returned %d. no memory in this module.\n", output)
+						}
 					}
 				}
 			}

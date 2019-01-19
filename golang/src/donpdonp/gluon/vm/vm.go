@@ -60,7 +60,7 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	if vm.Lang() == "webassembly" {
-		return vm.EvalGoWasm("go")
+		return vm.WasmCall("go", params_json)
 	}
 	return "", errors.New("")
 }
