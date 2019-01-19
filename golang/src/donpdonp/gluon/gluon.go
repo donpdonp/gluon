@@ -119,7 +119,7 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	if idx >= 0 {
 		vm := vm_list.At(idx)
 		fmt.Printf("** %s/%s rpc queue DRAINED. %d waiting msgs\n", vm.Owner, vm.Name, len(vm.Q))
-		if len(vm.Q) > 0 {
+		for len(bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)) == 0 && len(vm.Q) > 0 {
 			old_msg := <-vm.Q
 			dispatchVM(bus, vm, old_msg)
 		}
