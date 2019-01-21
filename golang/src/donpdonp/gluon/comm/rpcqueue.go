@@ -39,6 +39,10 @@ func (rpcq *Rpcqueue) Count() int {
 	return rpcq.q.Count()
 }
 
+func (rpcq *Rpcqueue) Finished(id string) {
+	rpcq.q.Remove(id)
+}
+
 func unique(sslice []string) []string {
 	keys := make(map[string]bool)
 	list := []string{}

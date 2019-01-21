@@ -54,6 +54,7 @@ func main() {
 				fmt.Println("VM callback queue backlog ", backchan_size)
 			}
 			if pkt["callback"] != nil {
+				bus.Rpcq.Finished(pkt["id"].(string))
 				callback := pkt["callback"].(otto.Value) //otto.FunctionCall
 				vm_name := pkt["vm"].(string)
 				_, err := callback.Call(callback, pkt["result"])
@@ -65,7 +66,8 @@ func main() {
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
 				callback_count := len(bus.Rpcq.CallbacksWaiting(vm_name))
-				fmt.Printf("%s backchan callback done. remaining callback Q: %d\n", vm_name, callback_count)
+				fmt.Printf("%s backchan callback %s done. remaining callbacks: %d\n",
+					vm_name, pkt["id"].(string), callback_count)
 				if callback_count == 0 { // queue now empty.
 					go func() {
 						msg := map[string]interface{}{"id": util.Snowflake(),
@@ -120,11 +122,11 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	idx := vm_list.IndexOf(name_parts[1])
 	if idx >= 0 {
 		vm := vm_list.At(idx)
-  	fmt.Printf("** %s rpc queue vm rpc q %d\n", vm.Owner + "/" + vm.Name, len(bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)))
-		for len(bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)) == 0 && len(vm.Q) > 0 {
-  		fmt.Printf("** %s/%s rpc queue empty. %d waiting msgs. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
+		fmt.Printf("** %s rpc queue vm rpc q %d\n", vm.Owner+"/"+vm.Name, len(bus.Rpcq.CallbacksWaiting(vm.Owner+"/"+vm.Name)))
+		for len(bus.Rpcq.CallbacksWaiting(vm.Owner+"/"+vm.Name)) == 0 && len(vm.Q) > 0 {
+			fmt.Printf("** %s/%s rpc queue empty. %d waiting msgs. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
 			old_msg := <-vm.Q
-    	fmt.Printf("[* %s to %s\n", old_msg["method"], vm_name)
+			fmt.Printf("[* %s to %s\n", old_msg["method"], vm_name)
 			dispatchVM(bus, vm, old_msg)
 		}
 	}

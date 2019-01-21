@@ -52,7 +52,6 @@ func (comm *Pubsub) Loop() {
 					callback_obj, ok := comm.Rpcq.q.Get(id)
 					if ok {
 						callback := callback_obj.(Callback)
-						comm.Rpcq.q.Remove(id)
 						callback.Cb(pkt)
 					}
 				}
