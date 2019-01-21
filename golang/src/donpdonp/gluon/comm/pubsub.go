@@ -51,8 +51,11 @@ func (comm *Pubsub) Loop() {
 					id := pkt["id"].(string)
 					callback_obj, ok := comm.Rpcq.q.Get(id)
 					if ok {
+						fmt.Printf("callback %s received\n", id)
 						callback := callback_obj.(Callback)
 						callback.Cb(pkt)
+					} else {
+						fmt.Printf("WARNING: callback %s received but not in queue\n", id)
 					}
 				}
 				comm.Pipe <- pkt
@@ -66,6 +69,7 @@ func (comm *Pubsub) Send(msg map[string]interface{}, callback *Callback) string 
 	msg["id"] = id
 	msg["from"] = comm.uuid
 	if callback != nil {
+		fmt.Printf("callback %s created.\n", id)
 		comm.Rpcq.q.Set(id, *callback)
 	}
 	bytes, _ := json.Marshal(msg)
