@@ -26,6 +26,13 @@ func (rpcq *Rpcqueue) CallbacksWaiting(name string) []Callback {
 	return winners
 }
 
+func (rpcq *Rpcqueue) Clear(name string) {
+	winners := rpcq.CallbacksWaiting(name)
+	for _, cb := range winners {
+		rpcq.Finished(cb.Name)
+	}
+}
+
 func (rpcq *Rpcqueue) CallbackNames() []string {
 	winners := []string{}
 	for obj := range rpcq.q.IterBuffered() {

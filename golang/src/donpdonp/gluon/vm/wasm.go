@@ -106,7 +106,7 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 	log.Printf("--WasmCall %s %#v\n", ffname, params)
 	if module.Export != nil {
 		for fname, e := range module.Export.Entries {
-  		log.Printf("module.Export %#v check %#v %#v\n", ffname, fname, e.Kind)
+			log.Printf("module.Export %#v check %#v %#v\n", ffname, fname, e.Kind)
 			if fname == ffname {
 				i := int64(e.Index)
 				if e.Kind == wasm.ExternalFunction {
@@ -120,8 +120,8 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 						log.Printf("Wagon.Exec %s w/ 2 params (7,8)", fname)
 						output, err = vm.Wasm.GetWagon().ExecCode(i, 7, 8)
 					case 1:
-						log.Printf("Wagon.Exec %s w/ 1 params (7)", fname)
 						params_json, _ := json.Marshal(params)
+						log.Printf("Wagon.Exec %s w/ 1 param %#v (%d)", fname, string(params_json), uint64(len(params_json)))
 						output, err = vm.Wasm.GetWagon().ExecCode(i, uint64(len(params_json)))
 					default:
 						log.Printf("Wagon.Exec %s w/ 0 params", fname)

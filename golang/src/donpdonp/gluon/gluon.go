@@ -499,6 +499,7 @@ func vm_del(name string, bus comm.Pubsub) (string, error) {
 	if idx > -1 {
 		url, err := vm_list.Del(name)
 		if err == nil {
+			bus.Rpcq.Clear(name)
 			fmt.Println(name + " deleted.")
 			return url, nil
 		}
