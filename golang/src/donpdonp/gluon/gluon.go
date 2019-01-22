@@ -117,25 +117,27 @@ func rpc_dispatch(bus comm.Pubsub, msg map[string]interface{}) {
 
 func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	vm_name := msg["params"].(map[string]interface{})["name"].(string)
-	fmt.Printf("** %s rpc queue drained signal received\n", vm_name)
 	name_parts := strings.Split(vm_name, "/")
 	idx := vm_list.IndexOf(name_parts[1])
 	if idx >= 0 {
 		vm := vm_list.At(idx)
-		fmt.Printf("** %s rpc queue vm rpc q %d\n", vm.Owner+"/"+vm.Name, len(bus.Rpcq.CallbacksWaiting(vm.Owner+"/"+vm.Name)))
-		for len(bus.Rpcq.CallbacksWaiting(vm.Owner+"/"+vm.Name)) == 0 && len(vm.Q) > 0 {
-			fmt.Printf("** %s/%s rpc queue empty. %d waiting msgs. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
+		fmt.Printf("** %s callbacks %d msg q %d (queuedrain)\n", vm_name,
+			len(bus.Rpcq.CallbacksWaiting(vm_name)), len(vm.Q))
+		for len(bus.Rpcq.CallbacksWaiting(vm_name)) == 0 && len(vm.Q) > 0 {
+			fmt.Printf("** %s/%s callbacks empty. %d msg q. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
 			old_msg := <-vm.Q
 			fmt.Printf("[* %s to %s\n", old_msg["method"], vm_name)
 			dispatchVM(bus, vm, old_msg)
 		}
+		fmt.Printf("** %s callbacks %d msg q %d (stopped)\n", vm_name,
+			len(bus.Rpcq.CallbacksWaiting(vm_name)), len(vm.Q))
 	}
 }
 
 func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 	fmt.Printf("[* %s to %d VMs\n", msg["method"], vm_list.Size())
 	if bus.Rpcq.Count() > 0 {
-		fmt.Printf("[* warning: %#v rpc callbacks waiting %#v\n", bus.Rpcq.Count(), bus.Rpcq.CallbackNames())
+		fmt.Printf("[* warning: %#v rpc callbacks waiting %s\n", bus.Rpcq.Count(), bus.Rpcq.ToString())
 	}
 	for vm := range vm_list.Range() {
 		callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
@@ -164,9 +166,11 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
-		sayback = formatVmResponse(vm, response_str)
-		fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks] [%d queued msgs]\n", vm.Owner, vm.Name,
-			sayback, elapsed.Seconds(), len(callbacks), len(vm.Q))
+		if len(response_str) > 0 {
+			sayback = formatVmResponse(vm, response_str)
+			fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks] [%d queued msgs]\n", vm.Owner, vm.Name,
+				sayback, elapsed.Seconds(), len(callbacks), len(vm.Q))
+		}
 	}
 	if len(sayback) > 0 {
 		if msg["method"] != "irc.privmsg" {

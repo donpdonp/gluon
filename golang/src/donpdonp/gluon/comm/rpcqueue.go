@@ -1,5 +1,6 @@
 package comm
 
+import "strings"
 import "gopkg.in/streamrail/concurrent-map.v0"
 
 type Rpcqueue struct {
@@ -40,6 +41,15 @@ func (rpcq *Rpcqueue) CallbackNames() []string {
 		winners = append(winners, callback.Name)
 	}
 	return unique(winners)
+}
+
+func (rpcq *Rpcqueue) ToString() string {
+	winners := []string{}
+	for obj := range rpcq.q.IterBuffered() {
+		callback := obj.Val.(Callback)
+		winners = append(winners, callback.Name)
+	}
+	return strings.Join(winners, " ,")
 }
 
 func (rpcq *Rpcqueue) Count() int {

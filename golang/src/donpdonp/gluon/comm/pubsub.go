@@ -55,7 +55,7 @@ func (comm *Pubsub) Loop() {
 						callback := callback_obj.(Callback)
 						callback.Cb(pkt)
 					} else {
-						fmt.Printf("WARNING: callback %s received but not in queue\n", id)
+						//fmt.Printf("WARNING: callback %s received but not in queue\n", id)
 					}
 				}
 				comm.Pipe <- pkt
