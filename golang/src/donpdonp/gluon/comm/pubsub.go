@@ -47,12 +47,14 @@ func (comm *Pubsub) Loop() {
 			if pkt["from"] != nil && pkt["from"].(string) == comm.uuid {
 				// drop my own msgs
 			} else {
+  			json_bytes , _ := json.Marshal(msg)
+				fmt.Println("gluon <-", string(json_bytes))
 				if pkt["id"] != nil {
 					id := pkt["id"].(string)
 					callback_obj, ok := comm.Rpcq.q.Get(id)
 					if ok {
-						fmt.Printf("callback %s received\n", id)
 						callback := callback_obj.(Callback)
+						fmt.Printf("%s callback #%s received\n", callback.Name, id)
 						callback.Cb(pkt)
 					} else {
 						//fmt.Printf("WARNING: callback %s received but not in queue\n", id)
@@ -69,7 +71,7 @@ func (comm *Pubsub) Send(msg map[string]interface{}, callback *Callback) string 
 	msg["id"] = id
 	msg["from"] = comm.uuid
 	if callback != nil {
-		fmt.Printf("%s callback %s created.\n", callback.Name, id)
+		fmt.Printf("%s callback #%s created.\n", callback.Name, id)
 		comm.Rpcq.q.Set(id, *callback)
 	}
 	bytes, _ := json.Marshal(msg)

@@ -40,8 +40,6 @@ func main() {
 				fmt.Printf("msg pipe backlog: %d\n", pipe_size)
 			}
 			if comm.Msg_check(msg) {
-				json, _ := json.Marshal(msg)
-				fmt.Println("gluon <-", string(json))
 				if msg["method"] != nil {
 					rpc_dispatch(bus, msg)
 				}
