@@ -311,12 +311,14 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			value := call.Argument(1).String()
 			resp := map[string]interface{}{"method": "db.set"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
-			bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
-				if call.Argument(2).IsDefined() {
+      var callback *comm.Callback
+			if call.Argument(2).IsDefined() {
+				callback = make_callback(func(pkt map[string]interface{}) {
 					make_backchan(pkt, call.Argument(2), vm)
 					vm_list.Backchan <- pkt
-				}
-			}, vm))
+				}, vm)
+      }
+			bus.Send(resp, callback)
 			return otto.Value{}
 		},
 		"scan": func(call otto.FunctionCall) otto.Value {
