@@ -47,7 +47,7 @@ func (rpcq *Rpcqueue) ToString() string {
 	winners := []string{}
 	for obj := range rpcq.q.IterBuffered() {
 		callback := obj.Val.(Callback)
-		winners = append(winners, callback.Name)
+		winners = append(winners, callback.Name+"-"+obj.Key)
 	}
 	return strings.Join(winners, " ,")
 }
