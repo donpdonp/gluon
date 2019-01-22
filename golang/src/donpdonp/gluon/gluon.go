@@ -166,7 +166,7 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
-		if len(response_str) > 0 {
+		if len(response_str) > 0  || len(callbacks) > 0 || len(vm.Q) > 0 {
 			sayback = formatVmResponse(vm, response_str)
 			fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks] [%d queued msgs]\n", vm.Owner, vm.Name,
 				sayback, elapsed.Seconds(), len(callbacks), len(vm.Q))
