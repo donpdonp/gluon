@@ -47,7 +47,7 @@ func (comm *Pubsub) Loop() {
 			if pkt["from"] != nil && pkt["from"].(string) == comm.uuid {
 				// drop my own msgs
 			} else {
-  			json_bytes , _ := json.Marshal(msg)
+  			json_bytes , _ := json.Marshal(pkt)
 				fmt.Println("gluon <-", string(json_bytes))
 				if pkt["id"] != nil {
 					id := pkt["id"].(string)
