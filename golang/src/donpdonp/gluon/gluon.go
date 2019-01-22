@@ -121,16 +121,18 @@ func queueDrained(msg map[string]interface{}, bus comm.Pubsub) {
 	idx := vm_list.IndexOf(name_parts[1])
 	if idx >= 0 {
 		vm := vm_list.At(idx)
-		fmt.Printf("** %s callbacks %d msg q %d (queuedrain)\n", vm_name,
-			len(bus.Rpcq.CallbacksWaiting(vm_name)), len(vm.Q))
-		for len(bus.Rpcq.CallbacksWaiting(vm_name)) == 0 && len(vm.Q) > 0 {
-			fmt.Printf("** %s/%s callbacks empty. %d msg q. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
-			old_msg := <-vm.Q
-			fmt.Printf("[* %s to %s\n", old_msg["method"], vm_name)
-			dispatchVM(bus, vm, old_msg)
+		if len(vm.Q) > 0 {
+			fmt.Printf("** %s callbacks %d msg q %d (queuedrain)\n", vm_name,
+				len(bus.Rpcq.CallbacksWaiting(vm_name)), len(vm.Q))
+			for len(bus.Rpcq.CallbacksWaiting(vm_name)) == 0 && len(vm.Q) > 0 {
+				fmt.Printf("** %s/%s callbacks empty. %d msg q. replaying top msg.\n", vm.Owner, vm.Name, len(vm.Q))
+				old_msg := <-vm.Q
+				fmt.Printf("[* %s to %s\n", old_msg["method"], vm_name)
+				dispatchVM(bus, vm, old_msg)
+			}
+			fmt.Printf("** %s callbacks %d msg q %d (stopped)\n", vm_name,
+				len(bus.Rpcq.CallbacksWaiting(vm_name)), len(vm.Q))
 		}
-		fmt.Printf("** %s callbacks %d msg q %d (stopped)\n", vm_name,
-			len(bus.Rpcq.CallbacksWaiting(vm_name)), len(vm.Q))
 	}
 }
 

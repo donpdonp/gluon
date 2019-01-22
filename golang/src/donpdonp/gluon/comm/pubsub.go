@@ -69,7 +69,7 @@ func (comm *Pubsub) Send(msg map[string]interface{}, callback *Callback) string 
 	msg["id"] = id
 	msg["from"] = comm.uuid
 	if callback != nil {
-		fmt.Printf("callback %s created.\n", id)
+		fmt.Printf("%s callback %s created.\n", callback.Name, id)
 		comm.Rpcq.q.Set(id, *callback)
 	}
 	bytes, _ := json.Marshal(msg)
