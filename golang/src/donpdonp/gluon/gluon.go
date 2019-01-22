@@ -306,18 +306,22 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		},
 		"set": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("%s/%s db.set %s\n", vm.Owner, vm.Name, call.Argument(0).String())
 			key := call.Argument(0).String()
 			value := call.Argument(1).String()
 			resp := map[string]interface{}{"method": "db.set"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
       var callback *comm.Callback
+      var callback_notice string
 			if call.Argument(2).IsDefined() {
 				callback = make_callback(func(pkt map[string]interface{}) {
 					make_backchan(pkt, call.Argument(2), vm)
 					vm_list.Backchan <- pkt
 				}, vm)
+      } else {
+      	callback_notice = "(no callback)"
       }
+			fmt.Printf("%s/%s db.set %s %s\n", vm.Owner, vm.Name,
+				call.Argument(0).String(), callback_notice)
 			bus.Send(resp, callback)
 			return otto.Value{}
 		},
