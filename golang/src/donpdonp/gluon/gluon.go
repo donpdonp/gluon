@@ -242,14 +242,18 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		"host_id":       util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			_, body, err := comm.HttpGet(call.Argument(0).String())
+			resp, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
 			var resultStr string
 			if err != nil {
 				fmt.Sprintf(resultStr, "err %v\n", err)
 				ottoStr, _ = otto.ToValue("")
 			} else {
-				fmt.Sprintf(resultStr, "OK %d bytes\n", len(body))
+				var contentType string
+				if resp.Header["Content-Type"] != nil {
+					contentType = resp.Header["Content-Type"][0]
+				}
+				fmt.Sprintf(resultStr, "OK %d bytes %s\n", len(body), contentType)
 				ottoStr, _ = otto.ToValue(string(body)) // scripts not ready for bytes
 			}
 			fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name,
