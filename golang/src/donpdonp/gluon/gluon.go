@@ -64,7 +64,7 @@ func main() {
 					bus.Send(irc_reply(fakemsg, vm_name+" "+sayback, vm_name), nil)
 				}
 				callback_count := len(bus.Rpcq.CallbacksWaiting(vm_name))
-				fmt.Printf("%s backchan callback %s done. remaining callbacks: %d\n",
+				fmt.Printf("%s callback #%s done (%d remain)\n",
 					vm_name, pkt["id"].(string), callback_count)
 				if callback_count == 0 { // queue now empty.
 					go func() {
@@ -242,16 +242,18 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		"host_id":       util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("%s/%s http.get %s\n", vm.Owner, vm.Name, call.Argument(0).String())
 			_, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
+			var resultStr string
 			if err != nil {
-				fmt.Printf("http.get err %v\n", err)
+				fmt.Sprintf(resultStr, "err %v\n", err)
 				ottoStr, _ = otto.ToValue("")
 			} else {
-				fmt.Printf("http.get OK %d bytes\n", len(body))
+				fmt.Sprintf(resultStr, "OK %d bytes\n", len(body))
 				ottoStr, _ = otto.ToValue(string(body)) // scripts not ready for bytes
 			}
+			fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name,
+				call.Argument(0).String(), resultStr)
 			return ottoStr
 		},
 		"post": func(call otto.FunctionCall) otto.Value {
