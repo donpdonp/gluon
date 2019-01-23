@@ -244,7 +244,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		"get": func(call otto.FunctionCall) otto.Value {
 			resp, body, err := comm.HttpGet(call.Argument(0).String())
 			var ottoStr otto.Value
-			var resultStr string
+			resultStr := ""
 			if err != nil {
 				fmt.Sprintf(resultStr, "err %v\n", err)
 				ottoStr, _ = otto.ToValue("")
