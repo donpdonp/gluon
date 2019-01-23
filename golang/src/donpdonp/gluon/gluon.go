@@ -245,7 +245,9 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			resp, body, err := comm.HttpGet(call.Argument(0).String())
 			var contentType string
 			if resp.Header["Content-Type"] != nil {
-				contentType = resp.Header["Content-Type"][0]
+  			if len(resp.Header["Content-Type"]) > 0 {
+	  			contentType = resp.Header["Content-Type"][0]
+	  		}
 			}
 			var ottoStr otto.Value
 			if err != nil {
