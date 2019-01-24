@@ -242,22 +242,24 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		"host_id":       util.Settings.Id})
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			url := call.Argument(0).String()
-			resp, body, err := comm.HttpGet(url)
+			urlc := call.Argument(0).String()
+			resp, body, err := comm.HttpGet(urlc)
+			var resultDisplay string
 			var ottoStr otto.Value
 			if err != nil {
-				fmt.Printf("http.get %s err %v\n", url, err)
+				resultDisplay = fmt.Sprintf("err %v\n", urlc, err)
 				ottoStr, _ = otto.ToValue("")
 			} else {
 				ottoStr, _ = otto.ToValue(string(body)) // scripts not ready for bytes
-				fmt.Printf("%s/%s http.get %s %s %s %d bytes\n", vm.Owner, vm.Name,
-					call.Argument(0).String(), resp.Status, len(body))
+				resultDisplay = fmt.Sprintf("%s %d bytes\n", resp.Status, len(body))
 			}
+			fmt.Sprintf("%s/%s http.get %s %s\n", vm.Owner, vm.Name,  urlc, resultDisplay)
 			return ottoStr
 		},
 		"post": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("post(%s, %s)\n", url, call.Argument(1).String())
-			body, err := comm.HttpPost(call.Argument(0).String(),
+			urlc := call.Argument(0).String()
+			fmt.Printf("post(%s, %s)\n", urlc, call.Argument(1).String())
+			body, err := comm.HttpPost(urlc,
 				"application/json",
 				strings.NewReader(call.Argument(1).String()))
 			var ottoStr otto.Value
