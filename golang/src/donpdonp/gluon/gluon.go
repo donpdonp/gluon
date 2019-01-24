@@ -244,11 +244,6 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		"get": func(call otto.FunctionCall) otto.Value {
 			resp, body, err := comm.HttpGet(call.Argument(0).String())
 			var contentType string
-			if resp.Header["Content-Type"] != nil {
-  			if len(resp.Header["Content-Type"]) > 0 {
-	  			contentType = resp.Header["Content-Type"][0]
-	  		}
-			}
 			var ottoStr otto.Value
 			if err != nil {
 				fmt.Printf("http.get err %v\n", err)
@@ -256,8 +251,8 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			} else {
 				ottoStr, _ = otto.ToValue(string(body)) // scripts not ready for bytes
 			}
-			fmt.Printf("%s/%s http.get %s %s %s\n", vm.Owner, vm.Name,
-				call.Argument(0).String(), resp.Status, contentType)
+			fmt.Printf("%s/%s http.get %s %s %s %d\n", vm.Owner, vm.Name,
+				call.Argument(0).String(), resp.Status, contentType, len(body))
 			return ottoStr
 		},
 		"post": func(call otto.FunctionCall) otto.Value {
