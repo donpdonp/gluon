@@ -253,7 +253,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				ottoStr, _ = otto.ToValue(string(body)) // scripts not ready for bytes
 				resultDisplay = fmt.Sprintf("%s %d bytes\n", resp.Status, len(body))
 			}
-			fmt.Sprintf("%s/%s http.get %s %s\n", vm.Owner, vm.Name,  urlc, resultDisplay)
+			fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name,  urlc, resultDisplay)
 			return ottoStr
 		},
 		"post": func(call otto.FunctionCall) otto.Value {
