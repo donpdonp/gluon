@@ -166,7 +166,7 @@ func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 		fmt.Printf("** %s/%s dispatch err: %v\n", vm.Owner, vm.Name, err)
 		sayback = "[" + vm.Name + "] " + err.Error()
 	} else {
-		if len(response_str) > 0  || len(callbacks) > 0 || len(vm.Q) > 0 {
+		if len(response_str) > 0 || len(callbacks) > 0 || len(vm.Q) > 0 {
 			sayback = formatVmResponse(vm, response_str)
 			fmt.Printf("** %s/%s %#v [%.4f sec] [%d callbacks] [%d queued msgs]\n", vm.Owner, vm.Name,
 				sayback, elapsed.Seconds(), len(callbacks), len(vm.Q))
@@ -255,7 +255,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 					ottoV, _ = otto.ToValue(string(body)) // scripts not ready for bytes
 					resultDisplay = fmt.Sprintf("%s %d bytes\n", resp.Status, len(body))
 				}
-				fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name,  urlc, resultDisplay)
+				fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name, urlc, resultDisplay)
 			} else if arg0.IsObject() {
 				urlo := arg0.Object()
 				urlg, _ := urlo.Get("url")
@@ -266,7 +266,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				goResult := map[string]interface{}{}
 				if err != nil {
 					goResult["error"] = map[string]interface{}{
-						                       "message":err.Error()}
+						"message": err.Error()}
 				} else {
 					goResult["status"] = resp.StatusCode
 					goResult["body"] = string(body)
@@ -333,16 +333,16 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			value := call.Argument(1).String()
 			resp := map[string]interface{}{"method": "db.set"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key, "value": value}
-      var callback *comm.Callback
-      var callback_notice string
+			var callback *comm.Callback
+			var callback_notice string
 			if call.Argument(2).IsDefined() {
 				callback = make_callback(func(pkt map[string]interface{}) {
 					make_backchan(pkt, call.Argument(2), vm)
 					vm_list.Backchan <- pkt
 				}, vm)
-      } else {
-      	callback_notice = "(no callback)"
-      }
+			} else {
+				callback_notice = "(no callback)"
+			}
 			fmt.Printf("%s/%s db.set %s %s\n", vm.Owner, vm.Name,
 				call.Argument(0).String(), callback_notice)
 			bus.Send(resp, callback)
