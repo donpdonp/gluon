@@ -109,23 +109,25 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 	memory := vm.Wasm.GetWagon().Memory() // byte array
 	if memory != nil {
 		if module.Export != nil {
-			for fname, e := range module.Export.Entries {
-				log.Printf("module.Export %#v check %#v %#v\n", ffname, fname, e.Kind)
-				if fname == ffname {
-					i := int64(e.Index)
-					if e.Kind == wasm.ExternalFunction {
+			inbufExport := findExport(module.Export, "inbuf")
+			if inbufExport != nil {
+  			functionExport := findExport(module.Export, ffname)
+  			if functionExport != nil {
+					log.Printf("module.Export %#v found. exportKind %#v\n", ffname, functionExport.Kind)
+					i := int64(functionExport.Index)
+					if functionExport.Kind == wasm.ExternalFunction {
 						fidx := module.Function.Types[int(i)]
 						ftype := module.Types.Entries[int(fidx)]
-						log.Printf("call %s(%#v) %#v \n", fname, ftype.ParamTypes, ftype.ReturnTypes)
+						log.Printf("call %s(%#v) %#v \n", ffname, ftype.ParamTypes, ftype.ReturnTypes)
 
 						var output interface{}
 						switch len(ftype.ParamTypes) {
 						case 1:
 							params_json, _ := json.Marshal(params)
-							log.Printf("Wagon.Exec %s w/ 1 param %s (%d)", fname, string(params_json), uint64(len(params_json)))
+							log.Printf("Wagon.Exec %s w/ 1 param %s (%d)", ffname, string(params_json), uint64(len(params_json)))
 							output, err = vm.Wasm.GetWagon().ExecCode(i, uint64(len(params_json)))
 						default:
-							log.Printf("Wagon.Exec %s w/ 0 params", fname)
+							log.Printf("Wagon.Exec %s w/ 0 params", ffname)
 							output, err = vm.Wasm.GetWagon().ExecCode(i)
 						}
 						if err != nil {
@@ -137,10 +139,14 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 							dataStart := start + 1
 							result = string(memory[dataStart : dataStart+len])
 							log.Printf("%s returned %d. memory[%d] = %d. str[0:%d]= %#v\n",
-								fname, output, output, len, len, result)
+								ffname, output, output, len, len, result)
 						}
 					}
+				} else {
+					log.Printf("wasm function %s not found\n", ffname)
 				}
+			} else {
+				log.Printf("wasm export inbuf not found\n")
 			}
 		} else {
 			log.Printf("wasm call stopped. module.Export is nil\n")
@@ -151,6 +157,15 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 	return result, err
 }
 
+func findExport(export *wasm.SectionExports, ffname string) *wasm.ExportEntry {
+	for fname, e := range export.Entries {
+		log.Printf("module.Export %#v check %#v %#v\n", ffname, fname, e.Kind)
+		if fname == ffname {
+			return &e
+		}
+	}
+	return nil
+}
 func importer(dependencies map[string][]byte, name string) (*wasm.Module, error) {
 	var err error
 	var module *wasm.Module
