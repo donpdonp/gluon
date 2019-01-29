@@ -25,22 +25,6 @@ func WasmProcessNewVM(module *wasm.Module) (*WasmProcess, error) {
 		log.Printf("WasmProcess NewVM failed : %#v", err)
 	} else {
 		wp = WasmProcess{wagon: wvm, module: module}
-		exportCount := 0
-		if module.Export != nil {
-			exportCount = len(module.Export.Entries)
-		}
-		globalCount := 0
-		if module.Global != nil {
-			globalCount = len(module.Global.Globals)
-		}
-		memoryCount := 0
-		if module.Memory != nil {
-			memoryCount = len(module.Memory.Entries)
-		}
-		log.Printf("WasmProcess NewVM: %d exports. %d globals. %d memories.", exportCount, globalCount, memoryCount)
-		if exportCount > 0 {
-			log.Printf("WasmProcess NewVM: %#v\n", module.Export.Entries)
-		}
 	}
 	return &wp, err
 }
@@ -57,13 +41,13 @@ func wasmfactory() *WasmProcess {
 		0x00, 0x41, 0x2a, 0x0f, 0x0b}
 	module, _ := wasm.ReadModule(bytes.NewReader(boot_wasm), importerDummy)
 	log.Printf("-WasmProcessNewVM for boot_wasm/wasmfactory\n")
+ 	moduleSummary(module)
 	wvm, _ := WasmProcessNewVM(module)
 	return wvm
 }
 
 func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 	code := dependencies["main"]
-	log.Printf("evalwasm main module from %d bytes", len(code))
 	module, err := wasm.ReadModule(bytes.NewReader(code),
 		func(name string) (*wasm.Module, error) {
 			return importer(dependencies, name)
@@ -79,18 +63,8 @@ func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 			}
 		}
 
-		if module.Memory == nil {
-			log.Printf("module has no memory section")
-		} else {
-			for idx, e := range module.Memory.Entries {
-				log.Printf("module.Memory #%d  %#v\n", idx, e.Limits)
-			}
-		}
-		if module.Export == nil {
-			log.Printf("module has no export section")
-		}
-
-		log.Printf("-WasmProcessNewVM for main\n")
+	  log.Printf("-WasmProcessNewVM for main module from %d bytes", len(code))
+   	moduleSummary(module)
 		wp, err := WasmProcessNewVM(module)
 		if err != nil {
 			log.Printf("exec.NewVM err: %v", err)
@@ -105,19 +79,19 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 	var err error
 	result := ""
 	module := vm.Wasm.GetModule()
-	log.Printf("--WasmCall %s %#v\n", ffname, params)
+	log.Printf("--WasmCall %s\n", ffname)
 	memory := vm.Wasm.GetWagon().Memory() // byte array
 	if memory != nil {
 		if module.Export != nil {
 			inbufExport := findExport(module.Export, "inbuf")
 			if inbufExport != nil {
+				log.Printf("inbufExport name: %s type: %s\n", inbufExport.FieldStr, inbufExport.Kind)
   			functionExport := findExport(module.Export, ffname)
   			if functionExport != nil {
-					log.Printf("module.Export %#v found. exportKind %#v\n", ffname, functionExport.Kind)
 					i := int64(functionExport.Index)
 					if functionExport.Kind == wasm.ExternalFunction {
-						fidx := module.Function.Types[int(i)]
-						ftype := module.Types.Entries[int(fidx)]
+						fidx := module.Function.Types[i]
+						ftype := module.Types.Entries[fidx]
 						log.Printf("call %s(%#v) %#v \n", ffname, ftype.ParamTypes, ftype.ReturnTypes)
 
 						var output interface{}
@@ -126,9 +100,11 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 							params_json, _ := json.Marshal(params)
 							log.Printf("Wagon.Exec %s w/ 1 param %s (%d)", ffname, string(params_json), uint64(len(params_json)))
 							output, err = vm.Wasm.GetWagon().ExecCode(i, uint64(len(params_json)))
-						default:
+						case 0:
 							log.Printf("Wagon.Exec %s w/ 0 params", ffname)
 							output, err = vm.Wasm.GetWagon().ExecCode(i)
+						default:
+							err = errors.New("unknown function signature")
 						}
 						if err != nil {
 							log.Printf("wasm err=%v", err)
@@ -157,9 +133,40 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 	return result, err
 }
 
+func moduleSummary(module *wasm.Module) {
+	exportCount := 0
+	if module.Export != nil {
+		exportCount = len(module.Export.Entries)
+	}
+	globalCount := 0
+	if module.Global != nil {
+		globalCount = len(module.Global.Globals)
+	}
+	memoryCount := 0
+	if module.Memory != nil {
+		memoryCount = len(module.Memory.Entries)
+	}
+	log.Printf("moduleSummary: %d exports. %d globals. %d memories.",
+		exportCount, globalCount, memoryCount)
+	if module.Export != nil {
+		for _, e := range module.Export.Entries {
+			log.Printf("module.Export %s %#v #%d\n", e.Kind, e.FieldStr, e.Index)
+	  }
+  }
+	if module.Global != nil {
+		for idx, e := range module.Global.Globals {
+			log.Printf("module.Global #%d %s value %#v\n", idx, e.Type.Type, e.Init)
+	  }
+  }
+	if module.Memory != nil {
+		for _, e := range module.Memory.Entries {
+			log.Printf("module.Memory %d pages\n", e.Limits.Initial)
+	  }
+  }
+}
+
 func findExport(export *wasm.SectionExports, ffname string) *wasm.ExportEntry {
 	for fname, e := range export.Entries {
-		log.Printf("module.Export %#v check %#v %#v\n", ffname, fname, e.Kind)
 		if fname == ffname {
 			return &e
 		}
@@ -171,7 +178,7 @@ func importer(dependencies map[string][]byte, name string) (*wasm.Module, error)
 	var module *wasm.Module
 	if dependencies[name] != nil {
 		module, err = wasm.ReadModule(bytes.NewReader(dependencies[name]), importerDummy)
-		log.Printf("webasm imported: %s %d bytes %#v\n", name, len(dependencies[name]), err)
+		log.Printf("--webasm imported: %#v %d bytes %#v\n", name, len(dependencies[name]), err)
 	} else {
 		err = errors.New(name + " not found")
 		log.Printf("webasm import: %s not found\n", name)
