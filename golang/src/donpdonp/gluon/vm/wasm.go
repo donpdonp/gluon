@@ -38,7 +38,9 @@ func WasmProcessNewVM(module *wasm.Module) (*WasmProcess, error) {
 			memoryCount = len(module.Memory.Entries)
 		}
 		log.Printf("WasmProcess NewVM: %d exports. %d globals. %d memories.", exportCount, globalCount, memoryCount)
-		log.Printf("WasmProcess NewVM: %#v\n", module.Export.Entries)
+		if exportCount > 0 {
+		  log.Printf("WasmProcess NewVM: %#v\n", module.Export.Entries)
+		}
 	}
 	return &wp, err
 }
@@ -133,11 +135,12 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 						_, _ = json.Marshal(output)
 						memory := vm.Wasm.GetWagon().Memory() // byte array
 						if memory != nil {
-							len := int(memory[0])
-							log.Printf("wasm out: memory[0] %#v \n", len)
-							start := 1
-							result = string(memory[start : start+len])
-							log.Printf("wasm returned %d. memory[0] = %d. str[0:len]= %#v\n", output, len, result)
+							start := output.(uint32)
+							len := uint32(memory[start])
+							dataStart := start+1
+							result = string(memory[dataStart : dataStart+len])
+							log.Printf("%s returned %d. memory[%d] = %d. str[0:%d]= %#v\n",
+								          fname, output, output, len, len, result)
 						} else {
 							log.Printf("wasm returned %d. no memory in this module.\n", output)
 						}
@@ -146,7 +149,7 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 			}
 		}
 	} else {
-		log.Printf("module.Export is nil\n")
+		log.Printf("wasm call stopped. module.Export is nil\n")
 	}
 	return result, err
 }
