@@ -99,7 +99,7 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 						switch len(ftype.ParamTypes) {
 						case 1:
 							params_json, _ := json.Marshal(params)
-							outStart := findGlobal(module, "inbuf")
+							outStart := findGlobalInt(module, "inbuf")
 							copy(memory[outStart:], params_json)
 							log.Printf("WasmCall Wagon.Exec %s w/ 1 param %s (%d) copied to inbuf[%d:]",
 								ffname, string(params_json), uint64(len(params_json)), outStart)
@@ -171,7 +171,7 @@ func moduleSummary(module *wasm.Module) {
 	}
 }
 
-func findGlobal(module *wasm.Module, name string) int {
+func findGlobalInt(module *wasm.Module, name string) int {
 	if module.Export != nil {
 		export := findExport(module.Export, name)
 		if export != nil {
