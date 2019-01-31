@@ -86,7 +86,7 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 		if module.Export != nil {
 			inbufExport := findExport(module.Export, "inbuf")
 			if inbufExport != nil {
-				log.Printf("inbufExport name: %s type: %s\n", inbufExport.FieldStr, inbufExport.Kind)
+				log.Printf("Export found name: %s type: %s\n", inbufExport.FieldStr, inbufExport.Kind)
 				functionExport := findExport(module.Export, ffname)
 				if functionExport != nil {
 					i := int64(functionExport.Index)
@@ -173,14 +173,12 @@ func moduleSummary(module *wasm.Module) {
 
 func findGlobal(module *wasm.Module, name string) int {
 	if module.Export != nil {
-		for _, e := range module.Export.Entries {
-			log.Printf("module.Export %s %#v #%d\n", e.Kind, e.FieldStr, e.Index)
-			if e.FieldStr == name {
-				if module.Global != nil {
-					global := module.Global.Globals[e.Index]
-					gint, _ := leb128.ReadVarint32(bytes.NewReader(global.Init[1:]))
-					return int(gint)
-				}
+		export := findExport(module.Export, name)
+		if export != nil {
+			if module.Global != nil {
+				global := module.Global.Globals[export.Index]
+				gint, _ := leb128.ReadVarint32(bytes.NewReader(global.Init[1:]))
+				return int(gint)
 			}
 		}
 	}
