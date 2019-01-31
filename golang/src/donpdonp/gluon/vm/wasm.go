@@ -3,6 +3,7 @@ package vm
 import "github.com/go-interpreter/wagon/exec"
 import "github.com/go-interpreter/wagon/validate"
 import "github.com/go-interpreter/wagon/wasm"
+import "github.com/go-interpreter/wagon/wasm/leb128"
 
 import "log"
 import "bytes"
@@ -41,7 +42,7 @@ func wasmfactory() *WasmProcess {
 		0x00, 0x41, 0x2a, 0x0f, 0x0b}
 	module, _ := wasm.ReadModule(bytes.NewReader(boot_wasm), importerDummy)
 	log.Printf("-WasmProcessNewVM for boot_wasm/wasmfactory\n")
- 	moduleSummary(module)
+	moduleSummary(module)
 	wvm, _ := WasmProcessNewVM(module)
 	return wvm
 }
@@ -63,8 +64,8 @@ func (vm *VM) EvalWasm(dependencies map[string][]byte) (string, error) {
 			}
 		}
 
-	  log.Printf("-WasmProcessNewVM for main module from %d bytes", len(code))
-   	moduleSummary(module)
+		log.Printf("-WasmProcessNewVM for main module from %d bytes", len(code))
+		moduleSummary(module)
 		wp, err := WasmProcessNewVM(module)
 		if err != nil {
 			log.Printf("exec.NewVM err: %v", err)
@@ -86,8 +87,8 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 			inbufExport := findExport(module.Export, "inbuf")
 			if inbufExport != nil {
 				log.Printf("inbufExport name: %s type: %s\n", inbufExport.FieldStr, inbufExport.Kind)
-  			functionExport := findExport(module.Export, ffname)
-  			if functionExport != nil {
+				functionExport := findExport(module.Export, ffname)
+				if functionExport != nil {
 					i := int64(functionExport.Index)
 					if functionExport.Kind == wasm.ExternalFunction {
 						fidx := module.Function.Types[i]
@@ -98,14 +99,18 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 						switch len(ftype.ParamTypes) {
 						case 1:
 							params_json, _ := json.Marshal(params)
-							log.Printf("Wagon.Exec %s w/ 1 param %s (%d)", ffname, string(params_json), uint64(len(params_json)))
+							outStart := findGlobal(module, "inbuf")
+							copy(memory[outStart:], params_json)
+							log.Printf("WasmCall Wagon.Exec %s w/ 1 param %s (%d) copied to inbuf[%d:]",
+								ffname, string(params_json), uint64(len(params_json)), outStart)
 							output, err = vm.Wasm.GetWagon().ExecCode(i, uint64(len(params_json)))
 						case 0:
-							log.Printf("Wagon.Exec %s w/ 0 params", ffname)
+							log.Printf("WasmCall Wagon.Exec %s w/ 0 params", ffname)
 							output, err = vm.Wasm.GetWagon().ExecCode(i)
 						default:
 							err = errors.New("unknown function signature")
 						}
+						log.Printf("WasmCall canary call done")
 						if err != nil {
 							log.Printf("wasm err=%v", err)
 						} else {
@@ -151,18 +156,36 @@ func moduleSummary(module *wasm.Module) {
 	if module.Export != nil {
 		for _, e := range module.Export.Entries {
 			log.Printf("module.Export %s %#v #%d\n", e.Kind, e.FieldStr, e.Index)
-	  }
-  }
+		}
+	}
 	if module.Global != nil {
 		for idx, e := range module.Global.Globals {
-			log.Printf("module.Global #%d %s value %#v\n", idx, e.Type.Type, e.Init)
-	  }
-  }
+			gint, _ := leb128.ReadVarint32(bytes.NewReader(e.Init[1:]))
+			log.Printf("module.Global #%d %s %#v\n", idx, e.Type.Type, gint)
+		}
+	}
 	if module.Memory != nil {
 		for _, e := range module.Memory.Entries {
 			log.Printf("module.Memory %d pages\n", e.Limits.Initial)
-	  }
-  }
+		}
+	}
+}
+
+func findGlobal(module *wasm.Module, name string) int {
+	if module.Export != nil {
+		for _, e := range module.Export.Entries {
+			log.Printf("module.Export %s %#v #%d\n", e.Kind, e.FieldStr, e.Index)
+			if e.FieldStr == name {
+				if module.Global != nil {
+					global := module.Global.Globals[e.Index]
+					gint, _ := leb128.ReadVarint32(bytes.NewReader(global.Init[1:]))
+					return int(gint)
+				}
+			}
+		}
+	}
+	log.Printf("findGlobal %s not found!\n", name)
+	return 0
 }
 
 func findExport(export *wasm.SectionExports, ffname string) *wasm.ExportEntry {
@@ -173,6 +196,7 @@ func findExport(export *wasm.SectionExports, ffname string) *wasm.ExportEntry {
 	}
 	return nil
 }
+
 func importer(dependencies map[string][]byte, name string) (*wasm.Module, error) {
 	var err error
 	var module *wasm.Module
