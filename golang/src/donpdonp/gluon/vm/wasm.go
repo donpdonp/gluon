@@ -110,7 +110,6 @@ func (vm *VM) WasmCall(ffname string, params interface{}) (string, error) {
 						default:
 							err = errors.New("unknown function signature")
 						}
-						log.Printf("WasmCall canary call done")
 						if err != nil {
 							log.Printf("wasm err=%v", err)
 						} else {

@@ -293,9 +293,9 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		}})
 	vm.Js.Set("db", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
-			fmt.Printf("%s/%s db.get %s\n", vm.Owner, vm.Name, call.Argument(0).String())
-			resp := map[string]interface{}{"method": "db.get"}
 			key := call.Argument(0).String()
+			fmt.Printf("%s/%s db.get %s\n", vm.Owner, vm.Name, key)
+			resp := map[string]interface{}{"method": "db.get"}
 			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
 			if call.Argument(1).IsDefined() {
 				bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
@@ -306,10 +306,11 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		},
 		"del": func(call otto.FunctionCall) otto.Value {
-			resp := map[string]interface{}{"method": "db.del"}
-			key := call.Argument(0).String()
-			resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
-			if call.Argument(1).IsDefined() {
+			if call.Argument(0).IsDefined() {
+				key := call.Argument(0).String()
+				fmt.Printf("%s/%s db.del %s\n", vm.Owner, vm.Name, key)
+				resp := map[string]interface{}{"method": "db.del"}
+				resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
 				bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
 					make_backchan(pkt, call.Argument(1), vm)
 					vm_list.Backchan <- pkt
