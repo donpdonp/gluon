@@ -311,10 +311,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				fmt.Printf("%s/%s db.del %s\n", vm.Owner, vm.Name, key)
 				resp := map[string]interface{}{"method": "db.del"}
 				resp["params"] = map[string]interface{}{"group": vm.Owner, "key": key}
-				bus.Send(resp, make_callback(func(pkt map[string]interface{}) {
-					make_backchan(pkt, call.Argument(1), vm)
-					vm_list.Backchan <- pkt
-				}, vm))
+				bus.Send(resp, nil)
 			}
 			return otto.Value{}
 		},
