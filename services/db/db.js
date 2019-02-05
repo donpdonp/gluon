@@ -56,7 +56,7 @@ function dispatch(payload) {
       redis_pub({id: payload.id, result: true})
     })
   }
-  if(cmd == 'delete') {
+  if(cmd == 'del') {
     var value = redisPub.hdel(payload.params.group, payload.params.key, function(err, value) {
       console.log('HDEL', payload.params.group, payload.params.key, '->', err || value)
       redis_pub({id: payload.id, result: value})
