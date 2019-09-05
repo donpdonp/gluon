@@ -15,5 +15,4 @@ test:
 	GOPATH=`pwd` go test donpdonp/gluon
 
 format:
-	gofmt -w src/donpdonp/gluon
-
+	gofmt -w src/gluon

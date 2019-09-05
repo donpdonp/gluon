@@ -7,7 +7,7 @@ func (vm *VM) EvalJs(js_code string) (string, error) {
 	if err != nil {
 		context := vm.Js.Context()
 		fmt.Printf("vm.EvalJs failed err: %#v stack: %#v file: %#v line: %#v code: %s\n",
-			  err, context.Stacktrace, context.Filename, context.Line, js_code)
+			err, context.Stacktrace, context.Filename, context.Line, js_code)
 		return "", err
 	} else {
 		otto_json, err := vm.Js.Call("JSON.stringify", nil, result)
