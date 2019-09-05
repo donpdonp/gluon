@@ -3,12 +3,6 @@
 /gems/
 /golang/bin/
 /golang/config.json
-/golang/cmd
-/golang/gluon
-/golang/pkg/
-/golang/src/github.com/
-/golang/src/gopkg.in/
-/mruby
 /ircd
 /logs
 node_modules/
