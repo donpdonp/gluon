@@ -1,7 +1,6 @@
 package vm
 
 import "errors"
-import "encoding/json"
 
 import "github.com/robertkrimen/otto"
 
@@ -14,16 +13,12 @@ type VM struct {
 	Name  string
 	Url   string
 	Js    *otto.Otto
-	Ruby  *RubyVM
 	Wasm  *WasmProcess
 }
 
 func Factory(owner string, lang string) *VM {
 	new_vm := VM{Id: util.Snowflake(), Owner: owner}
 	new_vm.Q = make(chan map[string]interface{}, 1000)
-	if lang == "ruby" {
-		new_vm.Ruby = rubyfactory()
-	}
 	if lang == "javascript" {
 		new_vm.Js = otto.New()
 	}
@@ -37,9 +32,6 @@ func (vm *VM) Lang() string {
 	if vm.Js != nil {
 		return "javascript"
 	}
-	if vm.Ruby != nil {
-		return "ruby"
-	}
 	if vm.Wasm != nil {
 		return "webassembly"
 	}
@@ -51,12 +43,6 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 	var callBytes []byte
 	if vm.Lang() == "javascript" {
 		callBytes = []byte("go(" + params_json + ")")
-		return vm.Eval(vm.EvalDependencies(callBytes))
-	}
-	if vm.Lang() == "ruby" {
-		params_double_jbytes, _ := json.Marshal(params_json)
-		params_double_json := string(params_double_jbytes)
-		callBytes = []byte("go(JSON.parse(" + params_double_json + "))")
 		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	if vm.Lang() == "webassembly" {
@@ -80,9 +66,6 @@ func (vm *VM) Eval(dependencies map[string][]byte) (string, error) {
 	lang := vm.Lang()
 	if lang == "javascript" {
 		return vm.EvalJs(string(code))
-	}
-	if lang == "ruby" {
-		return vm.EvalRuby(string(code))
 	}
 	if lang == "webassembly" {
 		return vm.EvalWasm(dependencies)
