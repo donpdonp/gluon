@@ -1,8 +1,5 @@
 /bin/
 /.bundle/
-/cpp/build/
-/cpp/config.json
-/cpp/gluon
 /gems/
 /golang/bin/
 /golang/config.json
