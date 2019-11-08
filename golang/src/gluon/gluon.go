@@ -243,9 +243,9 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 	vm.Js.Set("http", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
 			return httpGet(vm, call)
-		 },
+		},
 		"post": func(call otto.FunctionCall) otto.Value {
-			return httpPost(vm, call);
+			return httpPost(vm, call)
 		}})
 	vm.Js.Set("db", map[string]interface{}{
 		"get": func(call otto.FunctionCall) otto.Value {
@@ -368,7 +368,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 
 func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, error) {
 	fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
-	resp, codeBytes, err := comm.HttpGet(url)
+	resp, codeBytes, _, err := comm.HttpGet(url)
 	if err != nil {
 		fmt.Printf("vm_add http err %v\n", err)
 	} else {
@@ -396,7 +396,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			for name := range dependencies {
 				if name != "main" {
 					url := "http://localhost/" + name + ".wasm"
-					resp, codeBytes, err := comm.HttpGet(url)
+					resp, codeBytes, _, err := comm.HttpGet(url)
 					if resp.StatusCode != 200 || err != nil {
 						fmt.Printf("vm_add dependencies load error %s %#v %#v\n", url, resp.Status, err)
 					} else {
@@ -462,7 +462,7 @@ func vm_reload(name string, bus comm.Pubsub) error {
 	if idx > -1 {
 		vm := vm_list.At(idx)
 		fmt.Println(name + " found. reloading " + vm.Url)
-		_, codeBytes, err := comm.HttpGet(vm.Url)
+		_, codeBytes, _, err := comm.HttpGet(vm.Url)
 		if err != nil {
 			_, err := vm.Eval(vm.EvalDependencies(codeBytes))
 			return err

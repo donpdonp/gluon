@@ -12,7 +12,7 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	arg0 := call.Argument(0)
 	if arg0.IsString() {
 		urlc := arg0.String()
-		resp, body, err := comm.HttpGet(urlc)
+		resp, body, _, err := comm.HttpGet(urlc)
 		var resultDisplay string
 		if err != nil {
 			resultDisplay = fmt.Sprintf("err %#v\n", err)
@@ -27,7 +27,7 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		urlg, _ := urlo.Get("url")
 		urlc := urlg.String()
 		fmt.Printf("%s/%s http.get %#v\n", vm.Owner, vm.Name, urlc)
-		resp, body, err := comm.HttpGet(urlc)
+		resp, body, tls, err := comm.HttpGet(urlc)
 		fmt.Printf("go %#v %#v\n", resp, err)
 		goResult := map[string]interface{}{}
 		if err != nil {
@@ -36,6 +36,11 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		} else {
 			goResult["status"] = resp.StatusCode
 			goResult["body"] = string(body)
+			goTls := map[string]interface{}{}
+			goTls["version"] = tls.Version
+			goTls["server_name"] = tls.ServerName
+			goTls["peer_certs"] = len(tls.PeerCertificates)
+			goResult["tls"] = goTls
 		}
 		ottoV, err = vm.Js.ToValue(goResult)
 		fmt.Printf("otto %#v %#v\n", ottoV, err)

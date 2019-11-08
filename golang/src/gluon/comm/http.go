@@ -1,24 +1,25 @@
 package comm
 
 import (
+	"crypto/tls"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 )
 
-func HttpGet(url string) (*http.Response, []byte, error) {
+func HttpGet(url string) (*http.Response, []byte, *tls.ConnectionState, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
 	resp, err := client.Get(url)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		return resp, bytes, err
+		return resp, bytes, resp.TLS, err
 	}
 }
 
