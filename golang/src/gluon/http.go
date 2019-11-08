@@ -46,6 +46,7 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 					c := map[string]interface{}{}
 					c["not_before"] = cert.NotBefore.Format(time.RFC3339)
 					c["not_after"] = cert.NotAfter.Format(time.RFC3339)
+					c["dns_names"] = cert.DNSNames
 					certs = append(certs, c)
 				}
 				goTls["peer_certs"] = certs
