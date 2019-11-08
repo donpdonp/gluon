@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 import "strings"
+import "time"
 
 import "donpdonp/gluon/comm"
 import "donpdonp/gluon/vm"
@@ -37,9 +38,18 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 			goResult["status"] = resp.StatusCode
 			goResult["body"] = string(body)
 			goTls := map[string]interface{}{}
-			goTls["version"] = tls.Version
-			goTls["server_name"] = tls.ServerName
-			goTls["peer_certs"] = len(tls.PeerCertificates)
+			if tls != nil {
+				goTls["version"] = tls.Version
+				goTls["server_name"] = tls.ServerName
+				certs := []map[string]interface{}{}
+				for _, cert := range tls.PeerCertificates {
+					c := map[string]interface{}{}
+					c["not_before"] = cert.NotBefore.Format(time.RFC3339)
+					c["not_after"] = cert.NotAfter.Format(time.RFC3339)
+					certs = append(certs, c)
+				}
+				goTls["peer_certs"] = certs
+			}
 			goResult["tls"] = goTls
 		}
 		ottoV, err = vm.Js.ToValue(goResult)
@@ -63,3 +73,4 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	}
 	return ottoStr
 }
+
