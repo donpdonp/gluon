@@ -13,7 +13,6 @@ type VM struct {
 	Name  string
 	Url   string
 	Js    *otto.Otto
-	Wasm  *WasmProcess
 	Wasm3 *Wasm3Process
 }
 
