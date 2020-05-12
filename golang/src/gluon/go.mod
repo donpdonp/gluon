@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/go-interpreter/wagon v0.5.1-0.20190903120725-1e64ad340c91
+	github.com/matiasinsaurralde/go-wasm3 v0.0.0-20200430145938-3a21e6ba62e7
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20160220154919-db14e161995a // indirect
 	gopkg.in/redis.v3 v3.6.4

@@ -74,4 +74,3 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	}
 	return ottoStr
 }
-
