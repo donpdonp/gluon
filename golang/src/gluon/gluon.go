@@ -342,8 +342,8 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto_str
 		},
 		"sign": func(call otto.FunctionCall) otto.Value {
-			data_hex := call.Argument(0).String()
-			data, err := hex.DecodeString(data_hex)
+			msg_hex := call.Argument(0).String()
+			msg, err := hex.DecodeString(msg_hex)
 			if err != nil {
 				fmt.Printf("eth.sign msg param err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
@@ -356,12 +356,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
 			}
-			msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-			hasher := sha3.NewLegacyKeccak256()
-			hasher.Write([]byte(msg))
-			hash := make([]byte, 0)
-			hash = hasher.Sum(hash)
-			sig, err := secp256k1.Sign(hash, key)
+			sig, err := secp256k1.Sign(msg, key)
 			if err != nil {
 				fmt.Printf("eth.sign err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
