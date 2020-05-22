@@ -39,9 +39,9 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 				}
 			}
 		}
-		fmt.Printf("%s/%s http.get %#v\n", vm.Owner, vm.Name, urlc)
 		resp, body, tls, err := comm.HttpGet(urlc, headers)
-		fmt.Printf("go %#v %#v\n", resp, err)
+		fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, urlc, resp.Status, 
+			resp.Header.Get("Content-Type"))
 		goResult := map[string]interface{}{}
 		if err != nil {
 			goResult["error"] = map[string]interface{}{
@@ -73,10 +73,10 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 
 func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	urlc := call.Argument(0).String()
-	fmt.Printf("post(%s, %s)\n", urlc, call.Argument(1).String())
+	body := call.Argument(1).String()
 	headers := map[string]string{}
 	body, err := comm.HttpPost(urlc, headers,
-		strings.NewReader(call.Argument(1).String()))
+		strings.NewReader(body))
 	var resultDisplay string
 	var ottoStr otto.Value
 	if err != nil {
