@@ -334,7 +334,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			hash = hasher.Sum(hash)
 			hash_hex := make([]byte, hex.EncodedLen(len(hash)))
 			hex.Encode(hash_hex, hash)
-			otto_str, err := otto.ToValue(hash_hex)
+			otto_str, err := vm.Js.ToValue(hash_hex)
 			if err != nil {
 				fmt.Printf("eth.keccak return otto.ToValue err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
@@ -365,7 +365,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			}
 			sig_hex := make([]byte, hex.EncodedLen(len(sig)))
 			hex.Encode(sig_hex, sig)
-			otto_str, err := otto.ToValue(sig_hex)
+			otto_str, err := vm.Js.ToValue(sig_hex)
 			if err != nil {
 				fmt.Printf("eth.sign return otto.ToValue err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
