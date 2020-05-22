@@ -329,12 +329,11 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				return otto_str
 			}
 			hasher := sha3.NewLegacyKeccak256()
-			hasher.Write([]byte(msg))
+			hasher.Write(msg)
 			hash := make([]byte, 0)
 			hash = hasher.Sum(hash)
-			hash_hex := make([]byte, hex.EncodedLen(len(hash)))
-			hex.Encode(hash_hex, hash)
-			otto_str, err := vm.Js.ToValue(hash_hex)
+			hash_hex := hex.EncodeToString(hash)
+			otto_str, err := otto.ToValue(hash_hex)
 			if err != nil {
 				fmt.Printf("eth.keccak return otto.ToValue err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
@@ -343,13 +342,14 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto_str
 		},
 		"sign": func(call otto.FunctionCall) otto.Value {
-			msg_hex := call.Argument(0).String()
-			msg, err := hex.DecodeString(msg_hex)
+			data_hex := call.Argument(0).String()
+			data, err := hex.DecodeString(data_hex)
 			if err != nil {
 				fmt.Printf("eth.sign msg param err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
 			}
+			msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
 			key_hex := call.Argument(1).String()
 			key, err := hex.DecodeString(key_hex)
 			if err != nil {
@@ -357,15 +357,14 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
 			}
-			sig, err := secp256k1.Sign(msg, key)
+			sig, err := secp256k1.Sign([]byte(msg), key)
 			if err != nil {
 				fmt.Printf("eth.sign err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
 				return otto_str
 			}
-			sig_hex := make([]byte, hex.EncodedLen(len(sig)))
-			hex.Encode(sig_hex, sig)
-			otto_str, err := vm.Js.ToValue(sig_hex)
+			sig_hex := hex.EncodeToString(sig)
+			otto_str, err := otto.ToValue(sig_hex)
 			if err != nil {
 				fmt.Printf("eth.sign return otto.ToValue err: %s\n", err.Error())
 				otto_str, _ := otto.ToValue(err.Error())
