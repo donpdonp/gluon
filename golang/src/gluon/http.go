@@ -31,10 +31,12 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		headers := map[string]string{}
 		headerv, err := urlo.Get("headers")
 		if err == nil {
-			headero := headerv.Object()
-			for _, key := range headero.Keys() {
-				value, _ := headero.Get(key)
-				headers[key] = value.String()
+			if headerv.IsObject() {
+				headero := headerv.Object()
+				for _, key := range headero.Keys() {
+					value, _ := headero.Get(key)
+					headers[key] = value.String()
+				}
 			}
 		}
 		fmt.Printf("%s/%s http.get %#v\n", vm.Owner, vm.Name, urlc)
