@@ -320,6 +320,18 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			return otto.Value{}
 		}})
 	vm.Js.Set("eth", map[string]interface{}{
+		"msg": func(call otto.FunctionCall) otto.Value {
+			data := call.Argument(0).String()
+			msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+			msg_hex := hex.EncodeToString([]byte(msg))
+			otto_str, err := otto.ToValue(msg_hex)
+			if err != nil {
+				fmt.Printf("eth.msg return otto.ToValue err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
+			}
+			return otto_str
+		},			
 		"keccak": func(call otto.FunctionCall) otto.Value {
 			msg_hex := call.Argument(0).String()
 			msg, err := hex.DecodeString(msg_hex)
