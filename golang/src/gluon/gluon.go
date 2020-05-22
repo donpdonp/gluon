@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -331,7 +331,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 				return otto_str
 			}
 			return otto_str
-		},			
+		},
 		"keccak": func(call otto.FunctionCall) otto.Value {
 			msg_hex := call.Argument(0).String()
 			msg, err := hex.DecodeString(msg_hex)
@@ -436,7 +436,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 
 func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, error) {
 	fmt.Printf("--vm_add owner: %v url: %v\n", owner, url)
-	resp, codeBytes, _, err := comm.HttpGet(url)
+	resp, codeBytes, _, err := comm.HttpGet(url, map[string]string{})
 	if err != nil {
 		fmt.Printf("vm_add http err %v\n", err)
 	} else {
@@ -464,7 +464,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			for name := range dependencies {
 				if name != "main" {
 					url := "http://localhost/" + name + ".wasm"
-					resp, codeBytes, _, err := comm.HttpGet(url)
+					resp, codeBytes, _, err := comm.HttpGet(url, map[string]string{})
 					if resp.StatusCode != 200 || err != nil {
 						fmt.Printf("vm_add dependencies load error %s %#v %#v\n", url, resp.Status, err)
 					} else {
@@ -530,7 +530,7 @@ func vm_reload(name string, bus comm.Pubsub) error {
 	if idx > -1 {
 		vm := vm_list.At(idx)
 		fmt.Println(name + " found. reloading " + vm.Url)
-		_, codeBytes, _, err := comm.HttpGet(vm.Url)
+		_, codeBytes, _, err := comm.HttpGet(vm.Url, map[string]string{})
 		if err != nil {
 			_, err := vm.Eval(vm.EvalDependencies(codeBytes))
 			return err

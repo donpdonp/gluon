@@ -8,12 +8,19 @@ import (
 	"time"
 )
 
-func HttpGet(url string) (*http.Response, []byte, *tls.ConnectionState, error) {
+func HttpGet(url string, headers map[string]string) (*http.Response, []byte, *tls.ConnectionState, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
-	resp, err := client.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, nil, nil, err
 	} else {
@@ -23,12 +30,19 @@ func HttpGet(url string) (*http.Response, []byte, *tls.ConnectionState, error) {
 	}
 }
 
-func HttpPost(url string, mime string, payload io.Reader) (string, error) {
+func HttpPost(url string, headers map[string]string, payload io.Reader) (string, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
-	resp, err := client.Post(url, mime, payload)
+	req, err := http.NewRequest("POST", url, payload)
+	if err != nil {
+		return "", err
+	}
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	} else {
