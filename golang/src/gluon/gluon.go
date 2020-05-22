@@ -14,6 +14,7 @@ import (
 	"donpdonp/gluon/vm"
 
 	"github.com/robertkrimen/otto"
+	"golang.org/x/crypto/sha3"
 )
 
 var (
@@ -316,6 +317,18 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			}, vm))
 			return otto.Value{}
 		}})
+	vm.Js.Set("eth", map[string]interface{}{
+		"keccak": func(call otto.FunctionCall) otto.Value {
+			hasher := sha3.NewLegacyKeccak256()
+			str := call.Argument(0).String()
+			bytes := []byte(str)
+			hasher.Write(bytes)
+			hash := make([]byte, 0)
+			hash = hasher.Sum(hash)
+			otto_str, _ := otto.ToValue(hash)
+			return otto_str
+		},
+	})
 	vm.Js.Set("vm", map[string]interface{}{
 		"add": func(call otto.FunctionCall) otto.Value {
 			url := call.Argument(0).String()
