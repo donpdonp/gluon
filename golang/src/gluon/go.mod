@@ -3,6 +3,7 @@ module donpdonp/gluon
 go 1.13
 
 require (
+	github.com/ethereum/go-ethereum v1.9.14
 	github.com/matiasinsaurralde/go-wasm3 v0.0.0-20200430145938-3a21e6ba62e7
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37

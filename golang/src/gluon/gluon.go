@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 	"donpdonp/gluon/util"
 	"donpdonp/gluon/vm"
 
+	"github.com/ethereum/go-ethereum/crypto/secp256k1"
 	"github.com/robertkrimen/otto"
 	"golang.org/x/crypto/sha3"
 )
@@ -325,7 +327,26 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			hasher.Write(bytes)
 			hash := make([]byte, 0)
 			hash = hasher.Sum(hash)
-			otto_str, _ := vm.Js.ToValue(hash)
+			hash_hex := make([]byte, hex.EncodedLen(len(hash)))
+			hex.Encode(hash_hex, hash)
+			otto_str, _ := otto.ToValue(hash_hex)
+			return otto_str
+		},
+		"sign": func(call otto.FunctionCall) otto.Value {
+			msg_hex := call.Argument(0).String()
+			msg, err := hex.DecodeString(msg_hex)
+			if err != nil {
+			}
+			key_hex := call.Argument(1).String()
+			key, err := hex.DecodeString(key_hex)
+			if err != nil {
+			}
+			sig, err := secp256k1.Sign(msg, key)
+			if err != nil {
+			}
+			sig_hex := make([]byte, hex.EncodedLen(len(sig)))
+			hex.Encode(sig_hex, sig)
+			otto_str, _ := otto.ToValue(sig_hex)
 			return otto_str
 		},
 	})
