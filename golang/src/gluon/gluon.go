@@ -321,32 +321,56 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 		}})
 	vm.Js.Set("eth", map[string]interface{}{
 		"keccak": func(call otto.FunctionCall) otto.Value {
+			msg_hex := call.Argument(0).String()
+			msg, err := hex.DecodeString(msg_hex)
+			if err != nil {
+				fmt.Printf("eth.keccak msg param err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
+			}
 			hasher := sha3.NewLegacyKeccak256()
-			str := call.Argument(0).String()
-			bytes := []byte(str)
-			hasher.Write(bytes)
+			hasher.Write([]byte(msg))
 			hash := make([]byte, 0)
 			hash = hasher.Sum(hash)
 			hash_hex := make([]byte, hex.EncodedLen(len(hash)))
 			hex.Encode(hash_hex, hash)
-			otto_str, _ := otto.ToValue(hash_hex)
+			otto_str, err := otto.ToValue(hash_hex)
+			if err != nil {
+				fmt.Printf("eth.keccak return otto.ToValue err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
+			}
 			return otto_str
 		},
 		"sign": func(call otto.FunctionCall) otto.Value {
 			msg_hex := call.Argument(0).String()
 			msg, err := hex.DecodeString(msg_hex)
 			if err != nil {
+				fmt.Printf("eth.sign msg param err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
 			}
 			key_hex := call.Argument(1).String()
 			key, err := hex.DecodeString(key_hex)
 			if err != nil {
+				fmt.Printf("eth.sign key param err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
 			}
 			sig, err := secp256k1.Sign(msg, key)
 			if err != nil {
+				fmt.Printf("eth.sign err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
 			}
 			sig_hex := make([]byte, hex.EncodedLen(len(sig)))
 			hex.Encode(sig_hex, sig)
-			otto_str, _ := otto.ToValue(sig_hex)
+			otto_str, err := otto.ToValue(sig_hex)
+			if err != nil {
+				fmt.Printf("eth.sign return otto.ToValue err: %s\n", err.Error())
+				otto_str, _ := otto.ToValue(err.Error())
+				return otto_str
+			}
 			return otto_str
 		},
 	})
