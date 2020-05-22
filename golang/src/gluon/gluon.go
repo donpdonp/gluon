@@ -325,7 +325,7 @@ func vm_enhance_js_standard(vm *vm.VM, bus comm.Pubsub) {
 			hasher.Write(bytes)
 			hash := make([]byte, 0)
 			hash = hasher.Sum(hash)
-			otto_str, _ := otto.ToValue(hash)
+			otto_str, _ := otto.ToValue(string(hash))
 			return otto_str
 		},
 	})
