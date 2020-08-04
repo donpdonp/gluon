@@ -3,6 +3,7 @@ package vm
 import "errors"
 
 import "github.com/robertkrimen/otto"
+import "github.com/matiasinsaurralde/go-wasm3"
 
 import "donpdonp/gluon/util"
 
@@ -13,6 +14,7 @@ type VM struct {
 	Name  string
 	Url   string
 	Js    *otto.Otto
+	Wasm  *wasm3.Runtime
 }
 
 func Factory(owner string, lang string) *VM {
@@ -21,6 +23,12 @@ func Factory(owner string, lang string) *VM {
 	if lang == "javascript" {
 		new_vm.Js = otto.New()
 	}
+	if lang == "webassembly" {
+		new_vm.Wasm = wasm3.NewRuntime(&wasm3.Config{
+			Environment: wasm3.NewEnvironment(),
+			StackSize:   64 * 1024,
+		})
+	}
 	return &new_vm
 }
 
@@ -28,15 +36,27 @@ func (vm *VM) Lang() string {
 	if vm.Js != nil {
 		return "javascript"
 	}
+	if vm.Wasm != nil {
+		return "webassembly"
+	}
 	return "unknown"
 }
 
-func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
-	params_json := string(params_jbytes)
+func (vm *VM) EvalCallGo(params_json []byte) (string, error) {
+	json := string(params_json)
 	var callBytes []byte
-	if vm.Lang() == "javascript" {
-		callBytes = []byte("go(" + params_json + ")")
+	lang := vm.Lang()
+	if lang == "javascript" {
+		callBytes = []byte("go(" + json + ")")
 		return vm.Eval(vm.EvalDependencies(callBytes))
+	}
+	if lang == "webassembly" {
+		fn, err := vm.Wasm.FindFunction("go")
+		if err != nil {
+			panic(err)
+		}
+		result, err := fn()
+		return string(result), err
 	}
 	return "", errors.New("")
 }
@@ -56,6 +76,9 @@ func (vm *VM) Eval(dependencies map[string][]byte) (string, error) {
 	lang := vm.Lang()
 	if lang == "javascript" {
 		return vm.EvalJs(string(code))
+	}
+	if lang == "webassembly" {
+		return vm.EvalWasm(code)
 	}
 	return "", errors.New(lang)
 }
