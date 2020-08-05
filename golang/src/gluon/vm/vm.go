@@ -3,8 +3,8 @@ package vm
 import "errors"
 
 import "github.com/robertkrimen/otto"
-import "github.com/matiasinsaurralde/go-wasm3"
 import "github.com/perlin-network/life/exec"
+
 import "donpdonp/gluon/util"
 
 type VM struct {
@@ -14,8 +14,7 @@ type VM struct {
 	Name  string
 	Url   string
 	Js    *otto.Otto
-	Wasm  *wasm3.Runtime
-	Life  *exec.VirtualMachine
+	Wasm  *exec.VirtualMachine
 }
 
 func Factory(owner string, lang string) *VM {
@@ -25,14 +24,8 @@ func Factory(owner string, lang string) *VM {
 		new_vm.Js = otto.New()
 	}
 	if lang == "webassembly" {
-		new_vm.Wasm = wasm3.NewRuntime(&wasm3.Config{
-			Environment: wasm3.NewEnvironment(),
-			StackSize:   64 * 1024,
-		})
-	}
-	if lang == "webassembly" {
 		life, _ := exec.NewVirtualMachine([]byte{}, exec.VMConfig{}, &exec.NopResolver{}, nil)
-		new_vm.Life = life
+		new_vm.Wasm = life
 	}
 	return &new_vm
 }
