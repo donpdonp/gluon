@@ -161,7 +161,7 @@ func dispatch(msg map[string]interface{}, bus comm.Pubsub) {
 func dispatchVM(bus comm.Pubsub, vm vm.VM, msg map[string]interface{}) {
 	start := time.Now()
 	msg_bytes, _ := json.Marshal(msg)
-	response_str, err := vm.EvalCallGo(msg_bytes)
+	response_str, err := vm.EvalGo(msg_bytes)
 	elapsed := time.Now().Sub(start)
 	callbacks := bus.Rpcq.CallbacksWaiting(vm.Owner + "/" + vm.Name)
 	var sayback string

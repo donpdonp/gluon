@@ -40,7 +40,7 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 			}
 		}
 		resp, body, tls, err := comm.HttpGet(urlc, headers)
-		fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, urlc, resp.Status,
+		fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, urlc, resp.Status, 
 			resp.Header.Get("Content-Type"))
 		goResult := map[string]interface{}{}
 		if err != nil {
