@@ -49,11 +49,11 @@ func (vm *VM) EvalCallGo(params_json []byte) (string, error) {
 		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	if lang == "webassembly" {
-		fn, err := vm.Wasm.FindFunction("go")
-		if err != nil {
-			panic(err)
+		id, err_bool := vm.Wasm.GetFunctionExport("go")
+		if err_bool {
+			panic("go func not found")
 		}
-		result, err := fn()
+		result, err := vm.Wasm.Run(id)
 		return string(result), err
 	}
 	return "", errors.New("")
