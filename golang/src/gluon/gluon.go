@@ -473,7 +473,10 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 					}
 				}
 			}
-			setup_json, _ = vm.Eval(dependencies)
+			setup_json, err = vm.Eval(dependencies)
+			if err != nil {
+				fmt.Printf("vm_add wasm eval err: %v\n", err)
+			}
 		} else {
 			err = errors.New("unknown lang " + lang)
 		}
@@ -491,7 +494,7 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 				fmt.Printf("VM %s/%s (%s) added!\n", vm.Owner, vm.Name, vm.Lang())
 				return setup, nil
 			} else {
-				fmt.Printf("VM %s/%s bad setup json!\n", vm.Owner, vm.Name)
+				fmt.Printf("VM %s/%s setup json missing name:\n%#v\n", vm.Owner, vm.Name, setup_json)
 				return nil, errors.New("bad setup json")
 			}
 		}
@@ -506,6 +509,8 @@ func pickLang(urlStr string, contentType string) string {
 		lang = "javascript"
 	} else if contentType == "script/ruby" {
 		lang = "ruby"
+	} else if contentType == "application/wasm" {
+		lang = "webassembly"
 	} else {
 		uri, _ := url.Parse(urlStr)
 		parts := strings.Split(uri.Path, "/")
@@ -519,7 +524,7 @@ func pickLang(urlStr string, contentType string) string {
 		} else if extension == "wasm" {
 			lang = "webassembly"
 		} else if extension == "wast" { //webasm source
-			lang = "webassembly"
+			lang = "webassemblytext"
 		}
 	}
 	return lang

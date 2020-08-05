@@ -9,5 +9,5 @@ func (vm *VM) EvalWasm(code []byte) (string, error) {
 	if err != nil {
 		panic(err)
 	}
-	return "wasm loaded " + string(len(code)), nil
+	return "{\"name\":\"webasm\"}", nil
 }

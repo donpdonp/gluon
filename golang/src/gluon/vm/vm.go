@@ -1,6 +1,7 @@
 package vm
 
 import "errors"
+import "fmt"
 
 import "github.com/robertkrimen/otto"
 import "github.com/matiasinsaurralde/go-wasm3"
@@ -53,12 +54,13 @@ func (vm *VM) EvalCallGo(params_json []byte) (string, error) {
 	if lang == "webassembly" {
 		fn, err := vm.Wasm.FindFunction("go")
 		if err != nil {
-			panic(err)
+			return "", err
+		} else {
+			result, err := fn()
+			return string(result), err
 		}
-		result, err := fn()
-		return string(result), err
 	}
-	return "", errors.New("")
+	return "", errors.New(fmt.Sprintf("EvalCallGo vm with unknown lang %s", lang))
 }
 
 func (vm *VM) EvalDependencies(code []byte) map[string][]byte {
@@ -80,5 +82,5 @@ func (vm *VM) Eval(dependencies map[string][]byte) (string, error) {
 	if lang == "webassembly" {
 		return vm.EvalWasm(code)
 	}
-	return "", errors.New(lang)
+	return "", errors.New(lang) //setup json
 }
