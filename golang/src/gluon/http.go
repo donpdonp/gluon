@@ -48,6 +48,7 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 			goResult["error"] = map[string]interface{}{
 				"message": err.Error()}
 		} else {
+			fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, urlc, resp.Status)
 			goResult["status"] = resp.StatusCode
 			goResult["body"] = string(body)
 			goResult["headers"] = resp.Header
