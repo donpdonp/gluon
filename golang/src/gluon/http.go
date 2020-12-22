@@ -3,6 +3,7 @@ package main
 import "fmt"
 import "strings"
 import "time"
+import	"crypto/tls"
 
 import "donpdonp/gluon/comm"
 import "donpdonp/gluon/vm"
@@ -49,19 +50,10 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		} else {
 			goResult["status"] = resp.StatusCode
 			goResult["body"] = string(body)
+			goResult["headers"] = resp.Header
 			goTls := map[string]interface{}{}
 			if tls != nil {
-				goTls["version"] = tls.Version
-				goTls["server_name"] = tls.ServerName
-				certs := []map[string]interface{}{}
-				for _, cert := range tls.PeerCertificates {
-					c := map[string]interface{}{}
-					c["not_before"] = cert.NotBefore.Format(time.RFC3339)
-					c["not_after"] = cert.NotAfter.Format(time.RFC3339)
-					c["dns_names"] = cert.DNSNames
-					certs = append(certs, c)
-				}
-				goTls["peer_certs"] = certs
+				tlsFill(goTls, tls)
 			}
 			goResult["tls"] = goTls
 		}
@@ -69,6 +61,20 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		fmt.Printf("otto %#v %#v\n", ottoV, err)
 	}
 	return ottoV
+}
+
+func tlsFill(goTls map[string]interface{}, tls *tls.ConnectionState) {
+	goTls["version"] = tls.Version
+	goTls["server_name"] = tls.ServerName
+	certs := []map[string]interface{}{}
+	for _, cert := range tls.PeerCertificates {
+		c := map[string]interface{}{}
+		c["not_before"] = cert.NotBefore.Format(time.RFC3339)
+		c["not_after"] = cert.NotAfter.Format(time.RFC3339)
+		c["dns_names"] = cert.DNSNames
+		certs = append(certs, c)
+	}
+	goTls["peer_certs"] = certs
 }
 
 func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
