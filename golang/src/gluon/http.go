@@ -88,7 +88,7 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	arg0 := call.Argument(0)
 	url, headers := paramParse(arg0)
 	body := call.Argument(1).String()
-	body, err := comm.HttpPost(urlc, headers, strings.NewReader(body))
+	body, err := comm.HttpPost(url, headers, strings.NewReader(body))
 	var resultDisplay string
 	var ottoStr otto.Value
 	if err != nil {
@@ -97,6 +97,6 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	} else {
 		ottoStr, _ = otto.ToValue(body)
 	}
-	fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, urlc, resultDisplay)
+	fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
 	return ottoStr
 }
