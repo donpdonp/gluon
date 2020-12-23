@@ -4,6 +4,7 @@ import "fmt"
 import "strings"
 import "time"
 import "crypto/tls"
+import "encoding/json"
 
 import "donpdonp/gluon/comm"
 import "donpdonp/gluon/vm"
@@ -86,8 +87,16 @@ func tlsFill(goTls map[string]interface{}, tls *tls.ConnectionState) {
 
 func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	arg0 := call.Argument(0)
+	arg1 := call.Argument(1)
 	url, headers := paramParse(arg0)
-	body := call.Argument(1).String()
+	body := ""
+	if arg1.IsString() {
+		body = call.Argument(1).String()
+	} else if arg1.IsObject() {
+		bodyo := arg1.Object()
+		bodyBytes, _ := json.Marshal(bodyo)
+		body = string(bodyBytes)
+	}
 	body, err := comm.HttpPost(url, headers, strings.NewReader(body))
 	var resultDisplay string
 	var ottoStr otto.Value
