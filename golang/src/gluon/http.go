@@ -3,33 +3,20 @@ package main
 import "fmt"
 import "strings"
 import "time"
-import	"crypto/tls"
+import "crypto/tls"
 
 import "donpdonp/gluon/comm"
 import "donpdonp/gluon/vm"
 import "github.com/robertkrimen/otto"
 
-func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
-	var ottoV otto.Value
-	arg0 := call.Argument(0)
+func paramParse(arg0 otto.Value) (string, map[string]string) {
+	url, headers := "", map[string]string{}
 	if arg0.IsString() {
-		urlc := arg0.String()
-		headers := map[string]string{}
-		resp, body, _, err := comm.HttpGet(urlc, headers)
-		var resultDisplay string
-		if err != nil {
-			resultDisplay = fmt.Sprintf("err %#v\n", err)
-			ottoV, _ = otto.ToValue("") // scripts use length 0 as err indication
-		} else {
-			ottoV, _ = otto.ToValue(string(body))
-			resultDisplay = fmt.Sprintf("%s %d bytes\n", resp.Status, len(body))
-		}
-		fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name, urlc, resultDisplay)
+		url = arg0.String()
 	} else if arg0.IsObject() {
 		urlo := arg0.Object()
 		urlg, _ := urlo.Get("url")
-		urlc := urlg.String()
-		headers := map[string]string{}
+		url = urlg.String()
 		headerv, err := urlo.Get("headers")
 		if err == nil {
 			if headerv.IsObject() {
@@ -40,15 +27,34 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 				}
 			}
 		}
-		resp, body, tls, err := comm.HttpGet(urlc, headers)
-		fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, urlc, resp.Status, 
+	}
+	return url, headers
+}
+
+func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
+	arg0 := call.Argument(0)
+	url, headers := paramParse(arg0)
+	resp, body, tls, err := comm.HttpGet(url, headers)
+	var ottoReturn otto.Value
+	if arg0.IsString() {
+		var resultDisplay string
+		if err != nil {
+			resultDisplay = fmt.Sprintf("err %#v\n", err)
+			ottoReturn, _ = otto.ToValue("") // scripts use length 0 as err indication
+		} else {
+			ottoReturn, _ = otto.ToValue(string(body))
+			resultDisplay = fmt.Sprintf("%s %d bytes\n", resp.Status, len(body))
+		}
+		fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
+	} else {
+		fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, url, resp.Status,
 			resp.Header.Get("Content-Type"))
 		goResult := map[string]interface{}{}
 		if err != nil {
 			goResult["error"] = map[string]interface{}{
 				"message": err.Error()}
 		} else {
-			fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, urlc, resp.Status)
+			fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, url, resp.Status)
 			goResult["status"] = resp.StatusCode
 			goResult["body"] = string(body)
 			goResult["headers"] = resp.Header
@@ -58,10 +64,10 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 			}
 			goResult["tls"] = goTls
 		}
-		ottoV, err = vm.Js.ToValue(goResult)
-		fmt.Printf("otto %#v %#v\n", ottoV, err)
+		ottoReturn, err = vm.Js.ToValue(goResult)
+		fmt.Printf("otto %#v %#v\n", ottoReturn, err)
 	}
-	return ottoV
+	return ottoReturn
 }
 
 func tlsFill(goTls map[string]interface{}, tls *tls.ConnectionState) {
@@ -79,11 +85,10 @@ func tlsFill(goTls map[string]interface{}, tls *tls.ConnectionState) {
 }
 
 func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
-	urlc := call.Argument(0).String()
+	arg0 := call.Argument(0)
+	url, headers := paramParse(arg0)
 	body := call.Argument(1).String()
-	headers := map[string]string{}
-	body, err := comm.HttpPost(urlc, headers,
-		strings.NewReader(body))
+	body, err := comm.HttpPost(urlc, headers, strings.NewReader(body))
 	var resultDisplay string
 	var ottoStr otto.Value
 	if err != nil {
