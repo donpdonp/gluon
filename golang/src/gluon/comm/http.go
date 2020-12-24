@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"time"
 )
 
@@ -48,6 +49,8 @@ func HttpPost(url string, headers map[string]string, payload io.Reader) (string,
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		return string(bytes), err
+		re := regexp.MustCompile("[[:^ascii:]]")
+		ascii := re.ReplaceAllLiteralString(string(bytes), "")
+		return ascii, err
 	}
 }
