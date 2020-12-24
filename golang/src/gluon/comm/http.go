@@ -30,24 +30,24 @@ func HttpGet(url string, headers map[string]string) (*http.Response, []byte, *tl
 	}
 }
 
-func HttpPost(url string, headers map[string]string, payload io.Reader) ([]byte, error) {
+func HttpPost(url string, headers map[string]string, payload io.Reader) (string, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
-		return []byte{}, err
+		return "", err
 	}
 	for key, value := range headers {
 		req.Header.Add(key, value)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return []byte{}, err
+		return "", err
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		return bytes, err
+		return string(bytes), err
 	}
 }
