@@ -5,9 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"regexp"
 	"time"
-	"fmt"
 )
 
 func HttpGet(url string, headers map[string]string) (*http.Response, []byte, *tls.ConnectionState, error) {
@@ -50,12 +48,12 @@ func HttpPost(url string, headers map[string]string, payload io.Reader) (string,
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		re := regexp.MustCompile("[[:^ascii:]]")
-		ascii := re.ReplaceAllLiteralString(string(bytes), "")
-		if len(bytes) != len(ascii) {
-			var diff = len(bytes) - len(ascii)
-		  fmt.Printf("warning HttpPost response bytes %d != ascii %d (diff %d)\n",len(bytes), len(ascii), diff)
-		}
-		return ascii, err
+		// re := regexp.MustCompile("[[:^ascii:]]")
+		// ascii := re.ReplaceAllLiteralString(string(bytes), "")
+		// if len(bytes) != len(ascii) {
+		// 	var diff = len(bytes) - len(ascii)
+		//   fmt.Printf("warning HttpPost response bytes %d != ascii %d (diff %d)\n",len(bytes), len(ascii), diff)
+		// }
+		return string(bytes), err
 	}
 }
