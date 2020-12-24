@@ -97,14 +97,14 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		bodyBytes, _ := json.Marshal(bodyo)
 		body = string(bodyBytes)
 	}
-	body, err := comm.HttpPost(url, headers, strings.NewReader(body))
+	resp, err := comm.HttpPost(url, headers, strings.NewReader(body))
 	var resultDisplay string
 	var ottoStr otto.Value
 	if err != nil {
 		resultDisplay = fmt.Sprintf("err %#v\n", err)
 		ottoStr, _ = otto.ToValue("")
 	} else {
-		ottoStr, _ = otto.ToValue(body)
+		ottoStr, _ = otto.ToValue(resp)
 	}
 	fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
 	return ottoStr
