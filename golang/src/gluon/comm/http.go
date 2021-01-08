@@ -30,21 +30,21 @@ func HttpGet(url string, headers map[string]string) (*http.Response, []byte, *tl
 	}
 }
 
-func HttpPost(url string, headers map[string]string, payload io.Reader) (string, error) {
+func HttpPost(url string, headers map[string]string, payload io.Reader) ([]byte, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	for key, value := range headers {
 		req.Header.Add(key, value)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
@@ -54,6 +54,6 @@ func HttpPost(url string, headers map[string]string, payload io.Reader) (string,
 		// 	var diff = len(bytes) - len(ascii)
 		//   fmt.Printf("warning HttpPost response bytes %d != ascii %d (diff %d)\n",len(bytes), len(ascii), diff)
 		// }
-		return string(bytes), err
+		return bytes, err
 	}
 }
