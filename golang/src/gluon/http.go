@@ -48,8 +48,6 @@ func httpGet(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		}
 		fmt.Printf("%s/%s http.get %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
 	} else {
-		fmt.Printf("%s/%s http.get %s %s %#v\n", vm.Owner, vm.Name, url, resp.Status,
-			resp.Header.Get("Content-Type"))
 		goResult := map[string]interface{}{}
 		if err != nil {
 			goResult["error"] = map[string]interface{}{
