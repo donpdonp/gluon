@@ -83,7 +83,6 @@ func tlsFill(goTls map[string]interface{}, tls *tls.ConnectionState) {
 }
 
 func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
-	fmt.Printf("httpPost arg list %d\n", len(call.ArgumentList))
 	arg0 := call.Argument(0)
 	arg1 := call.Argument(1)
 	url, headers := paramParse(arg0)
@@ -96,8 +95,7 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 			fmt.Printf("httpPost json.Marshal err %#v\n", err)
 		}
 		body = string(bodyBytes)
-		fmt.Printf("httpPost body (%d) %#v\n", len(bodyBytes), bodyBytes)
-		fmt.Printf("httpPost body %#v\n", body)
+		fmt.Printf("httpPost body (%d) %s\n", len(body),body)
 	} else {
 		fmt.Printf("httpPost unknown body param %#v", arg1)
 	}
