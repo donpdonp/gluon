@@ -103,7 +103,7 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		ottoStr, _ = otto.ToValue("")
 	} else {
 		resultDisplay = fmt.Sprintf("response body %#v bytes.\n", len(resp))
-		ottoStr, _ = otto.ToValue([]rune(string(resp)))
+		ottoStr, _ = otto.ToValue(string(resp))
 	}
 	fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
 	return ottoStr
