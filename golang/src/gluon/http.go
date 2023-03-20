@@ -94,6 +94,8 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 		bodyo := arg1.Object()
 		bodyBytes, _ := json.Marshal(bodyo)
 		body = string(bodyBytes)
+		fmt.Printf("httpPost body %#v", bodyo)
+		fmt.Printf("httpPost body %#v", bodyBytes)
 		fmt.Printf("httpPost body %#v", body)
 	} else {
 		fmt.Printf("httpPost unknown body param %#v", arg1)
