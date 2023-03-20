@@ -4,7 +4,6 @@ import "fmt"
 import "strings"
 import "time"
 import "crypto/tls"
-import "encoding/json"
 
 import "donpdonp/gluon/comm"
 import "donpdonp/gluon/vm"
@@ -84,6 +83,7 @@ func tlsFill(goTls map[string]interface{}, tls *tls.ConnectionState) {
 }
 
 func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
+	fmt.Printf("httpPost arg list %d\n", len(call.ArgumentList))
 	arg0 := call.Argument(0)
 	arg1 := call.Argument(1)
 	url, headers := paramParse(arg0)
@@ -91,13 +91,11 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	if arg1.IsString() {
 		body = call.Argument(1).String()
 	} else if arg1.IsObject() {
-		bodyo := arg1.Object()
-		bodyBytes, err := json.Marshal(bodyo)
+		bodyBytes, err := arg1.MarshalJSON()
 		if err != nil {
 			fmt.Printf("httpPost json.Marshal err %#v\n", err)
 		}
 		body = string(bodyBytes)
-		fmt.Printf("httpPost body %#v\n", bodyo.Class())
 		fmt.Printf("httpPost body (%d) %#v\n", len(bodyBytes), bodyBytes)
 		fmt.Printf("httpPost body %#v\n", body)
 	} else {

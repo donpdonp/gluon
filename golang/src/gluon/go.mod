@@ -3,9 +3,10 @@ module donpdonp/gluon
 go 1.13
 
 require (
+	github.com/donpdonp/gluon v0.0.0-20230320032437-b22b69a0b8fe // indirect
 	github.com/ethereum/go-ethereum v1.11.4
 	github.com/matiasinsaurralde/go-wasm3 v0.0.0-20200430145938-3a21e6ba62e7
-	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
+	github.com/robertkrimen/otto v0.2.1
 	golang.org/x/crypto v0.1.0
 	gopkg.in/bsm/ratelimit.v1 v1.0.0-20160220154919-db14e161995a // indirect
 	gopkg.in/redis.v3 v3.6.4
