@@ -32,7 +32,13 @@ func HttpGet(url string, headers map[string]string) (*http.Response, []byte, *tl
 
 func HttpPost(url string, headers map[string]string, payload io.Reader) ([]byte, error) {
 	timeout := time.Duration(5 * time.Second)
+	transport:= &http.Transport{
+	MaxIdleConns:       10,
+	IdleConnTimeout:    30 * time.Second,
+	DisableCompression: true,
+}
 	client := http.Client{
+		Transport: transport,
 		Timeout: timeout,
 	}
 	req, err := http.NewRequest("POST", url, payload)
