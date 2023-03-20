@@ -33,10 +33,10 @@ func HttpGet(url string, headers map[string]string) (*http.Response, []byte, *tl
 func HttpPost(url string, headers map[string]string, payload io.Reader) ([]byte, error) {
 	timeout := time.Duration(5 * time.Second)
 	transport:= &http.Transport{
-	MaxIdleConns:       10,
-	IdleConnTimeout:    30 * time.Second,
-	DisableCompression: true,
-}
+		MaxIdleConns:       10,
+		IdleConnTimeout:    30 * time.Second,
+		DisableCompression: true,
+	}
 	client := http.Client{
 		Transport: transport,
 		Timeout: timeout,
@@ -54,12 +54,6 @@ func HttpPost(url string, headers map[string]string, payload io.Reader) ([]byte,
 	} else {
 		defer resp.Body.Close()
 		bytes, err := ioutil.ReadAll(resp.Body)
-		// re := regexp.MustCompile("[[:^ascii:]]")
-		// ascii := re.ReplaceAllLiteralString(string(bytes), "")
-		// if len(bytes) != len(ascii) {
-		// 	var diff = len(bytes) - len(ascii)
-		//   fmt.Printf("warning HttpPost response bytes %d != ascii %d (diff %d)\n",len(bytes), len(ascii), diff)
-		// }
 		return bytes, err
 	}
 }
