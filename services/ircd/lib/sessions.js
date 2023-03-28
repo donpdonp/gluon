@@ -28,7 +28,7 @@ module.exports = (function(){
 
   o.search = function(channel) {
     var matches = Object.keys(sessions).filter(function(sid){
-      console.log('irc searching', sessions[sid].channels)
+      console.log('irc searching for', channel, sessions[sid].channels)
       return sessions[sid].channels.indexOf(channel) > -1
     })
     return sessions[matches[0]]

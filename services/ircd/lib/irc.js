@@ -9,7 +9,7 @@ var IrcExtraRegex = /(\S*)(\s+:?([^:]+))?$/
 
 module.exports = function(publish){
   var o = {}
-  var channels = {}
+  var sockets = {}
   var logfiles = {}
 
   o.connect = function(session, socket) {
@@ -22,7 +22,7 @@ module.exports = function(publish){
     logfiles[session.id] = fs.openSync('logs/'+session.hostname, 'a')
     log(session, [])
     log(session, ['Session begin', "!#!"])
-    var irc = channels[session.id] = IrcSocket(opts, socket);
+    var irc = sockets[session.id] = IrcSocket(opts, socket);
     session.state = 'connecting'
 
     irc.once('ready', function () {
@@ -44,15 +44,11 @@ module.exports = function(publish){
     })
 
     irc.on('close', function(err) {
-      var msg = 'session ' + session.id + ' closed.'
-      if(err) { msg = msg + ' has error: ' + err }
+      var msg = 'session ' + session.id + ' state closed. session was state '+session.state+'. setting to error for reconnect.' 
+     //2023-02-09T03:07:23.697Z !#! vw6si ircd session vw6si closed. was state connected
+      if(err) { msg = msg + ' error: ' + err }
       log(session, ['ircd', msg])
-      if(session.state === 'closing') {
-        delete channels[session.id]
-      } else {
-        log(session, ['irc close error. session', session.id, 'is in', session.state])
-        session.state = 'error'
-      }
+      session.state = 'error'
     })
 
     irc.connect().then(function(a){console.log(new Date(), 'connect good', a)},
@@ -72,16 +68,16 @@ module.exports = function(publish){
   o.say = function(session, msg) {
     if(session) {
       console.log('irc-'+session.id+'-'+session.state+'>', msg)
-      channels[session.id].raw(msg)
+      sockets[session.id].raw(msg)
     }
   }
 
   o.disconnect = function(session) {
-    console.log('removing session '+session.id)
-    var channel = channels[session.id]
+    log(session, ['disconnect(). removing session'])
+    var channel = sockets[session.id]
     if(channel) {
       channel.end()
-      delete channels[session.id]
+      delete sockets[session.id]
     }
   }
 
@@ -98,8 +94,7 @@ module.exports = function(publish){
   }
 
   function log(session, words) {
-    words.unshift(session.id)
-    words.unshift('!#!')
+    words.unshift('! '+session.id+' !')
     words.unshift(new Date().toISOString())
     var message = words.join(' ')+"\n"
     fs.writeSync(logfiles[session.id], message)

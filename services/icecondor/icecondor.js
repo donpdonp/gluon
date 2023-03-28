@@ -53,6 +53,7 @@ function wsbuild(uri) {
   ws.on('message', function(data) {
     try {
       var msg = JSON.parse(data)
+	    console.log(JSON.stringify(msg))
       apigo(ws, msg)
     } catch(e) {
       console.log("json err: "+data+e)
@@ -77,6 +78,7 @@ function apigo(ws, msg) {
     var m = { id: "123",
               method: "auth.session",
               params: {device_key: settings.key}}
+	  console.log(JSON.stringify(m))
     ws.send(JSON.stringify(m))
   }
   if(msg.result) {
@@ -112,7 +114,7 @@ function apigo(ws, msg) {
                     username, msg.result.latitude.toFixed(5),
                     msg.result.longitude.toFixed(5),
                     ago, "ago.", rminago.toFixed(1), "min delay")
-        if (minago < 48) {
+        if (minago < 60*24) {
           redis_pub({method: "icecondor.location",
                     params: {username: username,
                              latitude: msg.result.latitude,

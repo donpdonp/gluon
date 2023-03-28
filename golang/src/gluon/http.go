@@ -99,16 +99,19 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	} else {
 		fmt.Printf("httpPost unknown body param %#v", arg1)
 	}
-	resp, err := comm.HttpPost(url, headers, strings.NewReader(body))
+	resp_bytes, resp, err := comm.HttpPost(url, headers, strings.NewReader(body))
 	var resultDisplay string
 	var ottoStr otto.Value
 	if err != nil {
 		resultDisplay = fmt.Sprintf("err %#v\n", err)
 		ottoStr, _ = otto.ToValue("")
 	} else {
-		resultDisplay = fmt.Sprintf("response body %#v bytes.\n", len(resp))
-		ottoStr, _ = otto.ToValue(string(resp))
+		resultDisplay = fmt.Sprintf("response body %#v bytes.\n", len(resp_bytes))
+		ottoStr, _ = otto.ToValue(string(resp_bytes))
 	}
 	fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
+	for k,v := range resp.Header {
+	  fmt.Printf("%s/%s %s %s\n", vm.Owner, vm.Name, k, v)
+	}
 	return ottoStr
 }
