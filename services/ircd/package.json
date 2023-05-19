@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "dependencies": {
     "irc-socket": "*",
-    "redis": "*",
+    "redis": "2.8",
     "node-uuid": "*"
   },
   "repository": {
