@@ -1,10 +1,12 @@
 package vm
 
-import "errors"
+import (
+	"donpdonp/gluon/util"
+	"errors"
 
-import "github.com/robertkrimen/otto"
-
-import "donpdonp/gluon/util"
+	"github.com/matiasinsaurralde/go-wasm3"
+	"github.com/robertkrimen/otto"
+)
 
 type VM struct {
 	Id    string
@@ -13,6 +15,7 @@ type VM struct {
 	Name  string
 	Url   string
 	Js    *otto.Otto
+	Wasm  *wasm3.Runtime
 }
 
 func Factory(owner string, lang string) *VM {
@@ -21,12 +24,21 @@ func Factory(owner string, lang string) *VM {
 	if lang == "javascript" {
 		new_vm.Js = otto.New()
 	}
+	if lang == "webassembly" {
+		new_vm.Wasm = wasm3.NewRuntime(&wasm3.Config{
+			Environment: wasm3.NewEnvironment(),
+			StackSize:   64 * 1024,
+		})
+	}
 	return &new_vm
 }
 
 func (vm *VM) Lang() string {
 	if vm.Js != nil {
 		return "javascript"
+	}
+	if vm.Wasm != nil {
+		return "webassembly"
 	}
 	return "unknown"
 }
@@ -37,6 +49,8 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 	if vm.Lang() == "javascript" {
 		callBytes = []byte("go(" + params_json + ")")
 		return vm.Eval(vm.EvalDependencies(callBytes))
+	}
+	if vm.Lang() == "webassembly" {
 	}
 	return "", errors.New("")
 }

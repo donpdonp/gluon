@@ -506,6 +506,8 @@ func pickLang(urlStr string, contentType string) string {
 		lang = "javascript"
 	} else if contentType == "script/ruby" {
 		lang = "ruby"
+	} else if contentType == "application/wasm" {
+		lang = "webassembly"
 	} else {
 		uri, _ := url.Parse(urlStr)
 		parts := strings.Split(uri.Path, "/")
