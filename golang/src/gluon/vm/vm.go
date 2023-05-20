@@ -29,6 +29,7 @@ func Factory(owner string, lang string) *VM {
 		new_vm.Wasm = wasm3.NewRuntime(&wasm3.Config{
 			Environment: wasm3.NewEnvironment(),
 			StackSize:   64 * 1024,
+			EnableWASI:  true,
 		})
 	}
 	return &new_vm
