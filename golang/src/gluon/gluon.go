@@ -443,6 +443,8 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 		codeLen := 0
 		if resp.Header["Content-Length"] != nil {
 			codeLen, _ = strconv.Atoi(resp.Header["Content-Length"][0])
+		} else {
+			codeLen = len(codeBytes)
 		}
 		lang := "undefined"
 		if resp.Header["Content-Type"] != nil {

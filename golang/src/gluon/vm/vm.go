@@ -3,6 +3,7 @@ package vm
 import (
 	"donpdonp/gluon/util"
 	"errors"
+	"fmt"
 
 	"github.com/matiasinsaurralde/go-wasm3"
 	"github.com/robertkrimen/otto"
@@ -51,6 +52,7 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	if vm.Lang() == "webassembly" {
+		return vm.Eval(vm.EvalDependencies(callBytes))
 	}
 	return "", errors.New("")
 }
@@ -58,10 +60,21 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 func (vm *VM) EvalDependencies(code []byte) map[string][]byte {
 	dependencies := map[string][]byte{}
 	lang := vm.Lang()
-	if lang == "webassembly" {
+	if lang == "javascript" {
+		dependencies["main"] = code
+	} else if lang == "webassembly" {
 		//dependencies = vm.EvalDependencyWasm(code)
+		module, err := vm.Wasm.ParseModule(code)
+		if err != nil {
+			fmt.Printf("vm.EvalDependencies wasm ParseModule err %v\n", err)
+		}
+		module, err = vm.Wasm.LoadModule(module)
+		if err != nil {
+			fmt.Printf("vm.EvalDependencies wasm LoadModule %v\n", err)
+		}
+		dependencies["main"] = []byte("_start")
+		// wasm manages its own modules/dependencies
 	}
-	dependencies["main"] = code
 	return dependencies
 }
 
@@ -70,6 +83,14 @@ func (vm *VM) Eval(dependencies map[string][]byte) (string, error) {
 	lang := vm.Lang()
 	if lang == "javascript" {
 		return vm.EvalJs(string(code))
+	} else if lang == "webassembly" {
+		fn, err := vm.Wasm.FindFunction(string(code)) // TODO
+		if err == nil {
+			result, _ := fn()
+			fmt.Printf("vm.Eval wasm findFunction %v %v\n", string(code), result)
+		} else {
+			fmt.Printf("vm.Eval wasm findFunction err %v %v\n", string(code), err)
+		}
 	}
 	return "", errors.New(lang)
 }
