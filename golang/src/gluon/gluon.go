@@ -462,20 +462,8 @@ func vm_add(owner string, url string, bus comm.Pubsub) (map[string]interface{}, 
 			//setup_json, err = vm.Eval(code)
 			err = errors.New("no ruby support.")
 		} else if vm.Lang() == "webassembly" {
-			dependencies := vm.EvalDependencies(codeBytes)
-			for name := range dependencies {
-				if name != "main" {
-					url := "http://localhost/" + name + ".wasm"
-					resp, codeBytes, _, err := comm.HttpGet(url, map[string]string{})
-					if resp.StatusCode != 200 || err != nil {
-						fmt.Printf("vm_add dependencies load error %s %#v %#v\n", url, resp.Status, err)
-					} else {
-						fmt.Printf("vm_add dependencies loaded %#v %d bytes\n", url, len(codeBytes))
-						dependencies[name] = codeBytes
-					}
-				}
-			}
-			setup_json, _ = vm.Eval(dependencies)
+			vm.EvalWasm(codeBytes)
+			setup_json, err = vm.Eval([]byte("go"))
 		} else {
 			err = errors.New("unknown lang " + lang)
 		}
@@ -536,8 +524,13 @@ func vm_reload(name string, bus comm.Pubsub) error {
 		fmt.Println(name + " found. reloading " + vm.Url)
 		_, codeBytes, _, err := comm.HttpGet(vm.Url, map[string]string{})
 		if err != nil {
-			_, err := vm.Eval(vm.EvalDependencies(codeBytes))
-			return err
+			if vm.Lang() == "javascript" {
+				_, err := vm.Eval(codeBytes)
+				return err
+			} else if vm.Lang() == "webassembly" {
+				vm.EvalWasm(codeBytes)
+				_, err = vm.Eval([]byte("go"))
+			}
 		}
 	}
 	return errors.New(name + " not found")

@@ -50,48 +50,39 @@ func (vm *VM) EvalGo(params_jbytes []byte) (string, error) {
 	var callBytes []byte
 	if vm.Lang() == "javascript" {
 		callBytes = []byte("go(" + params_json + ")")
-		return vm.Eval(vm.EvalDependencies(callBytes))
+		return vm.Eval(callBytes)
 	}
 	if vm.Lang() == "webassembly" {
-		return vm.Eval(vm.EvalDependencies(callBytes))
+		return vm.Eval(callBytes)
 	}
 	return "", errors.New("")
 }
 
-func (vm *VM) EvalDependencies(code []byte) map[string][]byte {
-	dependencies := map[string][]byte{}
-	lang := vm.Lang()
-	if lang == "javascript" {
-		dependencies["main"] = code
-	} else if lang == "webassembly" {
-		//dependencies = vm.EvalDependencyWasm(code)
-		module, err := vm.Wasm.ParseModule(code)
-		if err != nil {
-			fmt.Printf("vm.EvalDependencies wasm ParseModule err %v\n", err)
-		}
-		module, err = vm.Wasm.LoadModule(module)
-		if err != nil {
-			fmt.Printf("vm.EvalDependencies wasm LoadModule %v\n", err)
-		}
-		dependencies["main"] = []byte("_start")
-		// wasm manages its own modules/dependencies
+func (vm *VM) EvalWasm(code []byte) {
+	module, err := vm.Wasm.ParseModule(code)
+	if err != nil {
+		fmt.Printf("vm.EvalDependencies wasm ParseModule err %v\n", err)
 	}
-	return dependencies
+	module, err = vm.Wasm.LoadModule(module)
+	if err != nil {
+		fmt.Printf("vm.EvalDependencies wasm LoadModule %v\n", err)
+	}
 }
 
-func (vm *VM) Eval(dependencies map[string][]byte) (string, error) {
-	code := dependencies["main"]
+func (vm *VM) Eval(code []byte) (string, error) {
 	lang := vm.Lang()
 	if lang == "javascript" {
 		return vm.EvalJs(string(code))
 	} else if lang == "webassembly" {
 		fn, err := vm.Wasm.FindFunction(string(code)) // TODO
 		if err == nil {
-			result, _ := fn()
-			fmt.Printf("vm.Eval wasm findFunction %v %v\n", string(code), result)
+			result, err := fn(65)
+			fmt.Printf("vm.Eval wasm %v: %v (err %v)\n", string(code), result, err)
+			return "wasm fn return todo", err
 		} else {
 			fmt.Printf("vm.Eval wasm findFunction err %v %v\n", string(code), err)
+			return "", errors.New(fmt.Sprintf("findFunction %s = %v", code, err))
 		}
 	}
-	return "", errors.New(lang)
+	return "", errors.New(fmt.Sprintf("unknown language: %s", lang))
 }
