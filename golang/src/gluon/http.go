@@ -95,7 +95,6 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 			fmt.Printf("httpPost json.Marshal err %#v\n", err)
 		}
 		body = string(bodyBytes)
-		fmt.Printf("httpPost body (%d) %s\n", len(body),body)
 	} else {
 		fmt.Printf("httpPost unknown body param %#v", arg1)
 	}
@@ -104,14 +103,18 @@ func httpPost(vm *vm.VM, call otto.FunctionCall) otto.Value {
 	var ottoStr otto.Value
 	if err != nil {
 		resultDisplay = fmt.Sprintf("err %#v\n", err)
-		ottoStr, _ = otto.ToValue("")
+		ottoStr, _ = otto.ToValue(err.Error())
 	} else {
 		resultDisplay = fmt.Sprintf("response body %#v bytes.\n", len(resp_bytes))
 		ottoStr, _ = otto.ToValue(string(resp_bytes))
+		fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
+		for k, v := range resp.Header {
+			fmt.Printf("%s/%s %s %s\n", vm.Owner, vm.Name, k, v)
+		}
 	}
 	fmt.Printf("%s/%s http.post %s %s\n", vm.Owner, vm.Name, url, resultDisplay)
-	for k,v := range resp.Header {
-	  fmt.Printf("%s/%s %s %s\n", vm.Owner, vm.Name, k, v)
+	for k, v := range resp.Header {
+		fmt.Printf("%s/%s %s %s\n", vm.Owner, vm.Name, k, v)
 	}
 	return ottoStr
 }
