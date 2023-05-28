@@ -10,13 +10,14 @@ import (
 )
 
 type VM struct {
-	Id    string
-	Q     chan map[string]interface{}
-	Owner string
-	Name  string
-	Url   string
-	Js    *otto.Otto
-	Wasm  *wasm3.Runtime
+	Id       string
+	Q        chan map[string]interface{}
+	Owner    string
+	Name     string
+	Url      string
+	Js       *otto.Otto
+	Wasm     *wasm3.Runtime
+	WasmGoFn *wasm3.Function
 }
 
 func Factory(owner string, lang string) *VM {
@@ -67,6 +68,14 @@ func (vm *VM) EvalWasm(code []byte) {
 	if err != nil {
 		fmt.Printf("vm.EvalDependencies wasm LoadModule %v\n", err)
 	}
+	vm.Wasm.FindFunction("go") // TODO
+	fn, err := module.GetFunctionByName("go")
+	if err == nil {
+		fmt.Printf("module found go fn. saving.\n")
+		vm.WasmGoFn = fn
+	} else {
+		fmt.Printf("vm.Eval wasm findFunction err %s: %v\n", "go", err)
+	}
 }
 
 func (vm *VM) Eval(code []byte) (string, error) {
@@ -74,15 +83,12 @@ func (vm *VM) Eval(code []byte) (string, error) {
 	if lang == "javascript" {
 		return vm.EvalJs(string(code))
 	} else if lang == "webassembly" {
-		fn, err := vm.Wasm.FindFunction(string(code)) // TODO
-		if err == nil {
-			result, err := fn(65)
-			fmt.Printf("vm.Eval wasm %v: %v (err %v)\n", string(code), result, err)
-			return "wasm fn return todo", err
-		} else {
-			fmt.Printf("vm.Eval wasm findFunction err %v %v\n", string(code), err)
-			return "", errors.New(fmt.Sprintf("findFunction %s = %v", code, err))
-		}
+		fmt.Printf("vm.Eval calling wasm go fn.\n")
+		vm.WasmGoFn.CallWithArgs("A")
+		//fmt.Printf("vm.Eval done wasm go fn. e: %v\n", err)
+		// result, err :=
+		// fmt.Printf("vm.Eval wasm %v: %v (err %v)\n", string(code), result, err)
+		return "wasm fn return todo", nil
 	}
 	return "", errors.New(fmt.Sprintf("unknown language: %s", lang))
 }
