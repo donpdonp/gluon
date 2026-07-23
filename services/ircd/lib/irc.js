@@ -67,7 +67,7 @@ module.exports = function(publish){
 
   o.say = function(session, msg) {
     if(session) {
-      console.log('irc-'+session.id+'-'+session.state+'>', msg)
+      //console.log('irc-'+session.id+'-'+session.state+'>', msg)
       sockets[session.id].raw(msg)
     }
   }
@@ -182,7 +182,7 @@ module.exports = function(publish){
 //:bkero!~bkero@osuosl/staff/bkero PRIVMSG #pdxtech :Only can be copied with a $38 device on Aliexpress.
       case "PRIVMSG":
         var from_nick = ircmsg[1].split('!')[0]
-        log(session, [ircmsg])
+        //log(session, [ircmsg])
         if(from_nick != session.nick) {
           var ircbus = {method:'irc.privmsg',
                         params: {

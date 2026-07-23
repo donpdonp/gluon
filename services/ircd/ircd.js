@@ -17,7 +17,7 @@ var sessions = require('./lib/sessions')
 var irc = require('./lib/irc')(redis_pub)
 
 redisSub.on("subscribe", function (channel, count) {
-  console.log("redis subscribe "+channel)
+  console.log("redis subscribed "+channel)
 })
 
 redisSub.on("message", function (channel, message) {
@@ -31,6 +31,7 @@ redisSub.on("message", function (channel, message) {
   }
 })
 
+console.log('ircd.js redis subscribe '+pubsub_channel)
 redisSub.subscribe(pubsub_channel)
 
 function dispatch(payload) {
@@ -43,7 +44,7 @@ function dispatch(payload) {
   }
   if(cmd == 'list') {
     var session_list = sessions.list()
-    console.log("irc sessions:", session_list)
+    console.log("irc sessions:", session_list.map(s => [s.id, s.hostname, s.state]))
     redis_pub({id: payload.id, result: session_list})
   }
   if(cmd == 'disconnect') {
